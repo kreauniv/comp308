@@ -18,3 +18,15 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+pages: html
+	cd build/html && tar zcvf /tmp/comp308-html.tar.gz .
+	tar zcvf /tmp/comp308-backup.tar.gz .
+	git checkout gh-pages
+	git reset --hard 
+	git clean -f -d
+	tar zxvf /tmp/comp308-html.tar.gz 
+	git add *
+	git commit -m "Updated gh-pages"
+	git push
+	git checkout main

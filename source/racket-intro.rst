@@ -170,8 +170,24 @@ The parts of a "lambda expression" are --
 If you typed the lambda expression above into the REPL, it would've printed out
 ``#<procedure>``, meaning it made a procedure by evaluating that expression.
 
-We can give the hypotenuse procedure a name using the known ``define`` 
-as follows --
+For those of you familiar with Haskell, the above lambda-expression is
+equivalent to the following Haskell expression --
+
+.. code-block:: haskell
+
+    \ x y -> sqrt (x * x + y * y)
+
+A lot of what you see there could be called "surface structure". When
+we're trying to understand programs, this surface structure is more of
+a hindrance than help, so we tend to prefer simpler structures since we
+can manipulate them using programs -- yes, programs manipulating programs
+is easily done in Scheme and the lisp family of languages. In Scheme,
+there is only one way to express the above computation within the ``lambda``,
+which is ``(sqrt (+ (* x x) (* y y)))`` [#xy]_.
+
+Since lambda expressions produce functions which are also values that can be
+passed around just like numbers, strings, etc, we can give the hypotenuse
+procedure a name using the known ``define`` as follows --
 
 .. code-block:: racket
 
@@ -179,6 +195,20 @@ as follows --
 
 If you put that into the file and "Run" it, you can use ``hypotenuse``
 in the REPL like ``(hypotenuse 3 4)``.
+
+.. [#xy] ... barring the exchange of ``x`` and ``y`` variables. We don't
+   consider that because in order to see that it is ok to exchange ``x``
+   and ``y`` and still get the same answer, you need to know that ``+``
+   is commutative -- i.e. its order of operands does not matter. This is
+   not within the scope of a language that treats all operators in the same
+   spirit. Of course, you're welcome to write program transformations that
+   take into account such special information about specific operators.
+   When you do that though, you'll still appreciate that an expression has
+   unambiguous interpretation just from the syntax alone. The Haskell expression
+   ``(x * x + y * y)``,for example, can be interpreted either as 
+   ``((x * x) + (y * y))`` or ``(x * (x + y) * y)`` without additional
+   information about the order of operations. This ambiguity does not exist
+   in Scheme.
 
 Evaluation by substitution
 --------------------------
@@ -192,7 +222,7 @@ above --
    that ``#<procedure:list>`` is not a usable value in Scheme and is just how
    compiled procedures with a name get printed out in the REPL. We're using
    ``#<list>`` and such here only to distinguish between the symbol ``list``
-   and the procedure value that it is bound to.
+   and the *procedure value* that it is bound to.
 
 .. code-block:: racket
 

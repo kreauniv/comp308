@@ -74,12 +74,11 @@ The above "things" are simple data types. Scheme also has compound "things",
 given below --
 
 **Pairs**
-    These are written like this -- ``'(<first-thing> . <second-thing>)``.
-    Note the quote character in front telling the REPL that it is intended
-    to be treated as a "literal" and not to lookup any symbol's value of
-    evaluate anything for that matter. The period character in the middle
-    separates the first and the second parts of the "pair". This is also
-    called a "cons pair".
+    These are written like this -- ``'(<first-thing> . <second-thing>)``. Note
+    the quote character in front telling the REPL that it is intended to be
+    treated as a "literal" and not to lookup any symbol's value or evaluate
+    anything. The period character in the middle separates the first and the
+    second parts of the "pair". This is also called a "cons pair".
 
 **Lists**
     You can store many things in a compound structure by nesting pairs like

@@ -239,6 +239,22 @@ above --
     (#<list> "hello comp308" 3 4 5) 
     '("hello comp308" 3 4 5)
 
+A simpler presentation of the above evaluation sequence can be made, which
+shows more clearly that inner operator expressions get evaluated before the
+outer ones. In the simpler presentation below, we'll also dispense with the
+distinction between pre-defined symbols like ``list`` and their procedure
+values ``#<procedure:list>``.
+
+.. code-block:: racket
+
+    (list hello 3 4 (sqrt (+ (* 3 3) (* 4 4))))
+    (list "hello comp308" 3 4 (sqrt (+ (* 3 3) (* 4 4))))
+    (list "hello comp308" 3 4 (sqrt (+ 9 (* 4 4))))
+    (list "hello comp308" 3 4 (sqrt (+ 9 16)))
+    (list "hello comp308" 3 4 (sqrt 25))
+    (list "hello comp308" 3 4 5)
+    '("hello comp308" 3 4 5)
+
 We can similarly think of evaluating the ``(hypotenuse 3 4)``
 expression using substitution as follows --
 
@@ -249,13 +265,9 @@ expression using substitution as follows --
     ; Substitute the given values in the body of the lambda expression
     ; and get rid of "lambda" and the formal parameters.
     (sqrt (+ (* 3 3) (* 4 4)))
-    (#<sqrt> (+ (* 3 3) (* 4 4)))
-    (#<sqrt> (#<+> (* 3 3) (* 4 4)))
-    (#<sqrt> (#<+> (#<*> 3 3) (* 4 4)))
-    (#<sqrt> (#<+> 9 (* 4 4)))
-    (#<sqrt> (#<+> 9 (#<*> 4 4)))
-    (#<sqrt> (#<+> 9 16))
-    (#<sqrt> 25)
+    (sqrt (+ 9 (* 4 4)))
+    (sqrt (+ 9 16))
+    (sqrt 25)
     5
 
 The main thing to understand in the above sequence is the first step

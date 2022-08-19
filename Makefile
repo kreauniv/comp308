@@ -21,12 +21,13 @@ help:
 
 pages: html
 	cd build/html && tar zcvf /tmp/comp308-html.tar.gz .
-	tar zcvf /tmp/comp308-backup.tar.gz .
+	tar zcvf /tmp/comp308-backup-`date "+%Y%m%d%H%M%S"`.tar.gz .
 	git checkout gh-pages
 	git reset --hard 
 	git clean -f -d
 	tar zxvf /tmp/comp308-html.tar.gz 
 	git add *
+	git add -u *
 	git commit -m "Updated gh-pages"
 	git push
 	git checkout main

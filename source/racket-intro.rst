@@ -460,7 +460,9 @@ in the preceding text.
 .. code-block:: racket
 
     ; 0
-    (list (+ 3 4 5 6) (* 14 (+ 10 5)) (string-append "hello" " " "world"))
+    (list (+ 3 4 5 6)
+          (* 14 (+ 10 5))
+          (string-append "hello" " " "world"))
     (if (= (remainder 8 2) 0)
         (quotient 8 2)
         (+ (* 3 8) 1))

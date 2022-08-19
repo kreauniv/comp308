@@ -180,13 +180,43 @@ argument list.</p></li>
 </ol>
 <p>If you typed the lambda expression above into the REPL, it would’ve printed out
 <code class="docutils literal notranslate"><span class="pre">#&lt;procedure&gt;</span></code>, meaning it made a procedure by evaluating that expression.</p>
-<p>We can give the hypotenuse procedure a name using the known <code class="docutils literal notranslate"><span class="pre">define</span></code>
-as follows –</p>
+<p>For those of you familiar with Haskell, the above lambda-expression is
+equivalent to the following Haskell expression –</p>
+<div class="highlight-haskell notranslate"><div class="highlight"><pre><span></span><span class="nf">\</span> <span class="n">x</span> <span class="n">y</span> <span class="ow">-&gt;</span> <span class="n">sqrt</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A lot of what you see there could be called “surface structure”. When
+we’re trying to understand programs, this surface structure is more of
+a hindrance than help, so we tend to prefer simpler structures since we
+can manipulate them using programs – yes, programs manipulating programs
+is easily done in Scheme and the lisp family of languages. In Scheme,
+there is only one way to express the above computation within the <code class="docutils literal notranslate"><span class="pre">lambda</span></code>,
+which is <code class="docutils literal notranslate"><span class="pre">(sqrt</span> <span class="pre">(+</span> <span class="pre">(*</span> <span class="pre">x</span> <span class="pre">x)</span> <span class="pre">(*</span> <span class="pre">y</span> <span class="pre">y)))</span></code> <a class="footnote-reference brackets" href="#xy" id="id1">1</a>.</p>
+<p>Since lambda expressions produce functions which are also values that can be
+passed around just like numbers, strings, etc, we can give the hypotenuse
+procedure a name using the known <code class="docutils literal notranslate"><span class="pre">define</span></code> as follows –</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">hypotenuse</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="n">x</span> <span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="n">y</span> <span class="n">y</span><span class="p">)))))</span>
 </pre></div>
 </div>
 <p>If you put that into the file and “Run” it, you can use <code class="docutils literal notranslate"><span class="pre">hypotenuse</span></code>
 in the REPL like <code class="docutils literal notranslate"><span class="pre">(hypotenuse</span> <span class="pre">3</span> <span class="pre">4)</span></code>.</p>
+<dl class="footnote brackets">
+<dt class="label" id="xy"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>… barring the exchange of <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> variables. We don’t
+consider that because in order to see that it is ok to exchange <code class="docutils literal notranslate"><span class="pre">x</span></code>
+and <code class="docutils literal notranslate"><span class="pre">y</span></code> and still get the same answer, you need to know that <code class="docutils literal notranslate"><span class="pre">+</span></code>
+is commutative – i.e. its order of operands does not matter. This is
+not within the scope of a language that treats all operators in the same
+spirit. Of course, you’re welcome to write program transformations that
+take into account such special information about specific operators.
+When you do that though, you’ll still appreciate that an expression has
+unambiguous interpretation just from the syntax alone. The Haskell expression
+<code class="docutils literal notranslate"><span class="pre">(x</span> <span class="pre">*</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">y</span> <span class="pre">*</span> <span class="pre">y)</span></code>,for example, can be interpreted either as
+<code class="docutils literal notranslate"><span class="pre">((x</span> <span class="pre">*</span> <span class="pre">x)</span> <span class="pre">+</span> <span class="pre">(y</span> <span class="pre">*</span> <span class="pre">y))</span></code> or <code class="docutils literal notranslate"><span class="pre">(x</span> <span class="pre">*</span> <span class="pre">(x</span> <span class="pre">+</span> <span class="pre">y)</span> <span class="pre">*</span> <span class="pre">y)</span></code> without additional
+information about the order of operations. This ambiguity does not exist
+in Scheme.</p>
+</dd>
+</dl>
 </div>
 <div class="section" id="evaluation-by-substitution">
 <h2>Evaluation by substitution<a class="headerlink" href="#evaluation-by-substitution" title="Permalink to this headline">¶</a></h2>
@@ -200,7 +230,7 @@ above –</p>
 that <code class="docutils literal notranslate"><span class="pre">#&lt;procedure:list&gt;</span></code> is not a usable value in Scheme and is just how
 compiled procedures with a name get printed out in the REPL. We’re using
 <code class="docutils literal notranslate"><span class="pre">#&lt;list&gt;</span></code> and such here only to distinguish between the symbol <code class="docutils literal notranslate"><span class="pre">list</span></code>
-and the procedure value that it is bound to.</p>
+and the <em>procedure value</em> that it is bound to.</p>
 </div>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nb">list</span> <span class="n">hello</span> <span class="mi">3</span> <span class="mi">4</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="mi">3</span> <span class="mi">3</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="mi">4</span> <span class="mi">4</span><span class="p">))))</span>
 <span class="p">(</span><span class="n">#&lt;list&gt;</span> <span class="n">hello</span> <span class="mi">3</span> <span class="mi">4</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="mi">3</span> <span class="mi">3</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="mi">4</span> <span class="mi">4</span><span class="p">))))</span>
@@ -324,7 +354,7 @@ space must be there between the terms of an s-expression.</p>
 <div class="section" id="read-and-write">
 <h3><code class="docutils literal notranslate"><span class="pre">read</span></code> and <code class="docutils literal notranslate"><span class="pre">write</span></code><a class="headerlink" href="#read-and-write" title="Permalink to this headline">¶</a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">write</span></code> procedure can be used to write out a serialized form of the given
-value. For example <code class="docutils literal notranslate"><span class="pre">(write</span> <span class="pre">'(+</span> <span class="pre">2</span> <span class="pre">3))</span></code> <a class="footnote-reference brackets" href="#quote" id="id1">1</a> will print out <code class="docutils literal notranslate"><span class="pre">(+</span> <span class="pre">2</span> <span class="pre">3)</span></code>
+value. For example <code class="docutils literal notranslate"><span class="pre">(write</span> <span class="pre">'(+</span> <span class="pre">2</span> <span class="pre">3))</span></code> <a class="footnote-reference brackets" href="#quote" id="id2">2</a> will print out <code class="docutils literal notranslate"><span class="pre">(+</span> <span class="pre">2</span> <span class="pre">3)</span></code>
 and <code class="docutils literal notranslate"><span class="pre">(write</span> <span class="pre">(+</span> <span class="pre">2</span> <span class="pre">3))</span></code> will print out <code class="docutils literal notranslate"><span class="pre">5</span></code>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">read</span></code> procedure is like a dual of <code class="docutils literal notranslate"><span class="pre">write</span></code>, in that it will read one
 expression from the input and return it in parsed form. The agreement between
@@ -337,7 +367,7 @@ two functions are why the REPL is called the REPL - “read eval print loop”.
 The first three parts can literally be written as <code class="docutils literal notranslate"><span class="pre">(print</span> <span class="pre">(eval</span> <span class="pre">(read)))</span></code>
 in Scheme and “loop” refers to doing that over and over.</p>
 <dl class="footnote brackets">
-<dt class="label" id="quote"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dt class="label" id="quote"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
 <dd><p>Note the quote symbol on the argument to write means the argument
 won’t be evaluated. Also note tha the output of <code class="docutils literal notranslate"><span class="pre">write</span></code> didn’t have the
 quote symbol.</p>
@@ -353,7 +383,7 @@ we’ll go through how they can be reduce to these to understand them. There are
 also a few variations used mostly for programming convenience and reducing
 verbosity. We’ll see these as we go along and they’ll be obvious to you when we
 encounter them. But conceptually, the above is what you need.</p>
-<p>Don’t be fooled by the short list above though. <a class="footnote-reference brackets" href="#short" id="id2">2</a> The Racket system comes with
+<p>Don’t be fooled by the short list above though. <a class="footnote-reference brackets" href="#short" id="id3">3</a> The Racket system comes with
 batteries included – a whole host of functionalities provided using modules
 and sub-languages (which are also made as modules) using which you can build
 sophisticated applications including <a class="reference external" href="https://docs.racket-lang.org/gui/index.html">desktop GUI</a> applications, <a class="reference external" href="https://docs.racket-lang.org/web-server/">web
@@ -383,7 +413,7 @@ symbol names</a>. To get the <code class="docutils literal notranslate"><span cl
 with the cursor at the end, press the Ctrl-\ key combination (control +
 backslash) to turn the <code class="docutils literal notranslate"><span class="pre">\lambda</span></code> into <code class="docutils literal notranslate"><span class="pre">λ</span></code>.</p>
 <dl class="footnote brackets">
-<dt class="label" id="short"><span class="brackets"><a class="fn-backref" href="#id2">2</a></span></dt>
+<dt class="label" id="short"><span class="brackets"><a class="fn-backref" href="#id3">3</a></span></dt>
 <dd><p>Compared to what we’d have to learn for a language like Python,
 or C/C++ or Java. The only other language with similar brief explanation
 of how it works is the object oriented language <a class="reference external" href="https://squeak.org/">Smalltalk</a>.</p>

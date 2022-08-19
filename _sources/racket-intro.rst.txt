@@ -108,6 +108,7 @@ of application of the operator. For example, type the following into the
 REPL to see what you get as a result --
 
 * ``(+ 2 3 4 5)`` 
+* ``(cons 10 "hello")``
 * ``(list 2 3 4 5)``
 * ``(+ (* 3 3) (* 4 4))``
 * ``(string->symbol "hello")``

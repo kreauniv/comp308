@@ -1,0 +1,91 @@
+Racket
+======
+
+We'll be using the Racket_ programming language as the base language to work
+through this course. Racket_ is a dialect of Scheme_ (by which we usually refer
+to the standard "R5RS_" or more recently "R6RS_"). Racket_ offers facilities 
+based on which other languages can be defined and used, using the a declaration
+such as ``#lang racket`` at the top of your source code files.
+
+.. index::
+   single: #lang plai-typed
+
+For our purpose, we'll be using the "PLAI typed" language which is declared
+using ``#lang plai-typed``. 
+
+.. _Racket: https://www.racket-lang.org
+.. _Scheme: https://en.wikipedia.org/wiki/Scheme_(programming_language)
+.. _R5RS: https://schemers.org/Documents/Standards/R5RS/
+.. _R6RS: https://docs.racket-lang.org/r6rs/index.html
+
+Installation yada yada 
+----------------------
+
+You're in your 3rd year of the CS stream. So some expectations will be placed
+on you.
+
+1. **On you:** You have the Racket_ link given to you. So you're expected to
+   figure out how to install the Racket environment on your computer, run the
+   DrRacket program, read documentation and figure out the basics of opening a
+   file, putting some code in it, running it, interacting with your defined
+   functions etc. all on your own. You can draw on your peers, of course.
+
+2. **On us:** We will introduce you to the language itself, which is rather new
+   to you. So you don't have to teach yourself the language ... which would
+   make this course rather pointless. You're only expected to figure out the
+   mechanics of the software on your own.
+
+3. **On you:** Use each other for "tech support". Some of you may figure out
+   the mechanics quicker than others. Those who are having trouble should seek
+   the help of those who've succeeded. Use the course discussion group to
+   resolve your issues among yourselves.
+
+4. **On us:** If you're having difficulties understanding certain concepts or
+   why some particular program doesn't behave as expected, reach out to us. Of
+   course, you're welcome to reach out to your peers too, but we'll help you
+   figure that out.
+
+5. **On you:** You're expected to be reasonably comfortable with the idea of a
+   "shell" a.k.a. "command line" a.k.a. "REPL", where you enter commands
+   and results get printed out. We will not demand expert level knowledge
+   of shells/REPLs and only basic familiarity is needed for the course.
+
+While we'll spend a couple of lectures with the basics of Racket and the
+``plai-typed`` language, the pace of the course will be tight and you could
+find yourself struggling to keep up if you do not work on the assignments to
+learn and improve your understanding.
+
+A note on **collaboration**. You're welcome to collaborate on problems with
+your classmates initially. As we go along, we urge you to work more and more on
+your own. Collaboration can help improve your understanding but should
+**never** result in copied code. Understand through discussion, but work
+through the code and problem solutions yourselves. Course notes posted in
+tandem with the class sessions should help you along too. For obvious reasons,
+collaboration will not be permitted during quizzes.
+
+Why Racket?
+-----------
+
+Racket and Scheme are both dialects in the "LiSP" family of languages. If
+you're not aware already, "LiSP" stands for "LiSt Processor" -- a name given
+due to its extensive usage of the "list" data structure to represent both code
+and data. There is close relationship between the "abstract syntax tree" of the
+language and its textual form which is a flattened representation of the tree
+called an "s-expression" (for "symbolic expression"). This simplicity pays off
+a lot when we're interpreting our own language as well as when we're working
+with lambda expressions.
+
+The Racket environment is very student friendly, if not the most student
+friendly programming environment you'll find. It also has a long history of CS
+pedagogical work behind it. So we expect you'll have a pleasant experience
+working with it.
+
+Working with a LiSP language can elicit many reactions ranging from "why so
+many parentheses, damn it!" on one end all the way to "how are people
+tolerating other languages!" at the other end. It has been described, for
+example, as "not a language, but a building material", and as "a programmable
+programming language". Hopefully, you'll see its value for the purpose of
+this course and how you can take these learnings forward no matter what
+languages you work in.
+
+

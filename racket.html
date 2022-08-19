@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Racket &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="racket">
+<h1>Racket<a class="headerlink" href="#racket" title="Permalink to this headline">¶</a></h1>
+<p>We’ll be using the <a class="reference external" href="https://www.racket-lang.org">Racket</a> programming language as the base language to work
+through this course. <a class="reference external" href="https://www.racket-lang.org">Racket</a> is a dialect of <a class="reference external" href="https://en.wikipedia.org/wiki/Scheme_(programming_language)">Scheme</a> (by which we usually refer
+to the standard “<a class="reference external" href="https://schemers.org/Documents/Standards/R5RS/">R5RS</a>” or more recently “<a class="reference external" href="https://docs.racket-lang.org/r6rs/index.html">R6RS</a>”). <a class="reference external" href="https://www.racket-lang.org">Racket</a> offers facilities
+based on which other languages can be defined and used, using the a declaration
+such as <code class="docutils literal notranslate"><span class="pre">#lang</span> <span class="pre">racket</span></code> at the top of your source code files.</p>
+<p id="index-0">For our purpose, we’ll be using the “PLAI typed” language which is declared
+using <code class="docutils literal notranslate"><span class="pre">#lang</span> <span class="pre">plai-typed</span></code>.</p>
+<div class="section" id="installation-yada-yada">
+<h2>Installation yada yada<a class="headerlink" href="#installation-yada-yada" title="Permalink to this headline">¶</a></h2>
+<p>You’re in your 3rd year of the CS stream. So some expectations will be placed
+on you.</p>
+<ol class="arabic simple">
+<li><p><strong>On you:</strong> You have the <a class="reference external" href="https://www.racket-lang.org">Racket</a> link given to you. So you’re expected to
+figure out how to install the Racket environment on your computer, run the
+DrRacket program, read documentation and figure out the basics of opening a
+file, putting some code in it, running it, interacting with your defined
+functions etc. all on your own. You can draw on your peers, of course.</p></li>
+<li><p><strong>On us:</strong> We will introduce you to the language itself, which is rather new
+to you. So you don’t have to teach yourself the language … which would
+make this course rather pointless. You’re only expected to figure out the
+mechanics of the software on your own.</p></li>
+<li><p><strong>On you:</strong> Use each other for “tech support”. Some of you may figure out
+the mechanics quicker than others. Those who are having trouble should seek
+the help of those who’ve succeeded. Use the course discussion group to
+resolve your issues among yourselves.</p></li>
+<li><p><strong>On us:</strong> If you’re having difficulties understanding certain concepts or
+why some particular program doesn’t behave as expected, reach out to us. Of
+course, you’re welcome to reach out to your peers too, but we’ll help you
+figure that out.</p></li>
+<li><p><strong>On you:</strong> You’re expected to be reasonably comfortable with the idea of a
+“shell” a.k.a. “command line” a.k.a. “REPL”, where you enter commands
+and results get printed out. We will not demand expert level knowledge
+of shells/REPLs and only basic familiarity is needed for the course.</p></li>
+</ol>
+<p>While we’ll spend a couple of lectures with the basics of Racket and the
+<code class="docutils literal notranslate"><span class="pre">plai-typed</span></code> language, the pace of the course will be tight and you could
+find yourself struggling to keep up if you do not work on the assignments to
+learn and improve your understanding.</p>
+<p>A note on <strong>collaboration</strong>. You’re welcome to collaborate on problems with
+your classmates initially. As we go along, we urge you to work more and more on
+your own. Collaboration can help improve your understanding but should
+<strong>never</strong> result in copied code. Understand through discussion, but work
+through the code and problem solutions yourselves. Course notes posted in
+tandem with the class sessions should help you along too. For obvious reasons,
+collaboration will not be permitted during quizzes.</p>
+</div>
+<div class="section" id="why-racket">
+<h2>Why Racket?<a class="headerlink" href="#why-racket" title="Permalink to this headline">¶</a></h2>
+<p>Racket and Scheme are both dialects in the “LiSP” family of languages. If
+you’re not aware already, “LiSP” stands for “LiSt Processor” – a name given
+due to its extensive usage of the “list” data structure to represent both code
+and data. There is close relationship between the “abstract syntax tree” of the
+language and its textual form which is a flattened representation of the tree
+called an “s-expression” (for “symbolic expression”). This simplicity pays off
+a lot when we’re interpreting our own language as well as when we’re working
+with lambda expressions.</p>
+<p>The Racket environment is very student friendly, if not the most student
+friendly programming environment you’ll find. It also has a long history of CS
+pedagogical work behind it. So we expect you’ll have a pleasant experience
+working with it.</p>
+<p>Working with a LiSP language can elicit many reactions ranging from “why so
+many parentheses, damn it!” on one end all the way to “how are people
+tolerating other languages!” at the other end. It has been described, for
+example, as “not a language, but a building material”, and as “a programmable
+programming language”. Hopefully, you’ll see its value for the purpose of
+this course and how you can take these learnings forward no matter what
+languages you work in.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Comp308: Principles of Programming Languages</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Srikumar K. S..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/racket.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

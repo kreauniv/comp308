@@ -1,0 +1,35 @@
+Cleaner Kleene
+==============
+
+.. code-block:: racket
+
+    #lang racket
+
+    (define (pair a b)
+      (lambda (sel)
+        (sel a b)))
+
+    (define (.first a b) a)
+    (define (.second a b) b)
+
+    (define Z (lambda (p) (lambda (x) x)))
+
+    (define (suc N)
+      (lambda (p)
+        (lambda (x)
+          ((p .first) ((N p) x)))))
+
+    (define (pre N)
+      (lambda (p)
+        (lambda (x)
+          ((p .second) ((N p) x)))))
+
+    ; Display helpers
+    (define (i->n i)
+      (if (equal? i 0)
+          Z
+          (suc (i->n (sub1 i)))))
+
+    (define (n->i n)
+      ((n (pair add1 sub1)) 0))
+

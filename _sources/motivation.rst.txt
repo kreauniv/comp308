@@ -1,0 +1,65 @@
+Motivation
+==========
+
+Welcome to "Comp308: Principles of programming languages"!
+
+Much deep interaction with computers happens via programming languages.
+This is true to the extent that much naive introduction to computing
+is couched as learning to program in a specific language, such as
+Python or Java or C++. 
+
+.. note:: Try to list as many programming languages as you've heard of and see
+   if you can say something about each of them. How many could you list?
+
+In the industry, as a practitioner, you will invariably encounter systems being
+built using a variety of programming lanaguges, not all of which you'd have
+learnt a priori. Your "web service" may be developed using, for example, Rust_
+for the backend operations, using SQL_ for database queries, Python_ for periodic
+maintenance jobs, with Typescript_ for the in-browser functionalities and CSS
+for styling content. What's more, it is quite likely that if you're building a
+system with some degree of complexity, you'll be creating a language or at
+least what's referred to as a "domain specific language" whether you recognize
+it or not.
+
+.. _Rust: https://www.rust-lang.org
+.. _Python: https://www.python.org
+.. _Typescript: https://www.typescriptlang.org
+.. _SQL: https://www.iso.org/standard/63555.html
+
+So what are you to do as a programmer if you knew only one of those languages?
+You'll need to pickup some of those at least to read your colleague's code. How
+quickly can you do that? More importantly, how **reliably** can you do that so
+that you don't misinterpret the code your colleague has written and *introduce*
+bugs in the processing of "fixing" the code?
+
+Taking a step back, why do you think so many programming languages were
+invented? Is it that computer scientists couldn't just make up their minds?
+What's stopping us from creating the "one true programming language" and be
+done with it? Are some programming languages better than others? On what basis
+can we say that? Are some of them more "powerful" than others? Again, on what
+basis can we say that?
+
+Given programming languages are also a "human interface" of computations,
+what sorts of human concerns take stage when constructing a language?
+
+Is the power differential between "language creators" and "language users"
+(i.e. programmers) irresolvable? Can "language users" wield the same power as
+the language creators? What sorts of language capabilities can give them that
+power? Can that be "too much power"?
+
+Answering those kinds of questions about these things we're calling programming
+languages is the purpose of this course. Our hope is that by the end you'll
+have a good enough grasp of the **design space** of languages that you'll be
+able to explore and answer many of those questions as you progress in the
+discipline.
+
+Notice that we just framed the creation of a programming language as a
+**design** problem. Much of this course therefore can be summarized in the one
+question "What if?" -- i.e. not taking the implemented behaviours of
+programming languages that you know as law and asking "what if we made a
+different choice there?" at almost every point. You do not need deep knowledge
+of algorithms and data structures to do this. Just a sharp critical mind.
+
+It's a fun ride. Fasten your seatbelts!
+
+

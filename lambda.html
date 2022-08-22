@@ -89,7 +89,7 @@ expression, then it is equivalent to <code class="docutils literal notranslate">
 <div><p><code class="docutils literal notranslate"><span class="pre">((lambda</span> <span class="pre">(x)</span> <span class="pre">E1[x])</span> <span class="pre">E2)</span> <span class="pre">=&gt;</span> <span class="pre">E1[E2]</span></code></p>
 </div></blockquote>
 <p>It is important to note that when we say “is equivalent to”, it means you
-can rewrite an sub-expression that looks like one side to the other form
+can rewrite a sub-expression that looks like one side to the other form
 <strong>anywhere</strong>. We refer to the above left-to-right rewrite as “β-reduction”
 and the corresponding right-to-left rewrite as “β-abstraction”.</p>
 <p>Just as lambdas are the conceptual basis of all of computation, all
@@ -115,11 +115,11 @@ whereas <code class="docutils literal notranslate"><span class="pre">((lambda</s
 try to apply the reduction rules. If you took the “β-reduction” rule in the
 naive way, you might end up with <code class="docutils literal notranslate"><span class="pre">(*</span> <span class="pre">10</span> <span class="pre">((lambda</span> <span class="pre">(10)</span> <span class="pre">(-</span> <span class="pre">10</span> <span class="pre">1))</span> <span class="pre">10))</span></code> and
 then scratch your head about what you have at hand and what to do with it next!
-To do this correctly, you must see that the original expression is the same
-as <code class="docutils literal notranslate"><span class="pre">((lambda</span> <span class="pre">(x)</span> <span class="pre">(*</span> <span class="pre">x</span> <span class="pre">((lambda</span> <span class="pre">(y)</span> <span class="pre">(-</span> <span class="pre">y</span> <span class="pre">1))</span> <span class="pre">x)))</span> <span class="pre">10)</span></code> .. where we’ve
-done “α-renamed” the inner lambda’s <code class="docutils literal notranslate"><span class="pre">x</span></code> variable to <code class="docutils literal notranslate"><span class="pre">y</span></code>, because, well
-they’re supposed to be equivalent right? If you now do β-reduction on this
-equivalent expression, you won’t be left with the confused expression.</p>
+To do this correctly, you must see that the original expression is the same as
+<code class="docutils literal notranslate"><span class="pre">((lambda</span> <span class="pre">(x)</span> <span class="pre">(*</span> <span class="pre">x</span> <span class="pre">((lambda</span> <span class="pre">(y)</span> <span class="pre">(-</span> <span class="pre">y</span> <span class="pre">1))</span> <span class="pre">x)))</span> <span class="pre">10)</span></code> .. where we’ve “α-renamed”
+the inner lambda’s <code class="docutils literal notranslate"><span class="pre">x</span></code> variable to <code class="docutils literal notranslate"><span class="pre">y</span></code>, because, well they’re supposed to
+be equivalent right? If you now do β-reduction on this equivalent expression,
+you won’t be left with the confused expression.</p>
 <p>So the two rules are taken to be <strong>always</strong> applicable in evaluating an
 expression and all correct applications of the rules must evaluate to
 the same result no matter the sequence in which they’re applied.</p>

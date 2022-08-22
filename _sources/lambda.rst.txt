@@ -5,15 +5,15 @@ If Alonzo Church were asked "how far does the computational rabbit hole go?",
 he might have answered "It's :rkt:`lambda` all the way through.".
 
 Alonzo Church, in the 1930s (yes, that's getting to be a century ago!), and his
-students formulated what could be the called the essence of anything
-computable. The insight they had was that given functions and function
-applications, anything that can be computed is expressible. Note that we aren't
-talking about functions of numbers or strings or booleans or anything else. The
-only entities in Church's world are functions, and the only thing you can do
-with them is to apply them to other things (which are ... functions) ... and he
-claimed that all of what's computable is expressible using these! What's known
-as the `Church-Turing thesis`_ is the proof that Church's "lambda calculus"
-is equivalent in its universality to Alan Turing's "Turing machine".
+students formulated what could be called the essence of anything computable.
+The insight they had was that given functions and function applications,
+anything that can be computed is expressible. Note that we aren't talking about
+functions of numbers or strings or booleans or anything else. The only entities
+in Church's world are functions, and the only thing you can do with them is to
+apply them to other things (which are ... functions) ... and he claimed that
+all of what's computable is expressible using these! What's known as the
+`Church-Turing thesis`_ is the proof that Church's "lambda calculus" is
+equivalent in its universality to Alan Turing's "Turing machine".
 
 .. _Church-Turing thesis: https://en.wikipedia.org/wiki/Church%E2%80%93Turing_thesis
 

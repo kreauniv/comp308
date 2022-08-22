@@ -11,5 +11,6 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    :caption: Contents:
 
    racket-intro
+   lambda
 
 

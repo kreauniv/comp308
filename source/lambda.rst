@@ -28,9 +28,12 @@ on to programming languages by their creators without a taste for minimalism.
 
 The process of taking an expression that's rich in "syntactic sugar" and
 producing an equivalent expression using fewer "primitives" is something we'll
-refer to as "desugaring". Since it is a kind of translation, it could also be
-taken as a kind of "compilation", but in case that scares you, don't worry
-and just stick to "desugaring".
+refer to as "desugaring". Such a reduction is useful because it is usually
+easier to reason about properties of a program if we have to deal with fewer
+basic entities in it, than if we complicate it with ... well, "syntactic
+sugar". Since desugaring is a kind of translation, it could also be taken as a
+kind of "compilation", but in case that scares you, don't worry and just stick
+to "desugaring".
 
 The point of lambdas is that lambdas are at the end of the entire stack of
 sugarings. The buck stops with them.

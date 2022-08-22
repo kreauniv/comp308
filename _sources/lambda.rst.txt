@@ -126,7 +126,7 @@ using nested structures like ``(pair (pair a b) (pair (pair c d) (pair e f)))``.
 Or tables as a list of lists. Or even graphs. So if we can show we can
 represent pairs using just ``lambda``, we're good with the other structures.
 
-``(define pair (lambda (x y) ...)``
+``(define pair (lambda (x y) ...))``
 
 What should we put within the ``...``? In fact, what **can** we put in there
 when all we have are functions (i.e. lambda expressions)? So we're now

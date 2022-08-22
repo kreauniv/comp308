@@ -35,7 +35,7 @@
   <div class="section" id="lambda-the-everything">
 <h1>Lambda - the everything<a class="headerlink" href="#lambda-the-everything" title="Permalink to this headline">¶</a></h1>
 <p>If Alonzo Church were asked “how far does the computational rabbit hole go?”,
-he might have answered “It’s <code class="docutils literal notranslate"><span class="pre">lambda</span></code> all the way through.”.</p>
+he might have answered “It’s <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code> all the way through.”.</p>
 <p>Alonzo Church, in the 1930s (yes, that’s getting to be a century ago!), and his
 students formulated what could be the called the essence of anything
 computable. The insight they had was that given functions and function
@@ -46,7 +46,7 @@ with them is to apply them to other things (which are … functions) … and he
 claimed that all of what’s computable is expressible using these! What’s known
 as the <a class="reference external" href="https://en.wikipedia.org/wiki/Church%E2%80%93Turing_thesis">Church-Turing thesis</a> is the proof that Church’s “lambda calculus”
 is equivalent in its universality to Alan Turing’s “Turing machine”.</p>
-<p>Take a moment to digest that large claim, for the <code class="docutils literal notranslate"><span class="pre">lambda</span></code> construct in
+<p>Take a moment to digest that large claim, for the <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code> construct in
 Scheme is directly based on that foundational insight. In studying programming
 languages, we repeatedly encounter this idea of “we can express X in terms of
 Y” and where we make larger sets of these “X”s for our convenience where a much
@@ -62,31 +62,31 @@ and just stick to “desugaring”.</p>
 <p>The point of lambdas is that lambdas are at the end of the entire stack of
 sugarings. The buck stops with them.</p>
 <div class="section" id="so-what-s-lambda">
-<h2>So what’s <code class="docutils literal notranslate"><span class="pre">lambda</span></code><a class="headerlink" href="#so-what-s-lambda" title="Permalink to this headline">¶</a></h2>
+<h2>So what’s <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code><a class="headerlink" href="#so-what-s-lambda" title="Permalink to this headline">¶</a></h2>
 <p>In Scheme, a “lambda expression” is an expression of the general form
 shown below –</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">..&lt;list-of-var-names&gt;..</span><span class="p">)</span> <span class="n">&lt;expr-using-vars-in-the-list&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>It represents a packaged computation that can be performed when given concrete
-values for the variables listed after <code class="docutils literal notranslate"><span class="pre">lambda</span></code> in the above expression.</p>
-<p>For example, <code class="docutils literal notranslate"><span class="pre">(lambda</span> <span class="pre">(x)</span> <span class="pre">(*</span> <span class="pre">x</span> <span class="pre">x))</span></code> is the function that squares numbers.
-When given a number <code class="docutils literal notranslate"><span class="pre">2</span></code>, by substituting <code class="docutils literal notranslate"><span class="pre">x</span></code> with <code class="docutils literal notranslate"><span class="pre">2</span></code>, you can compute
-the result of what the lambda expression denotes – which is <code class="docutils literal notranslate"><span class="pre">(*</span> <span class="pre">2</span> <span class="pre">2)</span> <span class="pre">=</span> <span class="pre">4</span></code>.</p>
-<p>There are two main rules you need to know when working with <code class="docutils literal notranslate"><span class="pre">lambda</span></code>
+values for the variables listed after <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code> in the above expression.</p>
+<p>For example, :rkt:`` is the function that squares numbers.
+When given a number <code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">2</span></span></code>, by substituting <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> with <code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">2</span></span></code>, you can compute
+the result of what the lambda expression denotes – which is <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">*</span></span> <span class="literal number integer"><span class="pre">2</span></span> <span class="literal number integer"><span class="pre">2</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="literal number integer"><span class="pre">4</span></span></code>.</p>
+<p>There are two main rules you need to know when working with <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code>
 expressions (the abstract ones).</p>
 <dl>
-<dt><strong>α-renaming</strong></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">(lambda</span> <span class="pre">(x)</span> <span class="pre">E[x])</span></code> is a lambda expression in one argument where <code class="docutils literal notranslate"><span class="pre">E[x]</span></code>
-denotes some expression involving the variable <code class="docutils literal notranslate"><span class="pre">x</span></code>, then you can change
-the name of <code class="docutils literal notranslate"><span class="pre">x</span></code> to anything else and what the expression denotes is
-considered to be the same. i.e. You can rewrite it to <code class="docutils literal notranslate"><span class="pre">(lambda</span> <span class="pre">(y)</span> <span class="pre">E[y])</span></code>
-(where we use the same <code class="docutils literal notranslate"><span class="pre">E</span></code>) and it means the same thing.</p>
+<dt><strong>α-renaming</strong></dt><dd><p>If <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">E</span></span><span class="punctuation"><span class="pre">[</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">])</span></span></code> is a lambda expression in one argument where <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">E</span></span><span class="punctuation"><span class="pre">[</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">]</span></span></code>
+denotes some expression involving the variable <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code>, then you can change
+the name of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> to anything else and what the expression denotes is
+considered to be the same. i.e. You can rewrite it to <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">y</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">E</span></span><span class="punctuation"><span class="pre">[</span></span><span class="name"><span class="pre">y</span></span><span class="punctuation"><span class="pre">])</span></span></code>
+(where we use the same <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">E</span></span></code>) and it means the same thing.</p>
 </dd>
-<dt><strong>β-reduction</strong></dt><dd><p>If you have an expression of the form <code class="docutils literal notranslate"><span class="pre">((lambda</span> <span class="pre">(x)</span> <span class="pre">E1[x])</span> <span class="pre">E2)</span></code> where <code class="docutils literal notranslate"><span class="pre">E1[x]</span></code>
-is an expression that (optionally) uses the variable <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">E2</span></code> is some other
-expression, then it is equivalent to <code class="docutils literal notranslate"><span class="pre">E1[E2]</span></code>. i.e.</p>
+<dt><strong>β-reduction</strong></dt><dd><p>If you have an expression of the form <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">E1</span></span><span class="punctuation"><span class="pre">[</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">])</span></span> <span class="name"><span class="pre">E2</span></span><span class="punctuation"><span class="pre">)</span></span></code> where <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">E1</span></span><span class="punctuation"><span class="pre">[</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">]</span></span></code>
+is an expression that (optionally) uses the variable <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">E2</span></span></code> is some other
+expression, then it is equivalent to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">E1</span></span><span class="punctuation"><span class="pre">[</span></span><span class="name"><span class="pre">E2</span></span><span class="punctuation"><span class="pre">]</span></span></code>. i.e.</p>
 <blockquote>
-<div><p><code class="docutils literal notranslate"><span class="pre">((lambda</span> <span class="pre">(x)</span> <span class="pre">E1[x])</span> <span class="pre">E2)</span> <span class="pre">=&gt;</span> <span class="pre">E1[E2]</span></code></p>
+<div><p><code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">E1</span></span><span class="punctuation"><span class="pre">[</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">])</span></span> <span class="name"><span class="pre">E2</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="keyword"><span class="pre">=&gt;</span></span> <span class="name"><span class="pre">E1</span></span><span class="punctuation"><span class="pre">[</span></span><span class="name"><span class="pre">E2</span></span><span class="punctuation"><span class="pre">]</span></span></code></p>
 </div></blockquote>
 <p>It is important to note that when we say “is equivalent to”, it means you
 can rewrite a sub-expression that looks like one side to the other form
@@ -101,23 +101,23 @@ abstraction in computing boils down to β-abstraction.</p>
 <p>“β-reduction” can be considered a fancy term for “substitution”,
 for that’s what it is. We don’t have a corresponding simple term for the
 opposite transformation though. So we’ll continue to call it “β-abstraction”.
-We’ll refer to the transformation <code class="docutils literal notranslate"><span class="pre">E1[E2]</span> <span class="pre">=&gt;</span> <span class="pre">((lambda</span> <span class="pre">(x)</span> <span class="pre">E1[x])</span> <span class="pre">E2)</span></code>
-as “β-abstracting over <code class="docutils literal notranslate"><span class="pre">E2</span></code>”.</p>
+We’ll refer to the transformation <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">E1</span></span><span class="punctuation"><span class="pre">[</span></span><span class="name"><span class="pre">E2</span></span><span class="punctuation"><span class="pre">]</span></span> <span class="keyword"><span class="pre">=&gt;</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">E1</span></span><span class="punctuation"><span class="pre">[</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">])</span></span> <span class="name"><span class="pre">E2</span></span><span class="punctuation"><span class="pre">)</span></span></code>
+as “β-abstracting over <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">E2</span></span></code>”.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>When performing a β-reduction step in Scheme, you need to be careful
-not to substitute symbols within a <code class="docutils literal notranslate"><span class="pre">quote</span></code> sub-expression. For example,
-<code class="docutils literal notranslate"><span class="pre">((lambda</span> <span class="pre">(x)</span> <span class="pre">(quote</span> <span class="pre">(+</span> <span class="pre">x</span> <span class="pre">x)))</span> <span class="pre">3)</span></code> reduces to the list <code class="docutils literal notranslate"><span class="pre">'(+</span> <span class="pre">x</span> <span class="pre">x)</span></code>
-whereas <code class="docutils literal notranslate"><span class="pre">((lambda</span> <span class="pre">(x)</span> <span class="pre">(+</span> <span class="pre">x</span> <span class="pre">x))</span> <span class="pre">3)</span></code> reduces to <code class="docutils literal notranslate"><span class="pre">(+</span> <span class="pre">3</span> <span class="pre">3)</span> <span class="pre">=</span> <span class="pre">6</span></code>.</p>
+not to substitute symbols within a <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">quote</span></span></code> sub-expression. For example,
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">quote</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="literal string symbol"><span class="pre">+</span></span> <span class="literal string symbol"><span class="pre">x</span></span> <span class="literal string symbol"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)))</span></span> <span class="literal number integer"><span class="pre">3</span></span><span class="punctuation"><span class="pre">)</span></span></code> reduces to the list <code class="code highlight racket docutils literal notranslate"><span class="operator"><span class="pre">‘</span></span><span class="punctuation"><span class="pre">(</span></span><span class="literal string symbol"><span class="pre">+</span></span> <span class="literal string symbol"><span class="pre">x</span></span> <span class="literal string symbol"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span></code>
+whereas <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">+</span></span> <span class="name"><span class="pre">x</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">))</span></span> <span class="literal number integer"><span class="pre">3</span></span><span class="punctuation"><span class="pre">)</span></span></code> reduces to <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">+</span></span> <span class="literal number integer"><span class="pre">3</span></span> <span class="literal number integer"><span class="pre">3</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="literal number integer"><span class="pre">6</span></span></code>.</p>
 </div>
-<p>Take the expression <code class="docutils literal notranslate"><span class="pre">((lambda</span> <span class="pre">(x)</span> <span class="pre">(*</span> <span class="pre">x</span> <span class="pre">((lambda</span> <span class="pre">(x)</span> <span class="pre">(-</span> <span class="pre">x</span> <span class="pre">1))</span> <span class="pre">x)))</span> <span class="pre">10)</span></code> and
+<p>Take the expression <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">*</span></span> <span class="name"><span class="pre">x</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">-</span></span> <span class="name"><span class="pre">x</span></span> <span class="literal number integer"><span class="pre">1</span></span><span class="punctuation"><span class="pre">))</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)))</span></span> <span class="literal number integer"><span class="pre">10</span></span><span class="punctuation"><span class="pre">)</span></span></code> and
 try to apply the reduction rules. If you took the “β-reduction” rule in the
-naive way, you might end up with <code class="docutils literal notranslate"><span class="pre">(*</span> <span class="pre">10</span> <span class="pre">((lambda</span> <span class="pre">(10)</span> <span class="pre">(-</span> <span class="pre">10</span> <span class="pre">1))</span> <span class="pre">10))</span></code> and
+naive way, you might end up with <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">*</span></span> <span class="literal number integer"><span class="pre">10</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="literal number integer"><span class="pre">10</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">-</span></span> <span class="literal number integer"><span class="pre">10</span></span> <span class="literal number integer"><span class="pre">1</span></span><span class="punctuation"><span class="pre">))</span></span> <span class="literal number integer"><span class="pre">10</span></span><span class="punctuation"><span class="pre">))</span></span></code> and
 then scratch your head about what you have at hand and what to do with it next!
 To do this correctly, you must see that the original expression is the same as
-<code class="docutils literal notranslate"><span class="pre">((lambda</span> <span class="pre">(x)</span> <span class="pre">(*</span> <span class="pre">x</span> <span class="pre">((lambda</span> <span class="pre">(y)</span> <span class="pre">(-</span> <span class="pre">y</span> <span class="pre">1))</span> <span class="pre">x)))</span> <span class="pre">10)</span></code> .. where we’ve “α-renamed”
-the inner lambda’s <code class="docutils literal notranslate"><span class="pre">x</span></code> variable to <code class="docutils literal notranslate"><span class="pre">y</span></code>, because, well they’re supposed to
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">*</span></span> <span class="name"><span class="pre">x</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">y</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">-</span></span> <span class="name"><span class="pre">y</span></span> <span class="literal number integer"><span class="pre">1</span></span><span class="punctuation"><span class="pre">))</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)))</span></span> <span class="literal number integer"><span class="pre">10</span></span><span class="punctuation"><span class="pre">)</span></span></code> .. where we’ve “α-renamed”
+the inner lambda’s <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> variable to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">y</span></span></code>, because, well they’re supposed to
 be equivalent right? If you now do β-reduction on this equivalent expression,
 you won’t be left with the confused expression.</p>
 <p>So the two rules are taken to be <strong>always</strong> applicable in evaluating an
@@ -128,8 +128,8 @@ the same result no matter the sequence in which they’re applied.</p>
 <h2>Tall claims need taller evidence<a class="headerlink" href="#tall-claims-need-taller-evidence" title="Permalink to this headline">¶</a></h2>
 <p>Back to Church, what he made was a tall claim – that all computable functions
 are expressible in terms of lambdas. When we make such a claim, we have to back
-it up though. To recap, he’s saying that you don’t need <code class="docutils literal notranslate"><span class="pre">cons</span></code>, <code class="docutils literal notranslate"><span class="pre">car</span></code>,
-<code class="docutils literal notranslate"><span class="pre">cdr</span></code>, <code class="docutils literal notranslate"><span class="pre">if</span></code>, <code class="docutils literal notranslate"><span class="pre">let</span></code>, <code class="docutils literal notranslate"><span class="pre">cond</span></code>, booleans or numbers or strings or whatever
+it up though. To recap, he’s saying that you don’t need <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">cons</span></span></code>, <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">car</span></span></code>,
+<code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">cdr</span></span></code>, <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">if</span></span></code>, <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">let</span></span></code>, <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">cond</span></span></code>, booleans or numbers or strings or whatever
 we’re used to in normal programming. He claimed that all of these are
 representable using lambdas <strong>alone</strong> .. and showed how to do it.</p>
 <p>We’ll now work through how to represent basic things in terms of which we
@@ -137,33 +137,51 @@ can build a whole computational edifice.</p>
 <div class="section" id="pairs">
 <h3>Pairs<a class="headerlink" href="#pairs" title="Permalink to this headline">¶</a></h3>
 <p>Pairs are the simplest of data structures. Once you can make a pair of two
-things like <code class="docutils literal notranslate"><span class="pre">(pair</span> <span class="pre">a</span> <span class="pre">b)</span></code> or the equivalent in a programming language, you can
-get lists using <code class="docutils literal notranslate"><span class="pre">(pair</span> <span class="pre">a</span> <span class="pre">(pair</span> <span class="pre">b</span> <span class="pre">(pair</span> <span class="pre">c</span> <span class="pre">...</span> <span class="pre">(pair</span> <span class="pre">x</span> <span class="pre">sentinel)))..))</span></code> where
-we use a <code class="docutils literal notranslate"><span class="pre">sentinel</span></code> to indicate end of the list. You can also make trees
-using nested structures like <code class="docutils literal notranslate"><span class="pre">(pair</span> <span class="pre">(pair</span> <span class="pre">a</span> <span class="pre">b)</span> <span class="pre">(pair</span> <span class="pre">(pair</span> <span class="pre">c</span> <span class="pre">d)</span> <span class="pre">(pair</span> <span class="pre">e</span> <span class="pre">f)))</span></code>.
-Or tables as a list of lists. Or even graphs. So if we can show we can
-represent pairs using just <code class="docutils literal notranslate"><span class="pre">lambda</span></code>, we’re good with the other structures.</p>
-<p><code class="docutils literal notranslate"><span class="pre">(define</span> <span class="pre">pair</span> <span class="pre">(lambda</span> <span class="pre">(x</span> <span class="pre">y)</span> <span class="pre">...))</span></code></p>
-<p>What should we put within the <code class="docutils literal notranslate"><span class="pre">...</span></code>? In fact, what <strong>can</strong> we put in there
+things like <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">pair</span></span> <span class="name"><span class="pre">a</span></span> <span class="name"><span class="pre">b</span></span><span class="punctuation"><span class="pre">)</span></span></code> or the equivalent in a programming language, you can
+get lists using –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">pair</span> <span class="n">a</span> <span class="p">(</span><span class="n">pair</span> <span class="n">b</span> <span class="p">(</span><span class="n">pair</span> <span class="n">c</span> <span class="k">...</span> <span class="p">(</span><span class="n">pair</span> <span class="n">x</span> <span class="n">sentinel</span><span class="p">)))</span> <span class="k">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where we use a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sentinel</span></span></code> to indicate end of the list. You can also make
+trees using nested structures like –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">pair</span> <span class="p">(</span><span class="n">pair</span> <span class="n">a</span> <span class="n">b</span><span class="p">)</span> <span class="p">(</span><span class="n">pair</span> <span class="p">(</span><span class="n">pair</span> <span class="n">c</span> <span class="n">d</span><span class="p">)</span> <span class="p">(</span><span class="n">pair</span> <span class="n">e</span> <span class="n">f</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Or tables as a list of lists. Or even graphs. So if we can show we can
+represent pairs using just <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code>, we’re good with the other structures.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">pair</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span> <span class="k">...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>What should we put within the <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">…</span></span></code>? In fact, what <strong>can</strong> we put in there
 when all we have are functions (i.e. lambda expressions)? So we’re now
 looking at –</p>
-<p><code class="docutils literal notranslate"><span class="pre">(define</span> <span class="pre">pair</span> <span class="pre">(lambda</span> <span class="pre">(x</span> <span class="pre">y)</span> <span class="pre">(lambda</span> <span class="pre">(p)</span> <span class="pre">...)))</span></code></p>
-<p>Again, what can we put in there? We have a <code class="docutils literal notranslate"><span class="pre">p</span></code> and some two arbitrary values
-<code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> that we’re expected to “store” in the pair. About the only
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">pair</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">...</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Again, what can we put in there? We have a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">p</span></span></code> and some two arbitrary values
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">y</span></span></code> that we’re expected to “store” in the pair. About the only
 thing we can do (apart from nesting lambda once more, which would seem
-pointless) is to apply <code class="docutils literal notranslate"><span class="pre">p</span></code> to the <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p>
-<p><code class="docutils literal notranslate"><span class="pre">(define</span> <span class="pre">pair</span> <span class="pre">(lambda</span> <span class="pre">(x</span> <span class="pre">y)</span> <span class="pre">(lambda</span> <span class="pre">(p)</span> <span class="pre">(p</span> <span class="pre">x</span> <span class="pre">y))))</span></code></p>
+pointless) is to apply <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">p</span></span></code> to the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">y</span></span></code>.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">pair</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="p">(</span><span class="n">p</span> <span class="n">x</span> <span class="n">y</span><span class="p">))))</span>
+</pre></div>
+</div>
 <p>We can now make “pairs” like below –</p>
-<p><code class="docutils literal notranslate"><span class="pre">(define</span> <span class="pre">p1</span> <span class="pre">(pair</span> <span class="pre">12</span> <span class="pre">100))</span></code></p>
-<p>(taking the liberty to use numbers just to illustrate). Since <code class="docutils literal notranslate"><span class="pre">p1</span></code> is a function
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">p1</span> <span class="p">(</span><span class="n">pair</span> <span class="mi">12</span> <span class="mi">100</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>(taking the liberty to use numbers just to illustrate). Since <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">p1</span></span></code> is a function
 that takes one argument, the only thing we can do with it is call it. Since its
 argument is also a function that’s applied to 2 arguments, let’s consider
 some simple 2-argument functions shown below –</p>
-<p><code class="docutils literal notranslate"><span class="pre">(define</span> <span class="pre">.first</span> <span class="pre">(lambda</span> <span class="pre">(x</span> <span class="pre">y)</span> <span class="pre">x))</span></code></p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">.first</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span> <span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
 <p>and</p>
-<p><code class="docutils literal notranslate"><span class="pre">(define</span> <span class="pre">.second</span> <span class="pre">(lambda</span> <span class="pre">(x</span> <span class="pre">y)</span> <span class="pre">y))</span></code></p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">.second</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span> <span class="n">y</span><span class="p">))</span>
+</pre></div>
+</div>
 <p>The functions ignore one of their arguments and just evaluate to the other.
-Now what happens when you apply <code class="docutils literal notranslate"><span class="pre">p1</span></code> to these two functions.</p>
+Now what happens when you apply <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">p1</span></span></code> to these two functions.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">p1</span> <span class="n">.first</span><span class="p">)</span>
 <span class="k">=&gt;</span> <span class="p">((</span><span class="n">pair</span> <span class="mi">12</span> <span class="mi">100</span><span class="p">)</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span> <span class="n">x</span><span class="p">))</span> <span class="c1">; substitute their definitions</span>
 <span class="k">=&gt;</span> <span class="p">(((</span><span class="k">lambda</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="p">(</span><span class="n">p</span> <span class="n">x</span> <span class="n">y</span><span class="p">)))</span> <span class="mi">12</span> <span class="mi">100</span><span class="p">)</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span> <span class="n">x</span><span class="p">))</span>
@@ -177,23 +195,23 @@ Now what happens when you apply <code class="docutils literal notranslate"><span
 </div>
 <div class="admonition-exercise admonition">
 <p class="admonition-title"><strong>Exercise</strong></p>
-<p>Work it out similarly and show that <code class="docutils literal notranslate"><span class="pre">(p1</span> <span class="pre">.second)</span></code> results in <code class="docutils literal notranslate"><span class="pre">100</span></code>.</p>
+<p>Work it out similarly and show that <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">p1</span></span> <span class="name"><span class="pre">.second</span></span><span class="punctuation"><span class="pre">)</span></span></code> results in <code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">100</span></span></code>.</p>
 </div>
-<p>So we have a function now named <code class="docutils literal notranslate"><span class="pre">pair</span></code> that can make so-called “pair objects”
+<p>So we have a function now named <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">pair</span></span></code> that can make so-called “pair objects”
 and we can get the individual values out of the pair object using the
-“accessor” functions <code class="docutils literal notranslate"><span class="pre">.first</span></code> and <code class="docutils literal notranslate"><span class="pre">.second</span></code>.</p>
+“accessor” functions <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">.first</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">.second</span></span></code>.</p>
 <p>Many of you are familiar with “object oriented languages” like Python and will
 see the reasoning behind naming the accessor functions that way .. since the
-expression <code class="docutils literal notranslate"><span class="pre">(p1</span> <span class="pre">.first)</span></code> looks very similar to <code class="docutils literal notranslate"><span class="pre">p1.first</span></code> typical of such
+expression <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">p1</span></span> <span class="name"><span class="pre">.first</span></span><span class="punctuation"><span class="pre">)</span></span></code> looks very similar to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">p1.first</span></span></code> typical of such
 languages.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The ones with a careful eye might’ve noticed that while we claimed to
-only use lambdas, we ended up using <code class="docutils literal notranslate"><span class="pre">define</span></code> in the above definitions. We
+only use lambdas, we ended up using <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">define</span></span></code> in the above definitions. We
 use it here only as a substitute for writing the mathematical definitional
 equality <span class="math notranslate nohighlight">\(pair = (λ\ (x\ y)\ (λ\ (p)\ (p\ x\ y)))\)</span> and because it
 actually permits you to type it into Racket and check things out for
-yourself. We therefore lose no generality by using <code class="docutils literal notranslate"><span class="pre">define</span></code> in the above
+yourself. We therefore lose no generality by using <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">define</span></span></code> in the above
 code. Also, lambda calculus deals only with one-argument functions and we’ve
 used two here. However, <span class="math notranslate nohighlight">\((λ\ (x\ y)\ E[x,y])\)</span> can be mechanically
 rewritten to <span class="math notranslate nohighlight">\((λ\ (x)\ (λ\ (y)\ E[x,y]))\)</span> with corresponding changes
@@ -205,14 +223,16 @@ that additional liberty here too.</p>
 <h3>Booleans<a class="headerlink" href="#booleans" title="Permalink to this headline">¶</a></h3>
 <div class="admonition-exercise admonition">
 <p class="admonition-title"><strong>Exercise</strong></p>
-<p>The only place we use boolean values is to do a branch within an <code class="docutils literal notranslate"><span class="pre">if</span></code>
-condition. So if we can implement <code class="docutils literal notranslate"><span class="pre">if</span></code> purely using <code class="docutils literal notranslate"><span class="pre">lambda</span></code>, we’re
+<p>The only place we use boolean values is to do a branch within an <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">if</span></span></code>
+condition. So if we can implement <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">if</span></span></code> purely using <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code>, we’re
 good. For this exercise, you’ll need to consider “lazy evaluation” instead
 of “eager evaluation” to keep things simple. In fact, for the rest of this
-demonstration, we’ll use lazy evaluation with <code class="docutils literal notranslate"><span class="pre">#lang</span> <span class="pre">lazy</span></code>. The earlier
-ones will also work with <code class="docutils literal notranslate"><span class="pre">#lang</span> <span class="pre">lazy</span></code>. So complete the definition below –</p>
-<p><code class="docutils literal notranslate"><span class="pre">(define</span> <span class="pre">IF</span> <span class="pre">(lambda</span> <span class="pre">(bool</span> <span class="pre">then-expr</span> <span class="pre">else-expr)</span> <span class="pre">....))</span></code></p>
-<p>Remember the trick we used with <code class="docutils literal notranslate"><span class="pre">pair</span></code>. You have all you need in that
+demonstration, we’ll use lazy evaluation with <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">lazy</span></span></code>. The earlier
+ones will also work with <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">lazy</span></span></code>. So complete the definition below –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">IF</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">bool</span> <span class="n">then-expr</span> <span class="n">else-expr</span><span class="p">)</span> <span class="n">....</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Remember the trick we used with <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">pair</span></span></code>. You have all you need in that
 code.</p>
 </div>
 </div>
@@ -246,7 +266,7 @@ code.</p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Lambda - the everything</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#so-what-s-lambda">So what’s <code class="docutils literal notranslate"><span class="pre">lambda</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#so-what-s-lambda">So what’s <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#tall-claims-need-taller-evidence">Tall claims need taller evidence</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#recursion">Recursion</a></li>
 </ul>

@@ -69,3 +69,9 @@ todo_include_todos = True
 latex_extensions = {
         'papersize': 'a4paper'
         }
+
+rst_prolog = """
+.. role:: rkt(code)
+   :language: racket
+   :class: highlight
+"""

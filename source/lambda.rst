@@ -70,7 +70,7 @@ expressions (the abstract ones).
         ``((lambda (x) E1[x]) E2) => E1[E2]``
 
     It is important to note that when we say "is equivalent to", it means you
-    can rewrite an sub-expression that looks like one side to the other form
+    can rewrite a sub-expression that looks like one side to the other form
     **anywhere**. We refer to the above left-to-right rewrite as "β-reduction"
     and the corresponding right-to-left rewrite as "β-abstraction".
 
@@ -92,11 +92,11 @@ Take the expression ``((lambda (x) (* x ((lambda (x) (- x 1)) x))) 10)`` and
 try to apply the reduction rules. If you took the "β-reduction" rule in the
 naive way, you might end up with ``(* 10 ((lambda (10) (- 10 1)) 10))`` and
 then scratch your head about what you have at hand and what to do with it next!
-To do this correctly, you must see that the original expression is the same
-as ``((lambda (x) (* x ((lambda (y) (- y 1)) x))) 10)`` .. where we've
-done "α-renamed" the inner lambda's ``x`` variable to ``y``, because, well
-they're supposed to be equivalent right? If you now do β-reduction on this
-equivalent expression, you won't be left with the confused expression.
+To do this correctly, you must see that the original expression is the same as
+``((lambda (x) (* x ((lambda (y) (- y 1)) x))) 10)`` .. where we've "α-renamed"
+the inner lambda's ``x`` variable to ``y``, because, well they're supposed to
+be equivalent right? If you now do β-reduction on this equivalent expression,
+you won't be left with the confused expression.
 
 So the two rules are taken to be **always** applicable in evaluating an
 expression and all correct applications of the rules must evaluate to 

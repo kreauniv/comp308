@@ -80,11 +80,15 @@ expressions (the abstract ones).
     Just as lambdas are the conceptual basis of all of computation, all
     abstraction in computing boils down to β-abstraction.
 
-.. note:: "β-reduction" can be considered a fancy term for "substitution",
+.. note:: "**β-reduction**" can be considered a fancy term for "substitution",
    for that's what it is. We don't have a corresponding simple term for the
-   opposite transformation though. So we'll continue to call it "β-abstraction".
-   We'll refer to the transformation :rkt:`E1[E2] => ((lambda (x) E1[x]) E2)`
-   as "β-abstracting over :rkt:`E2`".
+   opposite transformation though. So we'll continue to call it
+   "**β-abstraction**". We'll refer to the transformation :rkt:`E1[E2] =>
+   ((lambda (x) E1[x]) E2)` as "β-abstracting over :rkt:`E2`". In most cases,
+   when we're performing such a transformation, we're no longer really
+   interested in the :rkt:`E2` and will usually focus on the preceding
+   :rkt:`(lambda (x) E1[x])` and loosely talk about that as the β-abstracted
+   expression.
 
 .. warning:: When performing a β-reduction step in Scheme, you need to be careful
    not to substitute symbols within a :rkt:`quote` sub-expression. For example,

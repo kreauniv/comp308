@@ -88,7 +88,7 @@ expressions (the abstract ones).
    when we're performing such a transformation, we're no longer really
    interested in the :rkt:`E2` and will usually focus on the preceding
    :rkt:`(lambda (x) E1[x])` and loosely talk about that as the β-abstracted
-   expression. 
+   expression.
 
 .. warning:: When performing a β-reduction step in Scheme, you need to be careful
    not to substitute symbols within a :rkt:`quote` sub-expression. For example,

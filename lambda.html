@@ -228,6 +228,11 @@ that additional liberty here too.</p>
 </div>
 <div class="section" id="booleans">
 <h3>Booleans<a class="headerlink" href="#booleans" title="Permalink to this headline">¶</a></h3>
+<p>From this section on, it will be valuable for us to use the <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">lazy</span></span></code>
+language instead since we’re going to be doing equational reasoning which will
+work only in a lazy scheme and not when using eager evaluation. The syntax and
+meaning are generally the same, except that the values of expressions will be
+computed only when they are needed and not before.</p>
 <div class="admonition-exercise admonition">
 <p class="admonition-title"><strong>Exercise</strong></p>
 <p>The only place we use boolean values is to do a branch within an <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">if</span></span></code>
@@ -243,9 +248,222 @@ ones will also work with <code class="code highlight racket docutils literal not
 code.</p>
 </div>
 </div>
+<div class="section" id="let">
+<h3><code class="docutils literal notranslate"><span class="pre">let</span></code><a class="headerlink" href="#let" title="Permalink to this headline">¶</a></h3>
+<p>It is quite easy to see that we can rewrite <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">let</span></span></code> expressions using <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code>.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">var1</span> <span class="n">expr1</span><span class="p">]</span>
+      <span class="p">[</span><span class="n">var2</span> <span class="n">expr2</span><span class="p">]</span>
+      <span class="k">...</span>
+      <span class="p">[</span><span class="n">varn</span> <span class="n">exprn</span><span class="p">])</span>
+  <span class="n">&lt;body-using-var1..n&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Can be rewritten as –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">lambda</span> <span class="p">(</span><span class="n">var1</span> <span class="n">var2</span> <span class="k">...</span> <span class="n">varn</span><span class="p">)</span>
+    <span class="n">&lt;body-using-var1..n&gt;</span><span class="p">)</span>
+ <span class="n">expr1</span> <span class="n">expr2</span> <span class="k">...</span> <span class="n">exprn</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>So <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">let</span></span></code> is just “syntactic sugar” on top of lambda - i.e. is for our
+convenience without offering additional “expressive power”. These notions will
+become clearer (and more formal) as we go along. For now, if you have a sense
+of what they are, that’s sufficient.</p>
+</div>
 <div class="section" id="numbers">
 <h3>Numbers<a class="headerlink" href="#numbers" title="Permalink to this headline">¶</a></h3>
+<p>Numbers are a big one to claim to be representable using <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code> alone!
+Numbers (i.e. basic arithmetic with whole numbers) hold a “threshold” place in
+mathematical logic too – that every “formal system” <a class="footnote-reference brackets" href="#fs" id="id1">1</a> is representable
+using numbers.</p>
+<dl class="footnote brackets">
+<dt class="label" id="fs"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>A “formal system” is a collection of postulates – i.e. “theorems” that
+are assumed to be true – that serve as a starting point, and a collection
+of rules that tell us how to combine theorems to produce more theorems.</p>
+</dd>
+</dl>
+<p>In lambda calculus, all we have are functions and function application. What can
+we apply functions to? The answer to that question is also “functions”! So how
+can we capture the idea of natural numbers using functions alone?</p>
+<p>Given a function, what can we do with it? We can apply it to some value. What
+kind of a value can we apply it to (at least within lambda calculus)? We can
+apply it to another function. So Alonzo Church came up with a representation
+for numbers as the idea of applying a function a certain number of times.</p>
+<p>If we consider applying a function <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code> to a value <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> a number
+of times, we could write that sequence as –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="n">x</span>                     <span class="c1">; 0</span>
+<span class="p">(</span><span class="n">f</span> <span class="n">x</span><span class="p">)</span>                 <span class="c1">; 1</span>
+<span class="p">(</span><span class="n">f</span> <span class="p">(</span><span class="n">f</span> <span class="n">x</span><span class="p">))</span>             <span class="c1">; 2</span>
+<span class="p">(</span><span class="n">f</span> <span class="p">(</span><span class="n">f</span> <span class="p">(</span><span class="n">f</span> <span class="n">x</span><span class="p">)))</span>         <span class="c1">; 3</span>
+<span class="c1">;... and so on</span>
+</pre></div>
 </div>
+<p>But we don’t know what these <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> are. The nice thing here
+is that you can “β-abstraction” on the two in order to postpone the problem
+of what values we want them to take on. So instead of the above, we can
+consider the sequence below as a representation of numbers –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="n">x</span><span class="p">))</span>               <span class="c1">; 0</span>
+<span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="n">x</span><span class="p">)))</span>           <span class="c1">; 1</span>
+<span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="p">(</span><span class="n">f</span> <span class="n">x</span><span class="p">))))</span>       <span class="c1">; 2</span>
+<span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="p">(</span><span class="n">f</span> <span class="p">(</span><span class="n">f</span> <span class="n">x</span><span class="p">)))))</span>   <span class="c1">; 3</span>
+<span class="c1">;... and so on</span>
+</pre></div>
+</div>
+<p>Observe by reading the lambda expression for each “number” that a Church
+numeral <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">n</span></span></code> stands for the idea of “n applications of f on x” given some
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code>.</p>
+<p>We can’t exhaustively list all such numbers. Even if we could, that wouldn’t
+capture the structure inherent in the numbers that’s laid out in Peano’s
+axioms -</p>
+<ol class="arabic simple">
+<li><p>“Zero” is a number</p></li>
+<li><p>Every number has a “successor”.</p></li>
+</ol>
+<p>Let’s now try to apply Peano’s axioms to capture the idea of successorship
+for Church numerals.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">ch-zero</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="n">x</span><span class="p">))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="n">ch-succ</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>How should we now define <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ch-succ</span></span></code>? Before we get there, let’s pull in
+some preparatory functions that we encountered before –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">pair</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="p">(</span><span class="n">p</span> <span class="n">x</span> <span class="n">y</span><span class="p">))))</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">.first</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span> <span class="n">x</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">.second</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span> <span class="n">y</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">swap</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="p">(</span><span class="n">pair</span> <span class="p">(</span><span class="n">p</span> <span class="n">.second</span><span class="p">)</span> <span class="p">(</span><span class="n">p</span> <span class="n">.first</span><span class="p">))))</span>
+
+<span class="c1">; The function composition operation .. as a function</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">comp</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span> <span class="n">g</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="p">(</span><span class="n">g</span> <span class="n">x</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Try to define <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ch-succ</span></span></code> yourself before reading on, for you have spoilers below.</p>
+</div>
+<p>Let’s write out in words what the expression <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">ch-succ</span></span> <span class="name"><span class="pre">n</span></span><span class="punctuation"><span class="pre">)</span></span></code> for some specific
+Church numeral <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">n</span></span></code> is supposed to mean – “n+1 applications of some function f on an x”.
+In other words, if we have “n applications of some function f on an x”, we need to apply
+f once more on that to get “n+1 applications of some function f on an x”.</p>
+<p>To make things concrete, let’s look at the definition for “3” and see if we can
+express it in terms of our definition for “2”.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">ch-two</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="p">(</span><span class="n">f</span> <span class="n">x</span><span class="p">)))))</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">ch-three</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="p">(</span><span class="n">f</span> <span class="p">(</span><span class="n">f</span> <span class="n">x</span><span class="p">))))))</span>
+
+<span class="c1">; See that the expression (f (f x)) is ((ch-two f) x)</span>
+<span class="c1">; Replacing the inner most (f (f x)) in ch-three with ((ch-two f) x)</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">ch-three</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="p">((</span><span class="n">ch-two</span> <span class="n">f</span><span class="p">)</span> <span class="n">x</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>It’s not hard to see now that we could do that for any pair of <span class="math notranslate nohighlight">\((n,n+1)\)</span>.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">ch-nplus1</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="p">((</span><span class="n">ch-n</span> <span class="n">f</span><span class="p">)</span> <span class="n">x</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>What we want for our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ch-succ</span></span></code> function is for the relation “<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">ch-succ</span></span> <span class="name"><span class="pre">ch-n</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="keyword"><span class="pre">==</span></span> <span class="name"><span class="pre">ch-nplus1</span></span></code>
+to hold. So if we β-abstract over <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ch-n</span></span></code>, we get –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">ch-nplus1</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="p">((</span><span class="n">n</span> <span class="n">f</span><span class="p">)</span> <span class="n">x</span><span class="p">)))))</span> <span class="n">ch-n</span><span class="p">))</span>
+
+<span class="c1">; Then due to the equality which we just stated above, we have</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">ch-succ</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="p">((</span><span class="n">n</span> <span class="n">f</span><span class="p">)</span> <span class="n">x</span><span class="p">))))))</span>
+
+<span class="c1">; We can simplify it further though. Notice that</span>
+<span class="c1">; (λ (x) (f ((n f) x)))</span>
+<span class="c1">; is just the function composition of f and (n f).</span>
+<span class="c1">; i.e. (λ (f) (comp f (n f))) == (λ (f) (λ (x) (f ((n f) x))))</span>
+<span class="c1">; Therefore we can also write -</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">ch-succ</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">(</span><span class="n">comp</span> <span class="n">f</span> <span class="p">(</span><span class="n">n</span> <span class="n">f</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>I hope it is much easier to read the last definition as “n applications of f
+followed by one more” (reading the function composition from right-to-left).</p>
+<p>Ok how about adding two Church numerals?</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">ch-add</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">m</span> <span class="n">n</span><span class="p">)</span> <span class="k">...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Given an <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">n</span></span></code> (a Church numeral), we can express the idea of “m+n” as
+“m applications of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ch-succ</span></span></code> on n”. This translates easily enough to
+a lambda expression like below –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">ch-add</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">m</span> <span class="n">n</span><span class="p">)</span> <span class="p">((</span><span class="n">m</span> <span class="n">ch-succ</span><span class="p">)</span> <span class="n">n</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Let’s up the game now. How do we implement multiplication of Church numerals? i.e.
+a two argument function <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ch-mul</span></span></code> used as <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">ch-mul</span></span> <span class="name"><span class="pre">m</span></span> <span class="name"><span class="pre">n</span></span><span class="punctuation"><span class="pre">)</span></span></code>.</p>
+<p>If <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">n</span></span> <span class="name"><span class="pre">f</span></span><span class="punctuation"><span class="pre">)</span></span></code> (for a given <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code>) yields <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">n</span></span></code> applications of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code>,
+then we need to do this <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">m</span></span></code> times. That’s an easy enough expression too.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">ch-mul</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">m</span> <span class="n">n</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="n">m</span> <span class="p">(</span><span class="n">n</span> <span class="n">f</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>However, the inner part of that <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">m</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">n</span></span> <span class="name"><span class="pre">f</span></span><span class="punctuation"><span class="pre">)))</span></span></code> looks very familiar
+doesn’t it? It is simple <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">comp</span></span> <span class="name"><span class="pre">m</span></span> <span class="name"><span class="pre">n</span></span><span class="punctuation"><span class="pre">)</span></span></code>. So we have.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">ch-mul</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">m</span> <span class="n">n</span><span class="p">)</span> <span class="p">(</span><span class="n">comp</span> <span class="n">m</span> <span class="n">n</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Or to put it even more simply, <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">define</span></span> <span class="name"><span class="pre">ch-mul</span></span> <span class="name"><span class="pre">comp</span></span><span class="punctuation"><span class="pre">)</span></span></code>!! i.e. the multiplication
+operation for Church numerals is simply the function composition operation!</p>
+<p>I’ve been avoiding a problem so far though – how would we do subtraction? To
+do that, we’ll need to implement <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">ch-pred</span></span> <span class="name"><span class="pre">n</span></span><span class="punctuation"><span class="pre">)</span></span></code> which behaves such that
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">ch-succ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">ch-pred</span></span> <span class="name"><span class="pre">n</span></span><span class="punctuation"><span class="pre">))</span></span> <span class="keyword"><span class="pre">==</span></span> <span class="name"><span class="pre">n</span></span></code>. Since we don’t have the capability to check
+for equality yet, we cannot search the natural numbers starting from
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ch-zero</span></span></code> and work our way upwards until we find a value <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">k</span></span></code> such
+that <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">ch-succ</span></span> <span class="name"><span class="pre">k</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="keyword"><span class="pre">==</span></span> <span class="name"><span class="pre">n</span></span></code>.</p>
+<p>This problem apparently stumped Church too. However, his student Stephen Kleene
+came up with a solution to it. His solution was to use pairs of Church numerals
+in a particular sequence - the first number in the sequence is <span class="math notranslate nohighlight">\((0,0)\)</span>
+and if an entry is <span class="math notranslate nohighlight">\((m,n)\)</span>, the next entry in the sequence is <span class="math notranslate nohighlight">\((n,n+1)\)</span>.
+This gives us the following sequence –</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>   <span class="p">;</span> <span class="mi">0</span>
+<span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>   <span class="p">;</span> <span class="mi">1</span>
+<span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>   <span class="p">;</span> <span class="mi">2</span>
+<span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>   <span class="p">;</span> <span class="mi">3</span>
+<span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>   <span class="p">;</span> <span class="mi">4</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>In the above sequence, the first value of the pair gives the predecessor of
+the second value which is the same as the row number. The only irksome bit
+in this that we have to put up with is that we have to assume that “the
+predecessor of 0 is 0”.</p>
+<p>So if we define <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">k-zero</span></span></code> as <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">define</span></span> <span class="name"><span class="pre">k-zero</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">pair</span></span> <span class="name"><span class="pre">ch-zero</span></span> <span class="name"><span class="pre">ch-zero</span></span><span class="punctuation"><span class="pre">))</span></span></code>
+and <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">define</span></span> <span class="name"><span class="pre">k-succ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">kp</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">pair</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">kp</span></span> <span class="name"><span class="pre">.second</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">ch-succ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">kp</span></span> <span class="name"><span class="pre">.second</span></span><span class="punctuation"><span class="pre">)))))</span></span></code>,
+we can produce the sequence through repeated applications of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">k-succ</span></span></code>
+on <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">k-zero</span></span></code>. That’s a concept we already understand. So to produce
+the row corresponding to number <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">n</span></span></code>, we need to do <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">n</span></span> <span class="name"><span class="pre">k-succ</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">k-zero</span></span><span class="punctuation"><span class="pre">)</span></span></code>.
+Thereafter, all that remains is to pick the first value of the pair to get the
+predecessor of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">n</span></span></code>. So …</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">k-zero</span> <span class="p">(</span><span class="n">pair</span> <span class="n">ch-zero</span> <span class="n">ch-zero</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">k-succ</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">kp</span><span class="p">)</span> <span class="p">(</span><span class="n">pair</span> <span class="p">(</span><span class="n">kp</span> <span class="n">.second</span><span class="p">)</span> <span class="p">(</span><span class="n">ch-succ</span> <span class="p">(</span><span class="n">kp</span> <span class="n">.second</span><span class="p">)))))</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">ch-pred</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">(((</span><span class="n">n</span> <span class="n">k-succ</span><span class="p">)</span> <span class="n">k-zero</span><span class="p">)</span> <span class="n">.first</span><span class="p">)))</span>
+</pre></div>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise:</strong></p>
+<p>Define <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">ch-sub</span></span> <span class="name"><span class="pre">m</span></span> <span class="name"><span class="pre">n</span></span><span class="punctuation"><span class="pre">)</span></span></code> for <span class="math notranslate nohighlight">\(m &gt;= n\)</span> using <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ch-pred</span></span></code>.</p>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise:</strong></p>
+<p>Can you come up with a representation for integers? – i.e. numbers
+that can be positive or negative or zero. You’ll also have to implement
+the corresponding addition, subtraction, multiplication and division
+operators. You can throw in a “negation” too.</p>
+</div>
+</div>
+</div>
+<div class="section" id="interlude-on-abstraction">
+<h2>Interlude on β-abstraction<a class="headerlink" href="#interlude-on-abstraction" title="Permalink to this headline">¶</a></h2>
+<p>You’ve seen above how useful β-abstraction turns out to be when exploring
+representations that we do not initially fully understand. We were able to
+postpone specific choices of functions until we understood things better, we
+could transform expressions to extract common patterns, etc. As mentioned
+earlier, all abstractions boil down to β-abstractions at the end. This means
+you can use β-abstraction to great effect when when working with domains that
+you’re just about beginning to understand. That’s useful even if you are not
+using a functional programming language, because once you construct those
+abstractions, it is usually a mechanical matter to translate them into other
+languages that may not be functional. How can we be sure of that? That’s what
+this whole section is about – that <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code> is enough to represent all of
+computation, so any general purpose language (i.e. “Turing complete language”)
+can be understood in terms of it.</p>
+<p>The key to exploiting β-abstraction is practice.</p>
 </div>
 <div class="section" id="recursion">
 <h2>Recursion<a class="headerlink" href="#recursion" title="Permalink to this headline">¶</a></h2>
@@ -275,6 +493,7 @@ code.</p>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Lambda - the everything</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#so-what-s-lambda">So what’s <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#tall-claims-need-taller-evidence">Tall claims need taller evidence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#interlude-on-abstraction">Interlude on β-abstraction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#recursion">Recursion</a></li>
 </ul>
 </li>

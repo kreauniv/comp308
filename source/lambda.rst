@@ -400,7 +400,7 @@ to hold. So if we β-abstract over :rkt:`ch-n`, we get --
     ; is just the function composition of f and (n f).
     ; i.e. (λ (f) (comp f (n f))) == (λ (f) (λ (x) (f ((n f) x)))) 
     ; Therefore we can also write -
-    (define ch-succ (λ (n) (comp f (n f))))
+    (define ch-succ (λ (n) (λ (f) (comp f (n f)))))
 
 I hope it is much easier to read the last definition as "n applications of f
 followed by one more" (reading the function composition from right-to-left).

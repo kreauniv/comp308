@@ -230,6 +230,12 @@ languages.
 Booleans
 ~~~~~~~~
 
+From this section on, it will be valuable for us to use the :rkt:`#lang lazy`
+language instead since we're going to be doing equational reasoning which will
+work only in a lazy scheme and not when using eager evaluation. The syntax and
+meaning are generally the same, except that the values of expressions will be
+computed only when they are needed and not before.
+
 .. admonition:: **Exercise**
 
     The only place we use boolean values is to do a branch within an :rkt:`if`
@@ -246,8 +252,262 @@ Booleans
     Remember the trick we used with :rkt:`pair`. You have all you need in that
     code.
 
+
+``let``
+~~~~~~~
+
+It is quite easy to see that we can rewrite :rkt:`let` expressions using :rkt:`lambda`.
+
+.. code-block:: racket
+
+    (let ([var1 expr1]
+          [var2 expr2]
+          ...
+          [varn exprn])
+      <body-using-var1..n>)
+
+Can be rewritten as --
+
+.. code-block:: racket
+
+    ((lambda (var1 var2 ... varn)
+        <body-using-var1..n>)
+     expr1 expr2 ... exprn)
+
+So :rkt:`let` is just "syntactic sugar" on top of lambda - i.e. is for our
+convenience without offering additional "expressive power". These notions will
+become clearer (and more formal) as we go along. For now, if you have a sense
+of what they are, that's sufficient.
+
 Numbers
 ~~~~~~~
+
+Numbers are a big one to claim to be representable using :rkt:`lambda` alone!
+Numbers (i.e. basic arithmetic with whole numbers) hold a "threshold" place in
+mathematical logic too -- that every "formal system" [#fs]_ is representable
+using numbers.
+
+.. [#fs] A "formal system" is a collection of postulates -- i.e. "theorems" that
+   are assumed to be true -- that serve as a starting point, and a collection
+   of rules that tell us how to combine theorems to produce more theorems.
+
+In lambda calculus, all we have are functions and function application. What can
+we apply functions to? The answer to that question is also "functions"! So how
+can we capture the idea of natural numbers using functions alone?
+
+Given a function, what can we do with it? We can apply it to some value. What
+kind of a value can we apply it to (at least within lambda calculus)? We can
+apply it to another function. So Alonzo Church came up with a representation
+for numbers as the idea of applying a function a certain number of times.
+
+If we consider applying a function :rkt:`f` to a value :rkt:`x` a number
+of times, we could write that sequence as --
+
+.. code-block:: racket
+
+    x                     ; 0
+    (f x)                 ; 1
+    (f (f x))             ; 2
+    (f (f (f x)))         ; 3
+    ;... and so on
+
+But we don't know what these :rkt:`f` and :rkt:`x` are. The nice thing here
+is that you can "β-abstraction" on the two in order to postpone the problem
+of what values we want them to take on. So instead of the above, we can
+consider the sequence below as a representation of numbers --
+
+
+.. code-block:: racket
+
+    (λ (f) (λ (x) x))               ; 0
+    (λ (f) (λ (x) (f x)))           ; 1
+    (λ (f) (λ (x) (f (f x))))       ; 2
+    (λ (f) (λ (x) (f (f (f x)))))   ; 3
+    ;... and so on
+
+Observe by reading the lambda expression for each "number" that a Church
+numeral :rkt:`n` stands for the idea of "n applications of f on x" given some
+:rkt:`f` and :rkt:`x`.
+
+We can't exhaustively list all such numbers. Even if we could, that wouldn't
+capture the structure inherent in the numbers that's laid out in Peano's
+axioms -
+
+1. "Zero" is a number
+2. Every number has a "successor".
+
+Let's now try to apply Peano's axioms to capture the idea of successorship
+for Church numerals.
+
+.. code-block:: racket
+
+    (define ch-zero (λ (f) (λ (x) x))
+
+    (define ch-succ (λ (n) ...))
+
+How should we now define :rkt:`ch-succ`? Before we get there, let's pull in
+some preparatory functions that we encountered before --
+
+.. code-block:: racket
+
+    (define pair (λ (x y) (λ (p) (p x y))))
+    (define .first (λ (x y) x))
+    (define .second (λ (x y) y))
+    (define swap (λ (p) (pair (p .second) (p .first))))
+
+    ; The function composition operation .. as a function
+    (define comp (λ (f g) (λ (x) (f (g x)))))
+
+.. note:: Try to define :rkt:`ch-succ` yourself before reading on, for you have spoilers below.
+
+Let's write out in words what the expression :rkt:`(ch-succ n)` for some specific
+Church numeral :rkt:`n` is supposed to mean -- "n+1 applications of some function f on an x".
+In other words, if we have "n applications of some function f on an x", we need to apply
+f once more on that to get "n+1 applications of some function f on an x".
+
+To make things concrete, let's look at the definition for "3" and see if we can
+express it in terms of our definition for "2".
+
+.. code-block:: racket
+
+    (define ch-two (λ (f) (λ (x) (f (f x)))))
+    (define ch-three (λ (f) (λ (x) (f (f (f x))))))
+
+    ; See that the expression (f (f x)) is ((ch-two f) x)
+    ; Replacing the inner most (f (f x)) in ch-three with ((ch-two f) x)
+    (define ch-three (λ (f) (λ (x) (f ((ch-two f) x)))))
+
+It's not hard to see now that we could do that for any pair of :math:`(n,n+1)`.
+
+.. code-block:: racket
+
+    (define ch-nplus1 (λ (f) (λ (x) (f ((ch-n f) x)))))
+
+What we want for our :rkt:`ch-succ` function is for the relation ":rkt:`(ch-succ ch-n) == ch-nplus1`
+to hold. So if we β-abstract over :rkt:`ch-n`, we get --
+
+.. code-block:: racket
+
+    (define ch-nplus1 ((λ (n) (λ (f) (λ (x) (f ((n f) x))))) ch-n))
+
+    ; Then due to the equality which we just stated above, we have
+    (define ch-succ (λ (n) (λ (f) (λ (x) (f ((n f) x))))))
+
+    ; We can simplify it further though. Notice that
+    ; (λ (x) (f ((n f) x)))
+    ; is just the function composition of f and (n f).
+    ; i.e. (λ (f) (comp f (n f))) == (λ (f) (λ (x) (f ((n f) x)))) 
+    ; Therefore we can also write -
+    (define ch-succ (λ (n) (comp f (n f))))
+
+I hope it is much easier to read the last definition as "n applications of f
+followed by one more" (reading the function composition from right-to-left).
+
+Ok how about adding two Church numerals?
+
+.. code-block:: racket
+    
+    (define ch-add (λ (m n) ...))
+
+Given an :rkt:`n` (a Church numeral), we can express the idea of "m+n" as
+"m applications of :rkt:`ch-succ` on n". This translates easily enough to
+a lambda expression like below --
+
+.. code-block:: racket
+
+    (define ch-add (λ (m n) ((m ch-succ) n)))
+
+Let's up the game now. How do we implement multiplication of Church numerals? i.e. 
+a two argument function :rkt:`ch-mul` used as :rkt:`(ch-mul m n)`.
+
+If :rkt:`(n f)` (for a given :rkt:`f`) yields :rkt:`n` applications of :rkt:`f`,
+then we need to do this :rkt:`m` times. That's an easy enough expression too.
+
+.. code-block:: racket
+
+    (define ch-mul (λ (m n) (λ (f) (m (n f)))))
+
+However, the inner part of that :rkt:`(λ (f) (m (n f)))` looks very familiar
+doesn't it? It is simple :rkt:`(comp m n)`. So we have.
+
+.. code-block:: racket
+
+    (define ch-mul (λ (m n) (comp m n)))
+
+Or to put it even more simply, :rkt:`(define ch-mul comp)`!! i.e. the multiplication
+operation for Church numerals is simply the function composition operation!
+
+I've been avoiding a problem so far though -- how would we do subtraction? To
+do that, we'll need to implement :rkt:`(ch-pred n)` which behaves such that
+:rkt:`(ch-succ (ch-pred n)) == n`. Since we don't have the capability to check
+for equality yet, we cannot search the natural numbers starting from
+:rkt:`ch-zero` and work our way upwards until we find a value :rkt:`k` such
+that :rkt:`(ch-succ k) == n`.
+
+This problem apparently stumped Church too. However, his student Stephen Kleene
+came up with a solution to it. His solution was to use pairs of Church numerals
+in a particular sequence - the first number in the sequence is :math:`(0,0)`
+and if an entry is :math:`(m,n)`, the next entry in the sequence is :math:`(n,n+1)`.
+This gives us the following sequence --
+
+.. code-block::
+
+    (0,0)   ; 0
+    (0,1)   ; 1
+    (1,2)   ; 2
+    (2,3)   ; 3
+    (3,4)   ; 4
+    ...
+
+In the above sequence, the first value of the pair gives the predecessor of
+the second value which is the same as the row number. The only irksome bit
+in this that we have to put up with is that we have to assume that "the
+predecessor of 0 is 0".
+
+So if we define :rkt:`k-zero` as :rkt:`(define k-zero (pair ch-zero ch-zero))`
+and :rkt:`(define k-succ (λ (kp) (pair (kp .second) (ch-succ (kp .second)))))`,
+we can produce the sequence through repeated applications of :rkt:`k-succ`
+on :rkt:`k-zero`. That's a concept we already understand. So to produce
+the row corresponding to number :rkt:`n`, we need to do :rkt:`((n k-succ) k-zero)`.
+Thereafter, all that remains is to pick the first value of the pair to get the
+predecessor of :rkt:`n`. So ...
+
+.. code-block:: racket
+
+    (define k-zero (pair ch-zero ch-zero))
+    (define k-succ (λ (kp) (pair (kp .second) (ch-succ (kp .second)))))
+    (define ch-pred (λ (n) (((n k-succ) k-zero) .first)))
+
+.. admonition:: **Exercise:**
+
+    Define :rkt:`(ch-sub m n)` for :math:`m >= n` using :rkt:`ch-pred`.
+
+
+.. admonition:: **Exercise:**
+
+    Can you come up with a representation for integers? -- i.e. numbers
+    that can be positive or negative or zero. You'll also have to implement
+    the corresponding addition, subtraction, multiplication and division
+    operators. You can throw in a "negation" too.
+
+Interlude on β-abstraction
+--------------------------
+
+You've seen above how useful β-abstraction turns out to be when exploring
+representations that we do not initially fully understand. We were able to
+postpone specific choices of functions until we understood things better, we
+could transform expressions to extract common patterns, etc. As mentioned
+earlier, all abstractions boil down to β-abstractions at the end. This means
+you can use β-abstraction to great effect when when working with domains that
+you're just about beginning to understand. That's useful even if you are not
+using a functional programming language, because once you construct those
+abstractions, it is usually a mechanical matter to translate them into other
+languages that may not be functional. How can we be sure of that? That's what
+this whole section is about -- that :rkt:`lambda` is enough to represent all of
+computation, so any general purpose language (i.e. "Turing complete language")
+can be understood in terms of it.
+
+The key to exploiting β-abstraction is practice.
 
 Recursion
 ---------

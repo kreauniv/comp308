@@ -289,7 +289,7 @@ using numbers.
 
 .. [#fs] A "formal system" is a collection of postulates -- i.e. "theorems" that
    are assumed to be true -- that serve as a starting point, and a collection
-   of rules that tell us how to combine theorems to produce more theorems.
+   of rules that tell us how to derive new theorems from other known theorems.
 
 In lambda calculus, all we have are functions and function application. What can
 we apply functions to? The answer to that question is also "functions"! So how

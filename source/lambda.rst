@@ -385,7 +385,7 @@ It's not hard to see now that we could do that for any pair of :math:`(n,n+1)`.
 
     (define ch-nplus1 (λ (f) (λ (x) (f ((ch-n f) x)))))
 
-What we want for our :rkt:`ch-succ` function is for the relation ":rkt:`(ch-succ ch-n) == ch-nplus1`
+What we want for our :rkt:`ch-succ` function is for the relation ":rkt:`(ch-succ ch-n) = ch-nplus1`
 to hold. So if we β-abstract over :rkt:`ch-n`, we get --
 
 .. code-block:: racket
@@ -398,7 +398,7 @@ to hold. So if we β-abstract over :rkt:`ch-n`, we get --
     ; We can simplify it further though. Notice that
     ; (λ (x) (f ((n f) x)))
     ; is just the function composition of f and (n f).
-    ; i.e. (λ (f) (comp f (n f))) == (λ (f) (λ (x) (f ((n f) x)))) 
+    ; i.e. (λ (f) (comp f (n f))) = (λ (f) (λ (x) (f ((n f) x)))) 
     ; Therefore we can also write -
     (define ch-succ (λ (n) (λ (f) (comp f (n f)))))
 
@@ -459,10 +459,10 @@ operation for Church numerals is simply the function composition operation!
 
 I've been avoiding a problem so far though -- how would we do subtraction? To
 do that, we'll need to implement :rkt:`(ch-pred n)` which behaves such that
-:rkt:`(ch-succ (ch-pred n)) == n`. Since we don't have the capability to check
+:rkt:`(ch-succ (ch-pred n)) = n`. Since we don't have the capability to check
 for equality yet, we cannot search the natural numbers starting from
 :rkt:`ch-zero` and work our way upwards until we find a value :rkt:`k` such
-that :rkt:`(ch-succ k) == n`. We also don't know how to compute the "inverse of
+that :rkt:`(ch-succ k) = n`. We also don't know how to compute the "inverse of
 a given function :rkt:`f`" in the general case, so we can apply the inverse
 after :rkt:`n` applications.
 

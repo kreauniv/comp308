@@ -373,7 +373,7 @@ to hold. So if we β-abstract over <code class="code highlight racket docutils l
 <span class="c1">; is just the function composition of f and (n f).</span>
 <span class="c1">; i.e. (λ (f) (comp f (n f))) == (λ (f) (λ (x) (f ((n f) x))))</span>
 <span class="c1">; Therefore we can also write -</span>
-<span class="p">(</span><span class="k">define</span> <span class="n">ch-succ</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">(</span><span class="n">comp</span> <span class="n">f</span> <span class="p">(</span><span class="n">n</span> <span class="n">f</span><span class="p">))))</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">ch-succ</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="n">comp</span> <span class="n">f</span> <span class="p">(</span><span class="n">n</span> <span class="n">f</span><span class="p">)))))</span>
 </pre></div>
 </div>
 <p>I hope it is much easier to read the last definition as “n applications of f

@@ -311,10 +311,12 @@ of times, we could write that sequence as --
     (f (f (f x)))         ; 3
     ;... and so on
 
-But we don't know what these :rkt:`f` and :rkt:`x` are. The nice thing here
-is that you can "β-abstraction" on the two in order to postpone the problem
-of what values we want them to take on. So instead of the above, we can
-consider the sequence below as a representation of numbers --
+But we don't know what these :rkt:`f` and :rkt:`x` are. The only thing we know
+about them is that the function :rkt:`f` must have the property that its domain
+and co-domain are the same. The nice thing here is that you can "β-abstraction"
+on the two in order to postpone the problem of what values we want them to take
+on. So instead of the above, we can consider the sequence below as a
+representation of numbers --
 
 
 .. code-block:: racket

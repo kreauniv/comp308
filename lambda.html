@@ -298,10 +298,12 @@ of times, we could write that sequence as –</p>
 <span class="c1">;... and so on</span>
 </pre></div>
 </div>
-<p>But we don’t know what these <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> are. The nice thing here
-is that you can “β-abstraction” on the two in order to postpone the problem
-of what values we want them to take on. So instead of the above, we can
-consider the sequence below as a representation of numbers –</p>
+<p>But we don’t know what these <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> are. The only thing we know
+about them is that the function <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code> must have the property that its domain
+and co-domain are the same. The nice thing here is that you can “β-abstraction”
+on the two in order to postpone the problem of what values we want them to take
+on. So instead of the above, we can consider the sequence below as a
+representation of numbers –</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="n">x</span><span class="p">))</span>               <span class="c1">; 0</span>
 <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="n">x</span><span class="p">)))</span>           <span class="c1">; 1</span>
 <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="p">(</span><span class="n">f</span> <span class="n">x</span><span class="p">))))</span>       <span class="c1">; 2</span>

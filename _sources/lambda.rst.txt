@@ -405,7 +405,25 @@ to hold. So if we β-abstract over :rkt:`ch-n`, we get --
 I hope it is much easier to read the last definition as "n applications of f
 followed by one more" (reading the function composition from right-to-left).
 
-Ok how about adding two Church numerals?
+We'll take a break here and define two utility functions outside of
+Church's lambda calculus that will help us make Church numerals and display
+them in notation we understand - i.e. as decimal numbers.
+
+.. code-block:: racket
+
+    (define (i->ch i)
+       (if (equal? i 0)
+           ch-zero
+           (ch-succ (i->ch (sub1 i)))))
+
+    (define (ch->i n)
+        ((n add1) 0))
+
+We can now use :rkt:`i->ch` to make Church numerals given Scheme numbers and
+:rkt:`ch->i` to make Scheme numbers given Church numerals.
+
+Ok how about adding two Church numerals? Again, try to figure it out yourself
+before reading on.
 
 .. code-block:: racket
     
@@ -444,7 +462,9 @@ do that, we'll need to implement :rkt:`(ch-pred n)` which behaves such that
 :rkt:`(ch-succ (ch-pred n)) == n`. Since we don't have the capability to check
 for equality yet, we cannot search the natural numbers starting from
 :rkt:`ch-zero` and work our way upwards until we find a value :rkt:`k` such
-that :rkt:`(ch-succ k) == n`.
+that :rkt:`(ch-succ k) == n`. We also don't know how to compute the "inverse of
+a given function :rkt:`f`" in the general case, so we can apply the inverse
+after :rkt:`n` applications.
 
 This problem apparently stumped Church too. However, his student Stephen Kleene
 came up with a solution to it. His solution was to use pairs of Church numerals

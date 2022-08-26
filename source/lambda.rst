@@ -560,9 +560,10 @@ have that concept in lambda calculus and so will need to show that we can do thi
 without such a naming+delayed-binding trick.
 
 So, for our purposes, we do not know what function to use to effect the recursive
-call within the body of the above :rkt:`sqrt/rec` definition. By now, you should've
-already guessed what we're going to do when we're faced with an unknown like this.
-Yup - we'll β-abstract over :rkt:`sqrt/rec`!
+call within the body of the above :rkt:`sqrt/rec` definition. 
+
+By now, you should've already guessed what we're going to do when we're faced
+with an unknown like this. Yup - we'll β-abstract over :rkt:`sqrt/rec`!
 
 .. code-block:: racket
 
@@ -581,45 +582,32 @@ Because applying :rkt:`cheat` to :rkt:`sqrt/rec` produces the same function,
 a fixed point of a function :math:`f(x)` is a value :math:`x` such that
 :math:`x = f(x)`. 
 
-You'll likely notice that if we have "the right :rkt:`f`" within :rkt:`cheat`,
-we can replace the inner :rkt:`f` with :rkt:`(cheat f)`. What we want though
-is the ability to "make" the next recursive step as a function. So, let's see
-what happens if we pass :rkt:`cheat` to itself as an argument.
+One simple first step we can take is to pass the function itself as an extra
+argument when invoking it. Once we have the function value inside, we can
+again pass it to itself to repeat the process like this --
+
+.. code-block:: racket
+    
+    (define sqrt/norec
+        (λ (f n xk eps)
+           (if (< (abs (- (* xk xk) n)) eps)
+               xk
+               (f f n xk eps))))
+
+So you can calculate square-roots using :rkt:`(sqrt/norec sqrt/norec 64 64
+0.1)`. This actually lets us do recursive function calls without using a
+recursive definition! However, it is somewhat awkward to pass this additional
+argument all the time. Let's see how we can improve it. First, we can
+lift that :rkt:`f` argument out so we can "Curry" it like this --
 
 .. code-block:: racket
 
-    (cheat cheat)
-    ; =>
-    (λ (n xk eps)
-       (if (< (abs (- (* xk xk) n)) eps)
-           xk
-           (cheat n (* 0.5 (+ xk (/ n xk))) eps)))
-
-... but that's of the wrong type of argument for :rkt:`cheat` in the
-inner expression because it is expecting a function as an argument.
-But we know how to fix that ... just call cheat on itself again!
-
-.. code-block:: racket
-
-    (cheat cheat)
-    ; =>
-    (λ (n xk eps)
-       (if (< (abs (- (* xk xk) n)) eps)
-           xk
-           ((cheat cheat) n (* 0.5 (+ xk (/ n xk))) eps)))
-
-But now this is no longer the same "cheat" function. It is a "good" function
-that does not require such cheating to get the recursive task done. Let's write
-that out in full.
-
-.. code-block:: racket
-
-   (define good
-      (λ (f)
-         (λ (n xk eps)
-            (if (< (abs (- (* xk xk) n)) eps)
-                xk
-                ((f f) n (* 0.5 (+ xk (/ n xk))) eps)))))
+    (define good
+        (λ (f)
+           (λ (n xk eps)
+              (if (< (abs (- (* xk xk) n)) eps)
+                  xk
+                  ((f f) n xk eps)))))
 
 ... and we can now do our square-root algorithm using :rkt:`good`
 like this --
@@ -630,17 +618,25 @@ like this --
    ; Prints out 8.005147977880979
    ; which is an approximate square root indeed.
 
-We now have a trick up our sleeve, but we still cannot yet mechanically take a
-given :rkt:`cheat` function  and turn it into the solution :rkt:`sqrt/rec`. We
-still have a bit of work to do for that. The trick is to β-abstract the
-recursion point and turn that into a self call.
+Now, you see that :rkt:`sqrt/rec = (good good)` .. which is good as we have an
+explicit function that behaves exactly as our original recursive definition
+... without any extra arguments.
+
+We've now shown that you can express recursive calls using :rkt:`lambda` alone.
+Mission accomplished! However, don't forget our larger claim that anything
+computable can be expressed using :rkt:`lambda`. In this case, what we just saw
+is how we can start with a recursively defined function (given as a spec
+similar to :rkt:`cheat`) and **mechanically** transform it into the true
+recursive function. If we've truly "mechanized" it, then we should be able to
+express that transformation as a function, right?
 
 Though we called our original funciton "cheat", we're being a bit unfair to it,
 because it serves as a specification for how the recursion is to proceed. It
 captures all the details of the algorithm we intended to write down, except for
-exactly which function to use to recurse. This function is simple enough to
+exactly which function to use to recurse. Furthermore, our desired
+:rkt:`sqrt/rec` is a fixed point of this function, which is simple enough to
 write. So we can now ask -- "If I give you such a :rkt:`cheat` function, can
-you calculate :rkt:`sqrt/rec` mechanically?"
+you **calculate** :rkt:`sqrt/rec` mechanically?"
 
 We can also see that :rkt:`(good f) = (cheat (f f))` through simple β-reduction.
 In fact, we got :rkt:`(good good) = (cheat (good good))` from that in the
@@ -668,9 +664,9 @@ If we then β-abstract on :rkt:`good`, we get --
     ; => β-abstract on "cheat" =>
     (define sqrt/rec ((λ (s) ((λ (f) (f f)) (λ (g) (s (g g))))) cheat))
 
-So, we actually now have a function that we can apply to our
-easy-to-define "spec" function in order to get our recursive result!
-This function that we've figured out above is called the "Y combinator".
+So, we actually now have a function that we can apply to our easy-to-define
+"spec" function in order to get our recursive result! This function that we've
+figured out above is called the "Y combinator".
 
 .. code-block:: racket
 
@@ -752,7 +748,16 @@ We can achieve the same effect in the eager evaluation mode by wrapping the
 expansion in another :rkt:`λ`. To do this, we need to see that :rkt:`(λ (x) (f
 x)) = f` for a function :rkt:`f` whose expression does not make use of the
 outer variable :rkt:`x` -- i.e. it does not contain :rkt:`x` as a "free
-variable", with "free" meaning "unbound".
+variable", with "free" meaning "unbound". 
+
+.. note:: The transformation :rkt:`(λ (x) (f x)) => f` when :rkt:`f` does not
+   contain :rkt:`x` as a free variable is called η-reduction ("eta-reduction").
+   I haven't traced the history of λ-calculus to figure out why Church chose to
+   call it η-reduction and not γ-reduction as one might expect to follow
+   β-reduction. I'd like to think he tried many intermediate rules to complete
+   the λ-calculus until he finally settled on the one he named η-reduction. At
+   least, that fictitious explanation would capture the labour necessary for
+   mathematical insight.
 
 We apply this transformation to the inner :rkt:`(g g)` call, turning it into
 :rkt:`(λ (v) ((g g) v))`. We can now rewrite the Y combinator as --

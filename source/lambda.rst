@@ -752,12 +752,12 @@ variable", with "free" meaning "unbound".
 
 .. note:: The transformation :rkt:`(λ (x) (f x)) => f` when :rkt:`f` does not
    contain :rkt:`x` as a free variable is called η-reduction ("eta-reduction").
-   I haven't traced the history of λ-calculus to figure out why Church chose to
-   call it η-reduction and not γ-reduction as one might expect to follow
-   β-reduction. I'd like to think he tried many intermediate rules to complete
-   the λ-calculus until he finally settled on the one he named η-reduction. At
-   least, that fictitious explanation would capture the labour necessary for
-   mathematical insight.
+   This transformation can be done both ways. I haven't traced the history of
+   λ-calculus to figure out why Church chose to call it η-reduction and not
+   γ-reduction as one might expect to follow β-reduction. I'd like to think he
+   tried many intermediate rules to complete the λ-calculus until he finally
+   settled on the one he named η-reduction. At least, that fictitious
+   explanation would capture the labour necessary for mathematical insight.
 
 We apply this transformation to the inner :rkt:`(g g)` call, turning it into
 :rkt:`(λ (v) ((g g) v))`. We can now rewrite the Y combinator as --

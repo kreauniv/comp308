@@ -582,9 +582,18 @@ Because applying :rkt:`cheat` to :rkt:`sqrt/rec` produces the same function,
 a fixed point of a function :math:`f(x)` is a value :math:`x` such that
 :math:`x = f(x)`. 
 
-One simple first step we can take is to pass the function itself as an extra
-argument when invoking it. Once we have the function value inside, we can
-again pass it to itself to repeat the process like this --
+However, our :rkt:`cheat` function is not of much use though it captures the
+essentials of the algorithm. We called it "cheat" because to get the
+:rkt:`sqrt/rec` function from it, you have to pass it to it in the first place,
+which seems to defeat the point. What we really want is for the whole machinery
+of the :rkt:`(λ (n xk eps) ...)` part of :rkt:`cheat` to be available in place
+of :rkt:`f` when we're calling it. Since :rkt:`cheat` is fully defined (we do
+not refer to it recursively), what if we could just pass it to itself as an
+argument (bound to :rkt:`f`)?
+
+Another way to ask that question is "what if we just had an extra argument to
+:rkt:`sqrt` function and we just passed :rkt:`sqrt` itself in its place -- like
+this --
 
 .. code-block:: racket
     
@@ -618,9 +627,12 @@ like this --
    ; Prints out 8.005147977880979
    ; which is an approximate square root indeed.
 
-Now, you see that :rkt:`sqrt/rec = (good good)` .. which is good as we have an
-explicit function that behaves exactly as our original recursive definition
+Now, you see that :rkt:`sqrt/rec = (good good)` .. which is ... good as we have
+an explicit function that behaves exactly as our original recursive definition
 ... without any extra arguments.
+
+The journey isn't finished yet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We've now shown that you can express recursive calls using :rkt:`lambda` alone.
 Mission accomplished! However, don't forget our larger claim that anything

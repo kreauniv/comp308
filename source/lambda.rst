@@ -631,6 +631,19 @@ Now, you see that :rkt:`sqrt/rec = (good good)` .. which is ... good as we have
 an explicit function that behaves exactly as our original recursive definition
 ... without any extra arguments.
 
+To summarize, we've now figured out a trick by which we can turn a recursively
+defined function into one that isn't recursive but can effectively accomplish
+the same result.
+
+.. code-block:: racket
+
+    (define some-function/rec (λ (a) ... (some-function/rec next-arg) ...))
+    ; can be transformed into
+    (define some-function/norec (λ (f) (λ (a) ... ((f f) next-arg) ...)))
+    ; .. so that some-function/rec can now be defined in terms of 
+    ; some-function/norec as --
+    (define some-function/rec (some-function/norec some-function/norec))
+
 The journey isn't finished yet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

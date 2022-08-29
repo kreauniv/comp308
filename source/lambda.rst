@@ -644,6 +644,9 @@ the same result.
     ; some-function/norec as --
     (define some-function/rec (some-function/norec some-function/norec))
 
+    ; Note that the number of sites at which the recursive call happens
+    ; does not matter. We replace all of them with (f f).
+
 The journey isn't finished yet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -553,7 +553,7 @@ using :rkt:`define` like this --
    to you to practice recursion.
 
 Scheme works with this definition just fine, but that's because it already provides
-a mechanism for you to assume the existence of the innert :rkt:`sqrt/rec` function
+a mechanism for you to assume the existence of the inner :rkt:`sqrt/rec` function
 when typing to evaluate a particular call. Somehow, the repeated unfolding of the
 code is avoided by using names to tie the function's structure to itself. We **don't**
 have that concept in lambda calculus and so will need to show that we can do this

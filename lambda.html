@@ -486,7 +486,231 @@ can be understood in terms of it.</p>
 </div>
 <div class="section" id="recursion">
 <h2>Recursion<a class="headerlink" href="#recursion" title="Permalink to this headline">¶</a></h2>
-<p>Akan datang!</p>
+<p>Recursion underlies all repetition in Scheme – in the sense that you can
+express any looping construct using recursion. However, we have a problem
+at this point. We typically define a recursive function such as <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code>
+using <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">define</span></span></code> like this –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">sqrt/rec</span>
+   <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">n</span> <span class="n">xk</span> <span class="n">eps</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="p">(</span><span class="nb">abs</span> <span class="p">(</span><span class="nb">-</span> <span class="p">(</span><span class="nb">*</span> <span class="n">xk</span> <span class="n">xk</span><span class="p">)</span> <span class="n">n</span><span class="p">))</span> <span class="n">eps</span><span class="p">)</span>
+          <span class="n">xk</span>
+          <span class="p">(</span><span class="n">sqrt/rec</span> <span class="n">n</span> <span class="p">(</span><span class="nb">*</span> <span class="mf">0.5</span> <span class="p">(</span><span class="nb">+</span> <span class="n">xk</span> <span class="p">(</span><span class="nb">/</span> <span class="n">n</span> <span class="n">xk</span><span class="p">)))</span> <span class="n">eps</span><span class="p">))))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We’ll use the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code> function to illustrate, but whatever
+we’re doing with that we can also do to any other recursive function
+definition you may want to solve. I picked this ‘cos I gave this function
+to you to practice recursion.</p>
+</div>
+<p>Scheme works with this definition just fine, but that’s because it already provides
+a mechanism for you to assume the existence of the inner <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code> function
+when typing to evaluate a particular call. Somehow, the repeated unfolding of the
+code is avoided by using names to tie the function’s structure to itself. We <strong>don’t</strong>
+have that concept in lambda calculus and so will need to show that we can do this
+without such a naming+delayed-binding trick.</p>
+<p>So, for our purposes, we do not know what function to use to effect the recursive
+call within the body of the above <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code> definition.</p>
+<p>By now, you should’ve already guessed what we’re going to do when we’re faced
+with an unknown like this. Yup - we’ll β-abstract over <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code>!</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">cheat</span>
+   <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">n</span> <span class="n">xk</span> <span class="n">eps</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="p">(</span><span class="nb">abs</span> <span class="p">(</span><span class="nb">-</span> <span class="p">(</span><span class="nb">*</span> <span class="n">xk</span> <span class="n">xk</span><span class="p">)</span> <span class="n">n</span><span class="p">))</span> <span class="n">eps</span><span class="p">)</span>
+             <span class="n">xk</span>
+             <span class="p">(</span><span class="n">f</span> <span class="n">n</span> <span class="p">(</span><span class="nb">*</span> <span class="mf">0.5</span> <span class="p">(</span><span class="nb">+</span> <span class="n">xk</span> <span class="p">(</span><span class="nb">/</span> <span class="n">n</span> <span class="n">xk</span><span class="p">)))</span> <span class="n">eps</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>Now, we can see how <span class="math notranslate nohighlight">\(\text{sqrt/rec} = (\text{cheat}\ \text{sqrt/rec})\)</span>,
+provided we know <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code> already (hence the name “cheat”). To find
+out <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code> given <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">cheat</span></span></code>, we need to “solve” the above equation.
+Because applying <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">cheat</span></span></code> to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code> produces the same function,
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code> is called the “fixed point” of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">cheat</span></span></code>. In mathematics,
+a fixed point of a function <span class="math notranslate nohighlight">\(f(x)\)</span> is a value <span class="math notranslate nohighlight">\(x\)</span> such that
+<span class="math notranslate nohighlight">\(x = f(x)\)</span>.</p>
+<p>However, our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">cheat</span></span></code> function is not of much use though it captures the
+essentials of the algorithm. We called it “cheat” because to get the
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code> function from it, you have to pass it to it in the first place,
+which seems to defeat the point. What we really want is for the whole machinery
+of the <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">n</span></span> <span class="name"><span class="pre">xk</span></span> <span class="name"><span class="pre">eps</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="keyword"><span class="pre">…</span></span><span class="punctuation"><span class="pre">)</span></span></code> part of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">cheat</span></span></code> to be available in place
+of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code> when we’re calling it. Since <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">cheat</span></span></code> is fully defined (we do
+not refer to it recursively), what if we could just pass it to itself as an
+argument (bound to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code>)?</p>
+<p>Another way to ask that question is “what if we just had an extra argument to
+<code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">sqrt</span></span></code> function and we just passed <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">sqrt</span></span></code> itself in its place – like
+this –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">sqrt/norec</span>
+    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span> <span class="n">n</span> <span class="n">xk</span> <span class="n">eps</span><span class="p">)</span>
+       <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="p">(</span><span class="nb">abs</span> <span class="p">(</span><span class="nb">-</span> <span class="p">(</span><span class="nb">*</span> <span class="n">xk</span> <span class="n">xk</span><span class="p">)</span> <span class="n">n</span><span class="p">))</span> <span class="n">eps</span><span class="p">)</span>
+           <span class="n">xk</span>
+           <span class="p">(</span><span class="n">f</span> <span class="n">f</span> <span class="n">n</span> <span class="n">xk</span> <span class="n">eps</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>So you can calculate square-roots using <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">sqrt/norec</span></span> <span class="name"><span class="pre">sqrt/norec</span></span> <span class="literal number integer"><span class="pre">64</span></span> <span class="literal number integer"><span class="pre">64</span></span>
+<span class="literal number float"><span class="pre">0.1</span></span><span class="punctuation"><span class="pre">)</span></span></code>. This actually lets us do recursive function calls without using a
+recursive definition! However, it is somewhat awkward to pass this additional
+argument all the time. Let’s see how we can improve it. First, we can
+lift that <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code> argument out so we can “Curry” it like this –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">good</span>
+    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span>
+       <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">n</span> <span class="n">xk</span> <span class="n">eps</span><span class="p">)</span>
+          <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="p">(</span><span class="nb">abs</span> <span class="p">(</span><span class="nb">-</span> <span class="p">(</span><span class="nb">*</span> <span class="n">xk</span> <span class="n">xk</span><span class="p">)</span> <span class="n">n</span><span class="p">))</span> <span class="n">eps</span><span class="p">)</span>
+              <span class="n">xk</span>
+              <span class="p">((</span><span class="n">f</span> <span class="n">f</span><span class="p">)</span> <span class="n">n</span> <span class="n">xk</span> <span class="n">eps</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>… and we can now do our square-root algorithm using <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">good</span></span></code>
+like this –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="n">good</span> <span class="n">good</span><span class="p">)</span> <span class="mi">64</span> <span class="mi">64</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="c1">; Prints out 8.005147977880979</span>
+<span class="c1">; which is an approximate square root indeed.</span>
+</pre></div>
+</div>
+<p>Now, you see that <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">good</span></span> <span class="name"><span class="pre">good</span></span><span class="punctuation"><span class="pre">)</span></span></code> .. which is … good as we have
+an explicit function that behaves exactly as our original recursive definition
+… without any extra arguments.</p>
+<p>To summarize, we’ve now figured out a trick by which we can turn a recursively
+defined function into one that isn’t recursive but can effectively accomplish
+the same result.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">some-function/rec</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">...</span> <span class="p">(</span><span class="n">some-function/rec</span> <span class="n">next-arg</span><span class="p">)</span> <span class="k">...</span><span class="p">))</span>
+<span class="c1">; can be transformed into</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">some-function/norec</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">...</span> <span class="p">((</span><span class="n">f</span> <span class="n">f</span><span class="p">)</span> <span class="n">next-arg</span><span class="p">)</span> <span class="k">...</span><span class="p">)))</span>
+<span class="c1">; .. so that some-function/rec can now be defined in terms of</span>
+<span class="c1">; some-function/norec as --</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">some-function/rec</span> <span class="p">(</span><span class="n">some-function/norec</span> <span class="n">some-function/norec</span><span class="p">))</span>
+
+<span class="c1">; Note that the number of sites at which the recursive call happens</span>
+<span class="c1">; does not matter. We replace all of them with (f f).</span>
+</pre></div>
+</div>
+<div class="section" id="the-journey-isn-t-finished-yet">
+<h3>The journey isn’t finished yet<a class="headerlink" href="#the-journey-isn-t-finished-yet" title="Permalink to this headline">¶</a></h3>
+<p>We’ve now shown that you can express recursive calls using <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code> alone.
+Mission accomplished! However, don’t forget our larger claim that anything
+computable can be expressed using <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code>. In this case, what we just saw
+is how we can start with a recursively defined function (given as a spec
+similar to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">cheat</span></span></code>) and <strong>mechanically</strong> transform it into the true
+recursive function. If we’ve truly “mechanized” it, then we should be able to
+express that transformation as a function, right?</p>
+<p>Though we called our original funciton “cheat”, we’re being a bit unfair to it,
+because it serves as a specification for how the recursion is to proceed. It
+captures all the details of the algorithm we intended to write down, except for
+exactly which function to use to recurse. Furthermore, our desired
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code> is a fixed point of this function, which is simple enough to
+write. So we can now ask – “If I give you such a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">cheat</span></span></code> function, can
+you <strong>calculate</strong> <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code> mechanically?”</p>
+<p>We can also see that <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">good</span></span> <span class="name"><span class="pre">f</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">cheat</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span> <span class="name"><span class="pre">f</span></span><span class="punctuation"><span class="pre">))</span></span></code> through simple β-reduction.
+In fact, we got <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">good</span></span> <span class="name"><span class="pre">good</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">cheat</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">good</span></span> <span class="name"><span class="pre">good</span></span><span class="punctuation"><span class="pre">))</span></span></code> from that in the
+first place.</p>
+<p>We can now rewrite that way of stating <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">good</span></span></code> as –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">good</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="n">cheat</span> <span class="p">(</span><span class="n">f</span> <span class="n">f</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>And we can now express our desired <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code> function as just –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">sqrt/rec</span> <span class="p">(</span><span class="n">good</span> <span class="n">good</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>If we then β-abstract on <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">good</span></span></code>, we get –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">sqrt/rec</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="n">f</span><span class="p">))</span> <span class="n">good</span><span class="p">))</span>
+<span class="c1">; =&gt;</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">sqrt/rec</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="n">f</span><span class="p">))</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="p">(</span><span class="n">cheat</span> <span class="p">(</span><span class="n">g</span> <span class="n">g</span><span class="p">)))))</span>
+<span class="c1">; =&gt; β-abstract on &quot;cheat&quot; =&gt;</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">sqrt/rec</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="n">f</span><span class="p">))</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="p">(</span><span class="n">s</span> <span class="p">(</span><span class="n">g</span> <span class="n">g</span><span class="p">)))))</span> <span class="n">cheat</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>So, we actually now have a function that we can apply to our easy-to-define
+“spec” function in order to get our recursive result! This function that we’ve
+figured out above is called the “Y combinator”.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">Y</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="n">f</span><span class="p">))</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="p">(</span><span class="n">s</span> <span class="p">(</span><span class="n">g</span> <span class="n">g</span><span class="p">))))))</span>
+</pre></div>
+</div>
+<p>(We’re using <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">s</span></span></code> as the variable name to suggest “spec function” for
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">cheat</span></span></code>.)</p>
+<p>A way the Y combinator is usually presented is with one β-reduction applied
+which gives us a nice symmetric form –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">Y</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="p">(</span><span class="n">s</span> <span class="p">(</span><span class="n">g</span> <span class="n">g</span><span class="p">)))</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="p">(</span><span class="n">s</span> <span class="p">(</span><span class="n">g</span> <span class="n">g</span><span class="p">))))))</span>
+</pre></div>
+</div>
+<p>And we have <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Y</span></span> <span class="name"><span class="pre">cheat</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">cheat</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Y</span></span> <span class="name"><span class="pre">cheat</span></span><span class="punctuation"><span class="pre">))</span></span></code>. This is why the Y combinator
+is said to be a “fixed point combinator” because it calculates the fixed point
+of the given function. So all you have to do now is to express your recursive
+function using an “unknown <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code>” and then have the Y-combinator figure out
+what <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code> to pass to it.</p>
+</div>
+<div class="section" id="can-we-just-solve-for-the-combinator">
+<h3>Can we just solve for the combinator?<a class="headerlink" href="#can-we-just-solve-for-the-combinator" title="Permalink to this headline">¶</a></h3>
+<p>While we originally tried to solve for <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code> given the equation
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">cheat</span></span> <span class="name"><span class="pre">sqrt/rec</span></span><span class="punctuation"><span class="pre">)</span></span></code>, we turned the problem into finding a
+function of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">cheat</span></span></code> that can produce <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">sqrt/rec</span></span></code>. i.e. we were
+actually looking for a function <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">F</span></span></code> such that -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">F</span> <span class="n">cheat</span><span class="p">)</span> <span class="nb">=</span> <span class="p">(</span><span class="n">cheat</span> <span class="p">(</span><span class="n">F</span> <span class="n">cheat</span><span class="p">))</span>
+<span class="c1">; i.e.</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">F</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">cheat</span><span class="p">)</span> <span class="p">(</span><span class="n">cheat</span> <span class="p">(</span><span class="n">F</span> <span class="n">cheat</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>Now we have a recursive “solution” for <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">F</span></span></code>. If we now apply the same
+technique/trick that we used to turn <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">cheat</span></span></code> into a non-recursive function
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">good</span></span></code>, we have –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">G</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">cheat</span><span class="p">)</span> <span class="p">(</span><span class="n">cheat</span> <span class="p">((</span><span class="n">f</span> <span class="n">f</span><span class="p">)</span> <span class="n">cheat</span><span class="p">)))))</span>
+<span class="c1">; and</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">F</span> <span class="p">(</span><span class="n">G</span> <span class="n">G</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Now, let’s look at the full expression for <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">G</span></span> <span class="name"><span class="pre">G</span></span><span class="punctuation"><span class="pre">)</span></span></code> with less judgemental
+variable names –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">F</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">(</span><span class="n">s</span> <span class="p">((</span><span class="n">f</span> <span class="n">f</span><span class="p">)</span> <span class="n">s</span><span class="p">))))</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">(</span><span class="n">s</span> <span class="p">((</span><span class="n">f</span> <span class="n">f</span><span class="p">)</span> <span class="n">s</span><span class="p">))))))</span>
+</pre></div>
+</div>
+<p>(We’re again using the variable named <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">s</span></span></code> to denote the “spec function”
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">cheat</span></span></code>.)</p>
+<p>This looks like a different function compared to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Y</span></span></code> we figured out
+earlier that also has the property <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">F</span></span> <span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">s</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">F</span></span> <span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">))</span></span></code> just like <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Y</span></span>
+<span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="name"><span class="pre">s</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Y</span></span> <span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">)</span></span></code>. The difference between the two is this – since we only used
+β-abstraction to come up with <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">F</span></span></code>, we can see how evaluating <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">F</span></span> <span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">)</span></span></code>
+simply β-reduces to <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">s</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">F</span></span> <span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">))</span></span></code>, whereas with the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Y</span></span></code> combinator,
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Y</span></span> <span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">)</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">s</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Y</span></span> <span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">))</span></span></code> give us the same expression. <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">F</span></span></code> is
+therefore a valid combinator in its own right and is called the “Turing
+combinator”, usually denoted by <span class="math notranslate nohighlight">\(\Theta\)</span>.</p>
+</div>
+<div class="section" id="can-we-not-be-lazy-please">
+<h3>Can we not be lazy please?<a class="headerlink" href="#can-we-not-be-lazy-please" title="Permalink to this headline">¶</a></h3>
+<p>We’ve so far been using the <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">lazy</span></span></code> for all the above work on
+recursion. If you want to, you can try to see if the Y combinator as defined
+above will work with eager evaluation by switching the language to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">#lang</span></span>
+<span class="name"><span class="pre">racket</span></span></code>. You’ll find that you’ll get a stack overflow as <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Y</span></span></code> tries to
+repeatedly expand itself without stopping. The benefit of laziness for the
+definition of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Y</span></span></code> is that the expansion only happens when it is needed,
+i.e. in the part of the spec function that actually makes a recursive call.
+When the termination condition is hit, no further expansion of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Y</span></span></code>
+is needed and the recursion stops.</p>
+<p>We can achieve the same effect in the eager evaluation mode by wrapping the
+expansion in another <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">λ</span></span></code>. To do this, we need to see that <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span>
+<span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">))</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="name"><span class="pre">f</span></span></code> for a function <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code> whose expression does not make use of the
+outer variable <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> – i.e. it does not contain <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> as a “free
+variable”, with “free” meaning “unbound”.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The transformation <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">))</span></span> <span class="keyword"><span class="pre">=&gt;</span></span> <span class="name"><span class="pre">f</span></span></code> when <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code> does not
+contain <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> as a free variable is called η-reduction (“eta-reduction”).
+This transformation can be done both ways. I haven’t traced the history of
+λ-calculus to figure out why Church chose to call it η-reduction and not
+γ-reduction as one might expect to follow β-reduction. I’d like to think he
+tried many intermediate rules to complete the λ-calculus until he finally
+settled on the one he named η-reduction. At least, that fictitious
+explanation would capture the labour necessary for mathematical insight.</p>
+</div>
+<p>We apply this transformation to the inner <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">g</span></span> <span class="name"><span class="pre">g</span></span><span class="punctuation"><span class="pre">)</span></span></code> call, turning it into
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">v</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">g</span></span> <span class="name"><span class="pre">g</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">v</span></span><span class="punctuation"><span class="pre">))</span></span></code>. We can now rewrite the Y combinator as –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">Y</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="n">f</span><span class="p">))</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="p">(</span><span class="n">s</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="p">((</span><span class="n">g</span> <span class="n">g</span><span class="p">)</span> <span class="n">v</span><span class="p">)))))))</span>
+</pre></div>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise:</strong></p>
+<p>Check out whether this way of specifying the Y combinator works
+in eager mode. Do you understand why?</p>
+</div>
+</div>
 </div>
 </div>
 

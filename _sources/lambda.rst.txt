@@ -51,9 +51,10 @@ shown below --
 It represents a packaged computation that can be performed when given concrete
 values for the variables listed after :rkt:`lambda` in the above expression.
 
-For example, :rkt:`` is the function that squares numbers.
-When given a number :rkt:`2`, by substituting :rkt:`x` with :rkt:`2`, you can compute
-the result of what the lambda expression denotes -- which is :rkt:`(* 2 2) = 4`.
+For example, :rkt:`(lambda (x) (* x x))` is the function that squares numbers.
+When given a number :rkt:`2`, by substituting :rkt:`x` with :rkt:`2`, you can
+compute the result of what the lambda expression denotes -- which is :rkt:`(* 2
+2) = 4`.
 
 There are two main rules you need to know when working with :rkt:`lambda`
 expressions (the abstract ones).

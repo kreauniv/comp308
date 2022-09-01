@@ -179,14 +179,15 @@ Let's now consider some simple pictures --
 
     ; square :: Float -> Image
     ;
-    ; (square 0.5) will make a unit square centered around
+    ; (square 1.0) will make a unit square centered around
     ; the origin. Similar colour structure to the disc.
-    (define (square halfwidth)
+    (define (square width)
         (λ (x y)
-           (if (and (> x (- halfwidth)) (< x halfwidth)
-                    (> y (- halfwidth)) (< y halfwidth))
-               (colour 1.0 1.0 1.0 1.0)
-               (colour 0.0 0.0 0.0 0.0))))
+           (let ([half (* 0.5 width)])
+               (if (and (> x (- half)) (< x half)
+                        (> y (- half)) (< y half))
+                   (colour 1.0 1.0 1.0 1.0)
+                   (colour 0.0 0.0 0.0 0.0)))))
 
 We can also write functions that transform these primitives spatially and in colour --
 
@@ -262,7 +263,7 @@ Composing transformations as functions
 We now have a mini language at hand. Using the functions we've defined above,
 we can combine them to make new images. For example, :rkt:`(translate 5 5
 (rotate 30 (square 2.0)))`. The expression :rkt:`(square 2.0)` produces an
-image function that represents a square of width :math:`4.0`, which we rotate
+image function that represents a square of width :math:`2.0`, which we rotate
 around the origin by :math:`30` degrees and then translate it by :math:`(5,5)`.
 
 A first step to making an interpreter

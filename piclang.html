@@ -185,14 +185,15 @@ for various values of <span class="math notranslate nohighlight">\(x\)</span> an
 
 <span class="c1">; square :: Float -&gt; Image</span>
 <span class="c1">;</span>
-<span class="c1">; (square 0.5) will make a unit square centered around</span>
+<span class="c1">; (square 1.0) will make a unit square centered around</span>
 <span class="c1">; the origin. Similar colour structure to the disc.</span>
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">square</span> <span class="n">halfwidth</span><span class="p">)</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">square</span> <span class="n">width</span><span class="p">)</span>
     <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span>
-       <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="k">and</span> <span class="p">(</span><span class="nb">&gt;</span> <span class="n">x</span> <span class="p">(</span><span class="nb">-</span> <span class="n">halfwidth</span><span class="p">))</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="n">x</span> <span class="n">halfwidth</span><span class="p">)</span>
-                <span class="p">(</span><span class="nb">&gt;</span> <span class="n">y</span> <span class="p">(</span><span class="nb">-</span> <span class="n">halfwidth</span><span class="p">))</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="n">y</span> <span class="n">halfwidth</span><span class="p">))</span>
-           <span class="p">(</span><span class="n">colour</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span><span class="p">)</span>
-           <span class="p">(</span><span class="n">colour</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span><span class="p">))))</span>
+       <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">half</span> <span class="p">(</span><span class="nb">*</span> <span class="mf">0.5</span> <span class="n">width</span><span class="p">)])</span>
+           <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="k">and</span> <span class="p">(</span><span class="nb">&gt;</span> <span class="n">x</span> <span class="p">(</span><span class="nb">-</span> <span class="n">half</span><span class="p">))</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="n">x</span> <span class="n">half</span><span class="p">)</span>
+                    <span class="p">(</span><span class="nb">&gt;</span> <span class="n">y</span> <span class="p">(</span><span class="nb">-</span> <span class="n">half</span><span class="p">))</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="n">y</span> <span class="n">half</span><span class="p">))</span>
+               <span class="p">(</span><span class="n">colour</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span><span class="p">)</span>
+               <span class="p">(</span><span class="n">colour</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span><span class="p">)))))</span>
 </pre></div>
 </div>
 <p>We can also write functions that transform these primitives spatially and in colour –</p>
@@ -256,7 +257,7 @@ rotation matrix from your linear algebra course.</p>
 <p>We now have a mini language at hand. Using the functions we’ve defined above,
 we can combine them to make new images. For example, <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">translate</span></span> <span class="literal number integer"><span class="pre">5</span></span> <span class="literal number integer"><span class="pre">5</span></span>
 <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">rotate</span></span> <span class="literal number integer"><span class="pre">30</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="literal number float"><span class="pre">2.0</span></span><span class="punctuation"><span class="pre">)))</span></span></code>. The expression <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="literal number float"><span class="pre">2.0</span></span><span class="punctuation"><span class="pre">)</span></span></code> produces an
-image function that represents a square of width <span class="math notranslate nohighlight">\(4.0\)</span>, which we rotate
+image function that represents a square of width <span class="math notranslate nohighlight">\(2.0\)</span>, which we rotate
 around the origin by <span class="math notranslate nohighlight">\(30\)</span> degrees and then translate it by <span class="math notranslate nohighlight">\((5,5)\)</span>.</p>
 </div>
 <div class="section" id="a-first-step-to-making-an-interpreter">

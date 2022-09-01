@@ -153,10 +153,10 @@ moving it over the region of interest to us. That is, we can consider for the
 moment that a picture is a mapping from a pair of spatial coordinates to a
 colour.</p>
 <p>In the previous session on “lambda”, we represented whole numbers using
-functions to build up confidence that functions are power enough to capture all
-of computation. We should therefore expect that they will suffice for images
-too.  Below, we’ll use Haskell type notation which you’re familiar with to
-capture the idea of the types of things we’re dealing with.</p>
+functions to build up confidence that functions are powerful enough to capture
+all of computation. We should therefore expect that they will suffice for
+images too.  Below, we’ll use Haskell type notation which you’re familiar with
+to capture the idea of the types of things we’re dealing with.</p>
 <div class="highlight-haskell notranslate"><div class="highlight"><pre><span></span><span class="kr">type</span> <span class="kt">Coords</span> <span class="ow">=</span> <span class="p">(</span><span class="kt">Float</span><span class="p">,</span> <span class="kt">Float</span><span class="p">)</span>
 <span class="kr">type</span> <span class="kt">Image</span> <span class="ow">=</span> <span class="kt">Coords</span> <span class="ow">-&gt;</span> <span class="kt">Colour</span>
 </pre></div>

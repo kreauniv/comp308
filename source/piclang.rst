@@ -136,10 +136,10 @@ moment that a picture is a mapping from a pair of spatial coordinates to a
 colour.
 
 In the previous session on "lambda", we represented whole numbers using
-functions to build up confidence that functions are power enough to capture all
-of computation. We should therefore expect that they will suffice for images
-too.  Below, we'll use Haskell type notation which you're familiar with to
-capture the idea of the types of things we're dealing with.
+functions to build up confidence that functions are powerful enough to capture
+all of computation. We should therefore expect that they will suffice for
+images too.  Below, we'll use Haskell type notation which you're familiar with
+to capture the idea of the types of things we're dealing with.
 
 .. code-block:: haskell
     

@@ -171,7 +171,9 @@ how exactly we want to treat pictures, this is a reasonable starting point since
 can produce a “raster image” (a 2D array of pixels) by calling the “image function”
 for various values of <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> and recording the colour produced.</p>
 <p>Let’s now consider some simple pictures –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Produces a white disc against a black background.</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; disc :: Float -&gt; Image</span>
+<span class="c1">;</span>
+<span class="c1">; Produces a white disc against a black background.</span>
 <span class="c1">; The background is totally transparent everywhere outside</span>
 <span class="c1">; the radius of the disc.</span>
 <span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">disc</span> <span class="n">radius</span><span class="p">)</span>
@@ -181,6 +183,8 @@ for various values of <span class="math notranslate nohighlight">\(x\)</span> an
              <span class="p">(</span><span class="n">colour</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span><span class="p">)</span>
              <span class="p">(</span><span class="n">colour</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span><span class="p">)))))</span>
 
+<span class="c1">; square :: Float -&gt; Image</span>
+<span class="c1">;</span>
 <span class="c1">; (square 0.5) will make a unit square centered around</span>
 <span class="c1">; the origin. Similar colour structure to the disc.</span>
 <span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">square</span> <span class="n">halfwidth</span><span class="p">)</span>
@@ -192,7 +196,10 @@ for various values of <span class="math notranslate nohighlight">\(x\)</span> an
 </pre></div>
 </div>
 <p>We can also write functions that transform these primitives spatially and in colour –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">translate</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">img</span><span class="p">)</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; translate :: Float -&gt; Float -&gt; Image -&gt; Image</span>
+<span class="c1">;</span>
+<span class="c1">; Translates the given image by the given delta values in X and Y directions.</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">translate</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">img</span><span class="p">)</span>
     <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span>
        <span class="p">(</span><span class="n">img</span> <span class="p">(</span><span class="nb">-</span> <span class="n">x</span> <span class="n">dx</span><span class="p">)</span> <span class="p">(</span><span class="nb">-</span> <span class="n">y</span> <span class="n">dy</span><span class="p">))))</span>
 </pre></div>
@@ -203,7 +210,9 @@ for various values of <span class="math notranslate nohighlight">\(x\)</span> an
 looking at at <span class="math notranslate nohighlight">\((6,8)\)</span> is at <span class="math notranslate nohighlight">\((3,6)\)</span> relative to the bottom left
 corner of the cat picture.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; (scale 0.5 0.5 &lt;img&gt;) will result in an image</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; scale :: Float -&gt; Float -&gt; Image -&gt; Image</span>
+<span class="c1">;</span>
+<span class="c1">; (scale 0.5 0.5 &lt;img&gt;) will result in an image</span>
 <span class="c1">; that&#39;s half the size in both x and y dimensions.</span>
 <span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">scale</span> <span class="n">xscale</span> <span class="n">yscale</span> <span class="n">img</span><span class="p">)</span>
    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span>
@@ -227,7 +236,9 @@ original image we should look at.</p>
 rotation matrix from your linear algebra course.</p>
 </div>
 <p>We’ll do a simple colour inversion before we go any further.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Note that we preserve the alpha as is so that opaque colours</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; invert-colour :: Image -&gt; Image</span>
+<span class="c1">;</span>
+<span class="c1">; Note that we preserve the alpha as is so that opaque colours</span>
 <span class="c1">; in the original are mapped to opaque but inverted colours in</span>
 <span class="c1">; the transformed picture.</span>
 <span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">invert-colour</span> <span class="n">img</span><span class="p">)</span>

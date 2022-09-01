@@ -165,6 +165,8 @@ Let's now consider some simple pictures --
 
 .. code-block:: racket
 
+    ; disc :: Float -> Image
+    ;
     ; Produces a white disc against a black background.
     ; The background is totally transparent everywhere outside
     ; the radius of the disc.
@@ -175,6 +177,8 @@ Let's now consider some simple pictures --
                  (colour 1.0 1.0 1.0 1.0)
                  (colour 0.0 0.0 0.0 0.0)))))
 
+    ; square :: Float -> Image
+    ;
     ; (square 0.5) will make a unit square centered around
     ; the origin. Similar colour structure to the disc.
     (define (square halfwidth)
@@ -188,6 +192,9 @@ We can also write functions that transform these primitives spatially and in col
 
 .. code-block:: racket
 
+    ; translate :: Float -> Float -> Image -> Image
+    ;
+    ; Translates the given image by the given delta values in X and Y directions.
     (define (translate dx dy img)
         (λ (x y)
            (img (- x dx) (- y dy))))
@@ -203,6 +210,8 @@ We can also write functions that transform these primitives spatially and in col
 
 .. code-block:: racket
 
+    ; scale :: Float -> Float -> Image -> Image
+    ;
     ; (scale 0.5 0.5 <img>) will result in an image
     ; that's half the size in both x and y dimensions.
     (define (scale xscale yscale img)
@@ -234,6 +243,8 @@ We'll do a simple colour inversion before we go any further.
 
 .. code-block:: racket
 
+    ; invert-colour :: Image -> Image
+    ;
     ; Note that we preserve the alpha as is so that opaque colours
     ; in the original are mapped to opaque but inverted colours in
     ; the transformed picture.

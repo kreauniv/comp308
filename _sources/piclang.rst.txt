@@ -327,8 +327,9 @@ our expression like this -
 
 .. _match: https://docs.racket-lang.org/reference/match.html
 
-Once you've written the :rkt:`read-image` and :rkt:`write-image` functions,
-you'll now be able to run the above interpreter to do some simple things with them.
-We'll now look into what would make for a "core language" versus "surface syntax".
+Once you've written the :rkt:`read-image` and :rkt:`write-image` functions in
+your assignment, you'll be able to run the above interpreter to do some simple
+things with them. We'll now look into what would make for a "core language"
+versus "surface syntax".
 
 

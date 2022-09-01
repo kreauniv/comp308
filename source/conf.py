@@ -75,3 +75,5 @@ rst_prolog = """
    :language: racket
    :class: highlight
 """
+
+numfig = True

@@ -40,6 +40,15 @@ take some reasonable steps and improve what we have at hand when we recognize
 the opportunity. To do that effectively, we'll need to keep our eye on the
 mentioned "minimal core" as we go along.
 
+.. admonition:: **Credits**
+
+    This section is named in honour of an amazing talk of the same title by Guy
+    Steele, the co-creator of Scheme - `Growing a language, by Guy Steele
+    <gal_>`_ (youtube link) given in 1998. It is a fantastic talk and a great
+    performance & delivery, that I much recommend to students.
+
+.. _gal: https://www.youtube.com/watch?v=_ahvzDzKdB0
+
 A plausible vocabulary
 ----------------------
 

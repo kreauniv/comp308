@@ -57,8 +57,7 @@ Let's consider 3 categories of images that students gave examples of --
 1. "Primitives" such as circles, rectangles, squares and triangles. We include
    images loaded from files in this category since they do not depend on the
    content of other images. We'll use the `Plain PPM`_ file format since it is
-   a simple text-based format that's easy to parse and write. You've already
-   been given instructions to write functions to read and write this format.
+   a simple text-based format that's easy to parse and write. [#ppm]_
 
 2. Transformations -- including colour transformations and spatial transformations
    like translation, rotation, scaling and mirroring. These take one image and
@@ -70,6 +69,10 @@ Let's consider 3 categories of images that students gave examples of --
 The above is already giving us a plausible vocabulary for talking about
 pictures to begin with, even though we don't yet know what exactly a "picture"
 is. We can represent these ideas using s-expressions like below --
+
+.. [#ppm] You've already been given instructions to write functions to read and
+   write this format.
+
 
 Primitives
 

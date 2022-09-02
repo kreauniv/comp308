@@ -29,7 +29,7 @@ first place? We'll need to --
 1. Get a sense of the "vocabulary" we want for working with pictures.
 
 2. Get a sense of how we wish to be able to generate pictures, transform them
-   or combine more than one to for a new picture.
+   or combine more than one to form a new picture.
 
 3. Figure out the essence of picture composition -- i.e. a minimal "core"
    language in which we we can express the ideas we're interested in. Translate

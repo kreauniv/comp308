@@ -84,8 +84,7 @@ performance &amp; delivery, that I much recommend students watch and contemplate
 <li><p>“Primitives” such as circles, rectangles, squares and triangles. We include
 images loaded from files in this category since they do not depend on the
 content of other images. We’ll use the <a class="reference external" href="http://netpbm.sourceforge.net/doc/ppm.html#plainppm">Plain PPM</a> file format since it is
-a simple text-based format that’s easy to parse and write. You’ve already
-been given instructions to write functions to read and write this format.</p></li>
+a simple text-based format that’s easy to parse and write. <a class="footnote-reference brackets" href="#ppm" id="id1">1</a></p></li>
 <li><p>Transformations – including colour transformations and spatial transformations
 like translation, rotation, scaling and mirroring. These take one image and
 modify their appearance to produce another “transformed” image.</p></li>
@@ -95,6 +94,12 @@ two images and such.</p></li>
 <p>The above is already giving us a plausible vocabulary for talking about
 pictures to begin with, even though we don’t yet know what exactly a “picture”
 is. We can represent these ideas using s-expressions like below –</p>
+<dl class="footnote brackets">
+<dt class="label" id="ppm"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>You’ve already been given instructions to write functions to read and
+write this format.</p>
+</dd>
+</dl>
 <p>Primitives</p>
 <blockquote>
 <div><div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">circle</span> <span class="n">&lt;radius&gt;</span><span class="p">)</span>
@@ -167,10 +172,10 @@ to capture the idea of the types of things we’re dealing with.</p>
 <span class="kr">type</span> <span class="kt">Image</span> <span class="ow">=</span> <span class="kt">Coords</span> <span class="ow">-&gt;</span> <span class="kt">Colour</span>
 </pre></div>
 </div>
-<div class="figure align-center" id="id1">
+<div class="figure align-center" id="id2">
 <img alt="A picture of a kitten overlaid on graph paper with a magnifying glass focusing on a leaf." src="_images/image-illustration.png" />
 <p class="caption"><span class="caption-number">Fig. 1 </span><span class="caption-text">An image can be thought of as a mapping from a pair of spatial coordinates <span class="math notranslate nohighlight">\((x,y)\)</span>
-to a colour value. (Credits: <a class="reference external" href="https://commons.wikimedia.org/wiki/File:A_curious_kitten_(Pixabay).jpg">catpic</a> and <a class="reference external" href="https://commons.wikimedia.org/wiki/File:Hand_glass.png">magglass</a>)</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+to a colour value. (Credits: <a class="reference external" href="https://commons.wikimedia.org/wiki/File:A_curious_kitten_(Pixabay).jpg">catpic</a> and <a class="reference external" href="https://commons.wikimedia.org/wiki/File:Hand_glass.png">magglass</a>)</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
 </div>
 <p>Is it too abstract to think of a picture like that? Since we haven’t yet figured out
 how exactly we want to treat pictures, this is a reasonable starting point since we
@@ -211,11 +216,11 @@ for various values of <span class="math notranslate nohighlight">\(x\)</span> an
        <span class="p">(</span><span class="n">img</span> <span class="p">(</span><span class="nb">-</span> <span class="n">x</span> <span class="n">dx</span><span class="p">)</span> <span class="p">(</span><span class="nb">-</span> <span class="n">y</span> <span class="n">dy</span><span class="p">))))</span>
 </pre></div>
 </div>
-<div class="figure align-center" id="id2">
+<div class="figure align-center" id="id3">
 <img alt="Image translated by (3,2)" src="_images/translation.png" />
 <p class="caption"><span class="caption-number">Fig. 2 </span><span class="caption-text">The same cat picture above translated by <span class="math notranslate nohighlight">\((3,2)\)</span>. The colour we’re now
 looking at at <span class="math notranslate nohighlight">\((6,8)\)</span> is at <span class="math notranslate nohighlight">\((3,6)\)</span> relative to the bottom left
-corner of the cat picture.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+corner of the cat picture.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
 </div>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; scale :: Float -&gt; Float -&gt; Image -&gt; Image</span>
 <span class="c1">;</span>
@@ -228,11 +233,11 @@ corner of the cat picture.</span><a class="headerlink" href="#id2" title="Permal
         <span class="p">(</span><span class="n">img</span> <span class="n">x2</span> <span class="n">y2</span><span class="p">))))</span>
 </pre></div>
 </div>
-<div class="figure align-center" id="id3">
+<div class="figure align-center" id="id4">
 <img alt="Image scaled by (0.5,0.5)" src="_images/scaling.png" />
 <p class="caption"><span class="caption-number">Fig. 3 </span><span class="caption-text">The same cat picture above scaled by <span class="math notranslate nohighlight">\((0.5,0.5)\)</span>. The colour we’re
 looking at when we look at <span class="math notranslate nohighlight">\((3,4)\)</span> in the result image is the same
-colour we get when we looked at <span class="math notranslate nohighlight">\((6,8)\)</span> in the original image.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+colour we get when we looked at <span class="math notranslate nohighlight">\((6,8)\)</span> in the original image.</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
 </div>
 <p>Notice that though our scaling factors are <span class="math notranslate nohighlight">\((0.5,0.5)\)</span>, we need to use
 the inverse of the scaling factors when figuring out which point in the

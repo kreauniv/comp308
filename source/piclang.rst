@@ -311,7 +311,7 @@ easy for us to write an interpreter for such expressions.
              [(list 'square width) (square width)]
              [(list 'rotate angle picexpr2) (rotate angle (interpret-v1 picexpr2))]
              [(list 'translate dx dy picexpr3) (translate dx dy (interpret-v1 picexpr3))]
-             [_ (error "Unknown picture expression")])))
+             [_ (raise-argument-error 'interpret-v1 "Picture expression" picexpr)])))
 
 In this case, we've used certain words like :rkt:`square` and :rkt:`translate`
 to express some concepts in our "language" and mapped these concepts to

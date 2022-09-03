@@ -64,7 +64,8 @@ expressions (the abstract ones).
     denotes some expression involving the variable :rkt:`x`, then you can change
     the name of :rkt:`x` to anything else and what the expression denotes is
     considered to be the same. i.e. You can rewrite it to :rkt:`(lambda (y) E[y])`
-    (where we use the same :rkt:`E`) and it means the same thing.
+    (where we use the same :rkt:`E`) and it means the same thing ... as long as
+    E doesn't already use :rkt:`y` as a free variable.
 
 **β-reduction**
     If you have an expression of the form :rkt:`((lambda (x) E1[x]) E2)` where :rkt:`E1[x]`

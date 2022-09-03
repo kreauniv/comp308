@@ -79,8 +79,8 @@ expressions (the abstract ones).
     **anywhere**. We refer to the above left-to-right rewrite as "β-reduction"
     and the corresponding right-to-left rewrite as "β-abstraction".
 
-    Just as lambdas are the conceptual basis of all of computation, all
-    abstraction in computing boils down to β-abstraction.
+    Just as lambdas offer a conceptual basis of all of computation, all
+    abstraction in computing can be seen through β-abstraction.
 
 .. note:: "**β-reduction**" can be considered a fancy term for "substitution",
    for that's what it is. We don't have a corresponding simple term for the

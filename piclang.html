@@ -328,6 +328,50 @@ to be bound to the values in the corresponding slots in the list.</p>
 your assignment, you’ll be able to run the above interpreter to do some simple
 things with them. We’ll now look into what would make for a “core language”
 versus “surface syntax”.</p>
+<div class="section" id="an-alternative-representation">
+<h3>An alternative representation<a class="headerlink" href="#an-alternative-representation" title="Permalink to this headline">¶</a></h3>
+<p>We represented the “program” as simply an s-expression. Our program in this
+case consisted of a single expression which our interpret “evaluated”.
+More typically when working on programming languages, the sub-expressions
+we used are given their own data structure and a tree is made by composing
+these sub-expressions. The tree is referred to as the “abstract syntax tree”
+as it captures the syntactic structure of the program, leaving aside
+(i.e. absracting) the sequence of characters from which it s constructed.</p>
+<p>To capture the spirit of that, we can also represent our image primitives
+and transformations as structures like below –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">Circle</span> <span class="p">(</span><span class="n">radius</span><span class="p">))</span>
+<span class="p">(</span><span class="k">struct</span> <span class="n">Translate</span> <span class="p">(</span><span class="n">dx</span> <span class="n">dy</span> <span class="n">picexpr</span><span class="p">))</span>
+<span class="p">(</span><span class="k">struct</span> <span class="n">Rotate</span> <span class="p">(</span><span class="n">deg</span> <span class="n">picexpr</span><span class="p">))</span>
+<span class="c1">; etc.</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">picexpr?</span> <span class="n">e</span><span class="p">)</span>
+   <span class="p">(</span><span class="k">or</span> <span class="p">(</span><span class="n">Circle?</span> <span class="n">e</span><span class="p">)</span>
+       <span class="p">(</span><span class="n">Translate?</span> <span class="n">e</span><span class="p">)</span>
+       <span class="p">(</span><span class="n">Rotate?</span> <span class="n">e</span><span class="p">)</span>
+       <span class="c1">; ...</span>
+       <span class="p">))</span>
+</pre></div>
+</div>
+<p>We can then represent our program as an expression using the struct constructors
+as – <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Translate</span></span> <span class="name"><span class="pre">dx</span></span> <span class="name"><span class="pre">dy</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Rotate</span></span> <span class="name"><span class="pre">deg</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Circle</span></span> <span class="name"><span class="pre">radius</span></span><span class="punctuation"><span class="pre">)))</span></span></code>. Note that this is
+now quoted, meaning the value that Scheme will give when given this expression is
+a tree of sub-expressions. We can interpret this tree as follows -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">interpret-v2</span>
+    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">picexpr</span><span class="p">)</span>
+       <span class="p">(</span><span class="k">match</span> <span class="n">picexpr</span>
+          <span class="p">[(</span><span class="n">Circle</span> <span class="n">radius</span><span class="p">)</span> <span class="p">(</span><span class="n">circle</span> <span class="n">radius</span><span class="p">)]</span>
+          <span class="p">[(</span><span class="n">Translate</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">picexpr</span><span class="p">)</span> <span class="p">(</span><span class="n">translate</span> <span class="n">dx</span> <span class="n">dy</span> <span class="p">(</span><span class="n">interpret-v2</span> <span class="n">picexpr</span><span class="p">))]</span>
+          <span class="p">[(</span><span class="n">Rotate</span> <span class="n">deg</span> <span class="n">picexpr</span><span class="p">)</span> <span class="p">(</span><span class="n">rotate</span> <span class="n">deg</span> <span class="p">(</span><span class="n">interpret-v2</span> <span class="n">picexpr</span><span class="p">))]</span>
+          <span class="p">[</span><span class="k">_</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">interpret-v2</span> <span class="s2">&quot;Picture expression as node&quot;</span> <span class="n">picexpr</span><span class="p">)])))</span>
+</pre></div>
+</div>
+<p><code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">match</span></span></code> lets you use the constructor names of struct declarations to
+deconstruct them and extract the parts. When you’re writing your own or
+extending the interpreter, remember that the tree is not made of pictures, but
+expressions that stand for pictures. These expressions will need to be
+interpreted to give them their meanings as pictures, hence the recursive calls
+to transform these sub-expressions to pictures that we can then compose.</p>
+</div>
 </div>
 </div>
 

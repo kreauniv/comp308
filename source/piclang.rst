@@ -345,4 +345,53 @@ your assignment, you'll be able to run the above interpreter to do some simple
 things with them. We'll now look into what would make for a "core language"
 versus "surface syntax".
 
+An alternative representation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We represented the "program" as simply an s-expression. Our program in this
+case consisted of a single expression which our interpret "evaluated".
+More typically when working on programming languages, the sub-expressions
+we used are given their own data structure and a tree is made by composing
+these sub-expressions. The tree is referred to as the "abstract syntax tree"
+as it captures the syntactic structure of the program, leaving aside
+(i.e. absracting) the sequence of characters from which it s constructed.
+
+To capture the spirit of that, we can also represent our image primitives
+and transformations as structures like below --
+
+.. code-block:: racket
+
+    (struct Circle (radius))
+    (struct Translate (dx dy picexpr))
+    (struct Rotate (deg picexpr))
+    ; etc.
+
+    (define (picexpr? e) 
+       (or (Circle? e) 
+           (Translate? e) 
+           (Rotate? e)
+           ; ...
+           ))
+
+We can then represent our program as an expression using the struct constructors
+as -- :rkt:`(Translate dx dy (Rotate deg (Circle radius)))`. Note that this is
+now quoted, meaning the value that Scheme will give when given this expression is
+a tree of sub-expressions. We can interpret this tree as follows -
+
+.. code-block:: racket
+
+    (define interpret-v2
+        (λ (picexpr)
+           (match picexpr
+              [(Circle radius) (circle radius)]
+              [(Translate dx dy picexpr) (translate dx dy (interpret-v2 picexpr))]
+              [(Rotate deg picexpr) (rotate deg (interpret-v2 picexpr))]
+              [_ (raise-argument-error 'interpret-v2 "Picture expression as node" picexpr)])))
+
+:rkt:`match` lets you use the constructor names of struct declarations to
+deconstruct them and extract the parts. When you're writing your own or
+extending the interpreter, remember that the tree is not made of pictures, but
+expressions that stand for pictures. These expressions will need to be
+interpreted to give them their meanings as pictures, hence the recursive calls
+to transform these sub-expressions to pictures that we can then compose.
 

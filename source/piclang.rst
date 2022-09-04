@@ -57,7 +57,7 @@ A plausible vocabulary
 
 Let's consider 3 categories of images that students gave examples of --
 
-1. "Primitives" such as circles, rectangles, squares and triangles. We include
+1. "Primitives" such as discs, rectangles, squares and triangles. We include
    images loaded from files in this category since they do not depend on the
    content of other images. We'll use the `Plain PPM`_ file format since it is
    a simple text-based format that's easy to parse and write. [#ppm]_
@@ -81,7 +81,7 @@ Primitives
 
     .. code-block:: racket
 
-        (circle <radius>)
+        (disc <radius>)
         (square <width>)
         (rectangle <width> <height>)
         (image-from-file <filename.ppm>)
@@ -364,20 +364,20 @@ and transformations as structures like below --
 
 .. code-block:: racket
 
-    (struct Circle (radius))
+    (struct Disc (radius))
     (struct Translate (dx dy picexpr))
     (struct Rotate (deg picexpr))
     ; etc.
 
     (define (picexpr? e) 
-       (or (Circle? e) 
+       (or (Disc? e) 
            (Translate? e) 
            (Rotate? e)
            ; ...
            ))
 
 We can then represent our program as an expression using the struct constructors
-as -- :rkt:`(Translate dx dy (Rotate deg (Circle radius)))`. Note that this is
+as -- :rkt:`(Translate dx dy (Rotate deg (Disc radius)))`. Note that this is
 now quoted, meaning the value that Scheme will give when given this expression is
 a tree of sub-expressions. We can interpret this tree as follows -
 
@@ -386,7 +386,7 @@ a tree of sub-expressions. We can interpret this tree as follows -
     (define interpret-v2
         (λ (picexpr)
            (match picexpr
-              [(Circle radius) (circle radius)]
+              [(Disc radius) (disc radius)]
               [(Translate dx dy picexpr) (translate dx dy (interpret-v2 picexpr))]
               [(Rotate deg picexpr) (rotate deg (interpret-v2 picexpr))]
               [_ (raise-argument-error 'interpret-v2 "Picture expression as node" picexpr)])))

@@ -423,3 +423,29 @@ close over.
 
 We're however going to go further than defunctionalization and build "proper"
 programming ability into our image synthesizer.
+
+There's still one more aspect. Our functions do not fully capture what we know
+about these operators. In articular, they do not capture some algebraic
+properties of these operators when they're used together. For example,
+the expression :rkt:`(Translate 2 3 (Translate 20 30 (Disc 25)))` is expected
+to produce the same picture as :rkt:`(Translate 20 30 (Translate 2 3 (Disc 25)))`
+which in turn produces the same picture as :rkt:`(Translate 22 33 (Disc 25))`. 
+
+So we can write an independent "program transformation function" that encodes
+this knowledge like this --
+
+.. code-block:: racket
+
+    (define (rewrite picexpr)
+       (match picexpr
+         [(Translate dx1 dy1 (Translate dx2 dy2 picexpr))
+          (rewrite (Translate (+ dx1 dx2) (+ dy1 dy2) picexpr))]
+         [_ picexpr]))
+
+This function :rkt:`rewrite` will precalculate a sequence of given translations
+as a single translation, which should give us some boost in efficiency given
+our underlying representation. Such transformation to code is done in most
+programming languages, working on the underlying "intermediate representation"
+(typically abbreviated IR) to perform various optimizations before generating
+the target machine code from the IR.
+

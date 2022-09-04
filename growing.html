@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Growing the language &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="growing-the-language">
+<h1>Growing the language<a class="headerlink" href="#growing-the-language" title="Permalink to this headline">¶</a></h1>
+<p>So far, we have a few “primitives” for creating pictures and some for
+transforming pictures. Let’s list them out to recap –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Shapes</span>
+<span class="p">(</span><span class="n">disc</span> <span class="n">&lt;radius&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">circle</span> <span class="n">&lt;radius&gt;</span> <span class="n">&lt;thickness&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">square</span> <span class="n">&lt;width&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">rectangle</span> <span class="n">&lt;width&gt;</span> <span class="n">&lt;height&gt;</span><span class="p">)</span>
+
+<span class="c1">; Transformations</span>
+<span class="p">(</span><span class="n">translated</span> <span class="n">&lt;dx&gt;</span> <span class="n">&lt;dy&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">rotated</span> <span class="n">&lt;deg&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">scaled</span> <span class="n">&lt;xscale&gt;</span> <span class="n">&lt;yscale&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">inverted-colour</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">opacity</span> <span class="n">&lt;alpha&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">colourized</span> <span class="n">&lt;colour&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
+
+<span class="c1">; Combinations</span>
+<span class="p">(</span><span class="n">overlid</span> <span class="n">&lt;pictureA&gt;</span> <span class="n">&lt;pictureB&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">intersected</span> <span class="n">&lt;pictureA&gt;</span> <span class="n">&lt;pictureB&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We’ve chosen the names as past tense verbs since we’re interested in building
+expressions such as <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">translated</span></span> <span class="literal number integer"><span class="pre">2</span></span> <span class="literal number integer"><span class="pre">3</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">circle</span></span> <span class="literal number float"><span class="pre">5.0</span></span> <span class="literal number float"><span class="pre">1.0</span></span><span class="punctuation"><span class="pre">))</span></span></code> which we’d like to
+read and interpret as a “translated circle”.</p>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Implement some of these operations as ordinary lambda functions
+to convince yourself that the representation we’ve chosen still
+serves to model this whole set.</p>
+</div>
+<p>Some of you may have noticed that if we have <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">rectangle</span></span></code>,
+we don’t really need <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">square</span></span></code> since a square is just a rectangle
+with equal sides. Even in the case of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">disc</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">circle</span></span></code>,
+we can see that a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">disc</span></span></code> or radius <span class="math notranslate nohighlight">\(R\)</span> can be thought of
+as a circle of radius <span class="math notranslate nohighlight">\(R/2\)</span> of thickness <span class="math notranslate nohighlight">\(R\)</span>.</p>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Comp308: Principles of Programming Languages</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Srikumar K. S..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/growing.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

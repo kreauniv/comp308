@@ -13,5 +13,6 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    racket-intro
    lambda
    piclang
+   growing
 
 

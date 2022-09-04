@@ -15,6 +15,7 @@
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Growing the language" href="growing.html" />
     <link rel="prev" title="Lambda - the everything" href="lambda.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -329,8 +330,8 @@ to be bound to the values in the corresponding slots in the list.</p>
 </div>
 <p>Once you’ve written the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">read-image</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">write-image</span></span></code> functions in
 your assignment, you’ll be able to run the above interpreter to do some simple
-things with them. We’ll now look into what would make for a “core language”
-versus “surface syntax”.</p>
+things with them. In the next section, we’ll look into what would make for a
+“core language” versus “surface syntax”.</p>
 <div class="section" id="an-alternative-representation">
 <h3>An alternative representation<a class="headerlink" href="#an-alternative-representation" title="Permalink to this headline">¶</a></h3>
 <p>We represented the “program” as simply an s-expression. Our program in this
@@ -382,11 +383,11 @@ pictures. Why would we bother to make such an “interpreter” that so blatantl
 uses the same functions to do the same thing?</p>
 <p>One part of the answer is that we’re trying to understand programming
 languages through the construction of such interpreters.</p>
-<p>The second part is that the process that we went through here. We modelled a
-domain using plain functions to understand what we’re building first. We then
-turned the kinds of expressions we wish to construct into an “abstract syntax
-tree” and built an “interpreter” to build what we want. Even if we do not build
-a full fledged programming language and stop here, we’ve done a powerful and
+<p>The second part is the process that we went through here. We modelled a domain
+using plain functions to understand what we’re building first. We then turned
+the kinds of expressions we wish to construct into an “abstract syntax tree”
+and built an “interpreter” to build what we want. Even if we do not build a
+full fledged programming language and stop here, we’ve done a powerful and
 highly under-used program transformation or “refactoring” technique called
 “defunctionalization”. It is called so because we took what’s initially a set
 of functions and turned calculations using those functions into a pure data
@@ -397,7 +398,7 @@ close over.</p>
 <p>We’re however going to go further than defunctionalization and build “proper”
 programming ability into our image synthesizer.</p>
 <p>There’s still one more aspect. Our functions do not fully capture what we know
-about these operators. In articular, they do not capture some algebraic
+about these operators. In particular, they do not capture some algebraic
 properties of these operators when they’re used together. For example,
 the expression <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Translate</span></span> <span class="literal number integer"><span class="pre">2</span></span> <span class="literal number integer"><span class="pre">3</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Translate</span></span> <span class="literal number integer"><span class="pre">20</span></span> <span class="literal number integer"><span class="pre">30</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Disc</span></span> <span class="literal number integer"><span class="pre">25</span></span><span class="punctuation"><span class="pre">)))</span></span></code> is expected
 to produce the same picture as <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Translate</span></span> <span class="literal number integer"><span class="pre">20</span></span> <span class="literal number integer"><span class="pre">30</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Translate</span></span> <span class="literal number integer"><span class="pre">2</span></span> <span class="literal number integer"><span class="pre">3</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Disc</span></span> <span class="literal number integer"><span class="pre">25</span></span><span class="punctuation"><span class="pre">)))</span></span></code>
@@ -408,6 +409,8 @@ this knowledge like this –</p>
    <span class="p">(</span><span class="k">match</span> <span class="n">picexpr</span>
      <span class="p">[(</span><span class="n">Translate</span> <span class="n">dx1</span> <span class="n">dy1</span> <span class="p">(</span><span class="n">Translate</span> <span class="n">dx2</span> <span class="n">dy2</span> <span class="n">picexpr</span><span class="p">))</span>
       <span class="p">(</span><span class="n">rewrite</span> <span class="p">(</span><span class="n">Translate</span> <span class="p">(</span><span class="nb">+</span> <span class="n">dx1</span> <span class="n">dx2</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="n">dy1</span> <span class="n">dy2</span><span class="p">)</span> <span class="n">picexpr</span><span class="p">))]</span>
+     <span class="p">[(</span><span class="n">Scale</span> <span class="n">xscale</span> <span class="n">yscale</span> <span class="n">picexpr</span><span class="p">)</span> <span class="p">(</span><span class="n">Scale</span> <span class="n">xscale</span> <span class="n">yscale</span> <span class="p">(</span><span class="n">rewrite</span> <span class="n">picexpr</span><span class="p">))]</span>
+     <span class="c1">; ... and so on for other untouched expressions.</span>
      <span class="p">[</span><span class="k">_</span> <span class="n">picexpr</span><span class="p">]))</span>
 </pre></div>
 </div>
@@ -451,6 +454,7 @@ the target machine code from the IR.</p>
 <li class="toctree-l2"><a class="reference internal" href="#a-first-step-to-making-an-interpreter">A first step to making an interpreter</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>
 </ul>
 
 <div class="relations">
@@ -458,6 +462,7 @@ the target machine code from the IR.</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="lambda.html" title="previous chapter">Lambda - the everything</a></li>
+      <li>Next: <a href="growing.html" title="next chapter">Growing the language</a></li>
   </ul></li>
 </ul>
 </div>

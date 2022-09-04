@@ -45,7 +45,10 @@ mentioned "minimal core" as we go along.
     This section is named in honour of an amazing talk of the same title by Guy
     Steele, the co-creator of Scheme - `Growing a language, by Guy Steele
     <gal_>`_ (youtube link) given in 1998. It is a fantastic talk and a great
-    performance & delivery, that I much recommend students watch and contemplate on.
+    performance & delivery, that I much recommend students watch and
+    contemplate on. The beginning of the talk may unfortunately put off some as
+    it appears sexist, but Guy is aware of it and explains himself a little
+    into the talk. So do press on.
 
 .. _gal: https://www.youtube.com/watch?v=_ahvzDzKdB0
 

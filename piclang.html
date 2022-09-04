@@ -375,6 +375,28 @@ expressions that stand for pictures. These expressions will need to be
 interpreted to give them their meanings as pictures, hence the recursive calls
 to transform these sub-expressions to pictures that we can then compose.</p>
 </div>
+<div class="section" id="why-bother">
+<h3>Why bother?<a class="headerlink" href="#why-bother" title="Permalink to this headline">¶</a></h3>
+<p>We already had good enough functions that we can make use of to construct
+pictures. Why would we bother to make such an “interpreter” that so blatantly
+uses the same functions to do the same thing?</p>
+<p>One part of the answer is that we’re trying to understand programming
+languages through the construction of such interpreters.</p>
+<p>The second part is that the process that we went through here. We modelled a
+domain using plain functions to understand what we’re building first. We then
+turned the kinds of expressions we wish to construct into an “abstract syntax
+tree” and built an “interpreter” to build what we want. Even if we do not build
+a full fledged programming language and stop here, we’ve done a powerful and
+highly under-used program transformation or “refactoring” technique called
+“defunctionalization”. It is called so because we took what’s initially a set
+of functions and turned calculations using those functions into a pure data
+structure – the AST. The advantage of this is that this AST can now be stored
+on mass media and transmitted over networks, which most host languages will not
+let you do with ordinary functions, especially if they have variables they
+close over.</p>
+<p>We’re however going to go further than defunctionalization and build “proper”
+programming ability into our image synthesizer.</p>
+</div>
 </div>
 </div>
 

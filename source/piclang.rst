@@ -345,8 +345,8 @@ our expression like this -
 
 Once you've written the :rkt:`read-image` and :rkt:`write-image` functions in
 your assignment, you'll be able to run the above interpreter to do some simple
-things with them. We'll now look into what would make for a "core language"
-versus "surface syntax".
+things with them. In the next section, we'll look into what would make for a
+"core language" versus "surface syntax".
 
 An alternative representation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -408,11 +408,11 @@ uses the same functions to do the same thing?
 One part of the answer is that we're trying to understand programming
 languages through the construction of such interpreters. 
 
-The second part is that the process that we went through here. We modelled a
-domain using plain functions to understand what we're building first. We then
-turned the kinds of expressions we wish to construct into an "abstract syntax
-tree" and built an "interpreter" to build what we want. Even if we do not build
-a full fledged programming language and stop here, we've done a powerful and
+The second part is the process that we went through here. We modelled a domain
+using plain functions to understand what we're building first. We then turned
+the kinds of expressions we wish to construct into an "abstract syntax tree"
+and built an "interpreter" to build what we want. Even if we do not build a
+full fledged programming language and stop here, we've done a powerful and
 highly under-used program transformation or "refactoring" technique called
 "defunctionalization". It is called so because we took what's initially a set
 of functions and turned calculations using those functions into a pure data
@@ -425,7 +425,7 @@ We're however going to go further than defunctionalization and build "proper"
 programming ability into our image synthesizer.
 
 There's still one more aspect. Our functions do not fully capture what we know
-about these operators. In articular, they do not capture some algebraic
+about these operators. In particular, they do not capture some algebraic
 properties of these operators when they're used together. For example,
 the expression :rkt:`(Translate 2 3 (Translate 20 30 (Disc 25)))` is expected
 to produce the same picture as :rkt:`(Translate 20 30 (Translate 2 3 (Disc 25)))`
@@ -440,6 +440,8 @@ this knowledge like this --
        (match picexpr
          [(Translate dx1 dy1 (Translate dx2 dy2 picexpr))
           (rewrite (Translate (+ dx1 dx2) (+ dy1 dy2) picexpr))]
+         [(Scale xscale yscale picexpr) (Scale xscale yscale (rewrite picexpr))]
+         ; ... and so on for other untouched expressions.
          [_ picexpr]))
 
 This function :rkt:`rewrite` will precalculate a sequence of given translations

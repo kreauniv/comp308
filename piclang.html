@@ -74,14 +74,17 @@ mentioned “minimal core” as we go along.</p>
 <p class="admonition-title"><strong>Credits</strong></p>
 <p>This section is named in honour of an amazing talk of the same title by Guy
 Steele, the co-creator of Scheme - <a class="reference external" href="https://www.youtube.com/watch?v=_ahvzDzKdB0">Growing a language, by Guy Steele</a> (youtube link) given in 1998. It is a fantastic talk and a great
-performance &amp; delivery, that I much recommend students watch and contemplate on.</p>
+performance &amp; delivery, that I much recommend students watch and
+contemplate on. The beginning of the talk may unfortunately put off some as
+it appears sexist, but Guy is aware of it and explains himself a little
+into the talk. So do press on.</p>
 </div>
 </div>
 <div class="section" id="a-plausible-vocabulary">
 <h2>A plausible vocabulary<a class="headerlink" href="#a-plausible-vocabulary" title="Permalink to this headline">¶</a></h2>
 <p>Let’s consider 3 categories of images that students gave examples of –</p>
 <ol class="arabic simple">
-<li><p>“Primitives” such as circles, rectangles, squares and triangles. We include
+<li><p>“Primitives” such as discs, rectangles, squares and triangles. We include
 images loaded from files in this category since they do not depend on the
 content of other images. We’ll use the <a class="reference external" href="http://netpbm.sourceforge.net/doc/ppm.html#plainppm">Plain PPM</a> file format since it is
 a simple text-based format that’s easy to parse and write. <a class="footnote-reference brackets" href="#ppm" id="id1">1</a></p></li>
@@ -102,7 +105,7 @@ write this format.</p>
 </dl>
 <p>Primitives</p>
 <blockquote>
-<div><div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">circle</span> <span class="n">&lt;radius&gt;</span><span class="p">)</span>
+<div><div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">disc</span> <span class="n">&lt;radius&gt;</span><span class="p">)</span>
 <span class="p">(</span><span class="n">square</span> <span class="n">&lt;width&gt;</span><span class="p">)</span>
 <span class="p">(</span><span class="n">rectangle</span> <span class="n">&lt;width&gt;</span> <span class="n">&lt;height&gt;</span><span class="p">)</span>
 <span class="p">(</span><span class="n">image-from-file</span> <span class="n">&lt;filename.ppm&gt;</span><span class="p">)</span>
@@ -339,13 +342,13 @@ as it captures the syntactic structure of the program, leaving aside
 (i.e. absracting) the sequence of characters from which it s constructed.</p>
 <p>To capture the spirit of that, we can also represent our image primitives
 and transformations as structures like below –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">Circle</span> <span class="p">(</span><span class="n">radius</span><span class="p">))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">Disc</span> <span class="p">(</span><span class="n">radius</span><span class="p">))</span>
 <span class="p">(</span><span class="k">struct</span> <span class="n">Translate</span> <span class="p">(</span><span class="n">dx</span> <span class="n">dy</span> <span class="n">picexpr</span><span class="p">))</span>
 <span class="p">(</span><span class="k">struct</span> <span class="n">Rotate</span> <span class="p">(</span><span class="n">deg</span> <span class="n">picexpr</span><span class="p">))</span>
 <span class="c1">; etc.</span>
 
 <span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">picexpr?</span> <span class="n">e</span><span class="p">)</span>
-   <span class="p">(</span><span class="k">or</span> <span class="p">(</span><span class="n">Circle?</span> <span class="n">e</span><span class="p">)</span>
+   <span class="p">(</span><span class="k">or</span> <span class="p">(</span><span class="n">Disc?</span> <span class="n">e</span><span class="p">)</span>
        <span class="p">(</span><span class="n">Translate?</span> <span class="n">e</span><span class="p">)</span>
        <span class="p">(</span><span class="n">Rotate?</span> <span class="n">e</span><span class="p">)</span>
        <span class="c1">; ...</span>
@@ -353,13 +356,13 @@ and transformations as structures like below –</p>
 </pre></div>
 </div>
 <p>We can then represent our program as an expression using the struct constructors
-as – <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Translate</span></span> <span class="name"><span class="pre">dx</span></span> <span class="name"><span class="pre">dy</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Rotate</span></span> <span class="name"><span class="pre">deg</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Circle</span></span> <span class="name"><span class="pre">radius</span></span><span class="punctuation"><span class="pre">)))</span></span></code>. Note that this is
+as – <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Translate</span></span> <span class="name"><span class="pre">dx</span></span> <span class="name"><span class="pre">dy</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Rotate</span></span> <span class="name"><span class="pre">deg</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Disc</span></span> <span class="name"><span class="pre">radius</span></span><span class="punctuation"><span class="pre">)))</span></span></code>. Note that this is
 now quoted, meaning the value that Scheme will give when given this expression is
 a tree of sub-expressions. We can interpret this tree as follows -</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">interpret-v2</span>
     <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">picexpr</span><span class="p">)</span>
        <span class="p">(</span><span class="k">match</span> <span class="n">picexpr</span>
-          <span class="p">[(</span><span class="n">Circle</span> <span class="n">radius</span><span class="p">)</span> <span class="p">(</span><span class="n">circle</span> <span class="n">radius</span><span class="p">)]</span>
+          <span class="p">[(</span><span class="n">Disc</span> <span class="n">radius</span><span class="p">)</span> <span class="p">(</span><span class="n">disc</span> <span class="n">radius</span><span class="p">)]</span>
           <span class="p">[(</span><span class="n">Translate</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">picexpr</span><span class="p">)</span> <span class="p">(</span><span class="n">translate</span> <span class="n">dx</span> <span class="n">dy</span> <span class="p">(</span><span class="n">interpret-v2</span> <span class="n">picexpr</span><span class="p">))]</span>
           <span class="p">[(</span><span class="n">Rotate</span> <span class="n">deg</span> <span class="n">picexpr</span><span class="p">)</span> <span class="p">(</span><span class="n">rotate</span> <span class="n">deg</span> <span class="p">(</span><span class="n">interpret-v2</span> <span class="n">picexpr</span><span class="p">))]</span>
           <span class="p">[</span><span class="k">_</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">interpret-v2</span> <span class="s2">&quot;Picture expression as node&quot;</span> <span class="n">picexpr</span><span class="p">)])))</span>

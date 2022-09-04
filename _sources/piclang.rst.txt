@@ -376,10 +376,11 @@ and transformations as structures like below --
            ; ...
            ))
 
-We can then represent our program as an expression using the struct constructors
-as -- :rkt:`(Translate dx dy (Rotate deg (Disc radius)))`. Note that this is
-now quoted, meaning the value that Scheme will give when given this expression is
-a tree of sub-expressions. We can interpret this tree as follows -
+We can then represent our program as an expression using the struct
+constructors as -- :rkt:`(Translate dx dy (Rotate deg (Disc radius)))`. Note
+that this is not quoted, which means that the value which Scheme will compute
+when given this expression is a tree of sub-expressions. We can interpret this
+tree as follows -
 
 .. code-block:: racket
 

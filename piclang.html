@@ -1,16 +1,18 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
     <title>A language for pictures &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -33,8 +35,8 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="a-language-for-pictures">
-<h1>A language for pictures<a class="headerlink" href="#a-language-for-pictures" title="Permalink to this headline">¶</a></h1>
+  <section id="a-language-for-pictures">
+<h1>A language for pictures<a class="headerlink" href="#a-language-for-pictures" title="Permalink to this heading">¶</a></h1>
 <p>The original PLAI course used arithmetic to introduce some ideas. On polling,
 students seemed more inclined towards picking something more interesting like
 picture composition. So we’ll take that track. I hasten to add that there’ll be
@@ -52,8 +54,8 @@ about processing images typically captured by cameras or scanners as a 2D
 array of “pixels”. The latter is about composing pictures, including but not
 limited to the “2D pixel array” variety.</p>
 </div>
-<div class="section" id="growing-a-language">
-<h2>Growing a language<a class="headerlink" href="#growing-a-language" title="Permalink to this headline">¶</a></h2>
+<section id="growing-a-language">
+<h2>Growing a language<a class="headerlink" href="#growing-a-language" title="Permalink to this heading">¶</a></h2>
 <p>We’re about to launch off a precipice in our efforts to figure out a language
 for composing pictures. When we set out on such a task in any domain, there are
 a few things we need to do to build up our understanding of the domain first.
@@ -80,15 +82,15 @@ contemplate on. The beginning of the talk may unfortunately put off some as
 it appears sexist, but Guy is aware of it and explains himself a little
 into the talk. So do press on.</p>
 </div>
-</div>
-<div class="section" id="a-plausible-vocabulary">
-<h2>A plausible vocabulary<a class="headerlink" href="#a-plausible-vocabulary" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="a-plausible-vocabulary">
+<h2>A plausible vocabulary<a class="headerlink" href="#a-plausible-vocabulary" title="Permalink to this heading">¶</a></h2>
 <p>Let’s consider 3 categories of images that students gave examples of –</p>
 <ol class="arabic simple">
 <li><p>“Primitives” such as discs, rectangles, squares and triangles. We include
 images loaded from files in this category since they do not depend on the
 content of other images. We’ll use the <a class="reference external" href="http://netpbm.sourceforge.net/doc/ppm.html#plainppm">Plain PPM</a> file format since it is
-a simple text-based format that’s easy to parse and write. <a class="footnote-reference brackets" href="#ppm" id="id1">1</a></p></li>
+a simple text-based format that’s easy to parse and write. <a class="footnote-reference brackets" href="#ppm" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p></li>
 <li><p>Transformations – including colour transformations and spatial transformations
 like translation, rotation, scaling and mirroring. These take one image and
 modify their appearance to produce another “transformed” image.</p></li>
@@ -98,36 +100,35 @@ two images and such.</p></li>
 <p>The above is already giving us a plausible vocabulary for talking about
 pictures to begin with, even though we don’t yet know what exactly a “picture”
 is. We can represent these ideas using s-expressions like below –</p>
-<dl class="footnote brackets">
-<dt class="label" id="ppm"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>You’ve already been given instructions to write functions to read and
+<aside class="footnote brackets" id="ppm" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>You’ve already been given instructions to write functions to read and
 write this format.</p>
-</dd>
-</dl>
+</aside>
 <p>Primitives</p>
 <blockquote>
-<div><div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">disc</span> <span class="n">&lt;radius&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">square</span> <span class="n">&lt;width&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">rectangle</span> <span class="n">&lt;width&gt;</span> <span class="n">&lt;height&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">image-from-file</span> <span class="n">&lt;filename.ppm&gt;</span><span class="p">)</span>
+<div><div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">disc</span><span class="w"> </span><span class="n">&lt;radius&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">&lt;width&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">rectangle</span><span class="w"> </span><span class="n">&lt;width&gt;</span><span class="w"> </span><span class="n">&lt;height&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">image-from-file</span><span class="w"> </span><span class="n">&lt;filename.ppm&gt;</span><span class="p">)</span><span class="w"></span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>Transformations</p>
 <blockquote>
-<div><div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">invert-colour</span> <span class="n">&lt;img&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">gray-scale</span> <span class="n">&lt;img&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">translate</span> <span class="n">&lt;dx&gt;</span> <span class="n">&lt;dy&gt;</span> <span class="n">&lt;img&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">rotate</span> <span class="n">&lt;angle&gt;</span> <span class="n">&lt;img&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">scale</span> <span class="n">&lt;xscale&gt;</span> <span class="n">&lt;yscale&gt;</span> <span class="n">&lt;img&gt;</span><span class="p">)</span>
+<div><div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">invert-colour</span><span class="w"> </span><span class="n">&lt;img&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">gray-scale</span><span class="w"> </span><span class="n">&lt;img&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">translate</span><span class="w"> </span><span class="n">&lt;dx&gt;</span><span class="w"> </span><span class="n">&lt;dy&gt;</span><span class="w"> </span><span class="n">&lt;img&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">rotate</span><span class="w"> </span><span class="n">&lt;angle&gt;</span><span class="w"> </span><span class="n">&lt;img&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">scale</span><span class="w"> </span><span class="n">&lt;xscale&gt;</span><span class="w"> </span><span class="n">&lt;yscale&gt;</span><span class="w"> </span><span class="n">&lt;img&gt;</span><span class="p">)</span><span class="w"></span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>Combinations</p>
 <blockquote>
-<div><div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">place-on-top</span> <span class="n">&lt;img1&gt;</span> <span class="n">&lt;img2&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">mask</span> <span class="n">&lt;mask-img&gt;</span> <span class="n">&lt;img&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">blend</span> <span class="n">&lt;img1&gt;</span> <span class="n">&lt;img2&gt;</span><span class="p">)</span>
+<div><div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">place-on-top</span><span class="w"> </span><span class="n">&lt;img1&gt;</span><span class="w"> </span><span class="n">&lt;img2&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">mask</span><span class="w"> </span><span class="n">&lt;mask-img&gt;</span><span class="w"> </span><span class="n">&lt;img&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">blend</span><span class="w"> </span><span class="n">&lt;img1&gt;</span><span class="w"> </span><span class="n">&lt;img2&gt;</span><span class="p">)</span><span class="w"></span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -135,9 +136,9 @@ write this format.</p>
 means we’ll now need to commit to some “representation” of pictures so we can
 figure out these details.</p>
 <p>In particular we need to understand “colour” first.</p>
-</div>
-<div class="section" id="what-is-colour">
-<h2>What is “colour”?<a class="headerlink" href="#what-is-colour" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="what-is-colour">
+<h2>What is “colour”?<a class="headerlink" href="#what-is-colour" title="Permalink to this heading">¶</a></h2>
 <p>I’m not talking about a general perceptual understanding of colour here, though
 that is a fascinating topic worthy of its own course. For our purposes, we’ll
 satisfy ourselves with determing colour in terms of three well known colour
@@ -151,17 +152,17 @@ point numbers, for efficiency. They’re given as integers in the range
 <span class="math notranslate nohighlight">\([0,255]\)</span>, with the assumption that we’ll scale them to <span class="math notranslate nohighlight">\(255\)</span> (or
 <span class="math notranslate nohighlight">\(256\)</span> which is close enough) to get the proportions.</p>
 <p>We can represent such a colour easily in Racket using –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; The four colour components are floating point numbers</span>
-<span class="c1">; in the range [0.0,1.0]</span>
-<span class="p">(</span><span class="k">struct</span> <span class="n">colour</span> <span class="p">(</span><span class="n">a</span> <span class="n">r</span> <span class="n">g</span> <span class="n">b</span><span class="p">))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; The four colour components are floating point numbers</span><span class="w"></span>
+<span class="c1">; in the range [0.0,1.0]</span><span class="w"></span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">colour</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="n">b</span><span class="p">))</span><span class="w"></span>
 </pre></div>
 </div>
-<p>Once defined in this way, we can make a colour using <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">colour</span></span> <span class="name"><span class="pre">a</span></span> <span class="name"><span class="pre">r</span></span> <span class="name"><span class="pre">g</span></span> <span class="name"><span class="pre">b</span></span><span class="punctuation"><span class="pre">)</span></span></code>
-and get the various components of a colour <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">c</span></span></code> using <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">colour-r</span></span> <span class="name"><span class="pre">c</span></span><span class="punctuation"><span class="pre">)</span></span></code>,
-<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">colour-b</span></span> <span class="name"><span class="pre">c</span></span><span class="punctuation"><span class="pre">)</span></span></code> etc.</p>
-</div>
-<div class="section" id="so-what-is-an-image-or-picture">
-<h2>So, what is an “image” or “picture”?<a class="headerlink" href="#so-what-is-an-image-or-picture" title="Permalink to this headline">¶</a></h2>
+<p>Once defined in this way, we can make a colour using <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">colour</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"></span></code>
+and get the various components of a colour <code class="code highlight racket docutils literal highlight-racket"><span class="n">c</span><span class="w"></span></code> using <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">colour-r</span><span class="w"> </span><span class="n">c</span><span class="p">)</span><span class="w"></span></code>,
+<code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">colour-b</span><span class="w"> </span><span class="n">c</span><span class="p">)</span><span class="w"></span></code> etc.</p>
+</section>
+<section id="so-what-is-an-image-or-picture">
+<h2>So, what is an “image” or “picture”?<a class="headerlink" href="#so-what-is-an-image-or-picture" title="Permalink to this heading">¶</a></h2>
 <p>When we look at a picture, what are we actually looking at? If we take up a
 magnifying glass in our hands, we can pore over the details of the picture by
 moving it over the region of interest to us. That is, we can consider for the
@@ -172,77 +173,83 @@ functions to build up confidence that functions are powerful enough to capture
 all of computation. We should therefore expect that they will suffice for
 images too.  Below, we’ll use Haskell type notation which you’re familiar with
 to capture the idea of the types of things we’re dealing with.</p>
-<div class="highlight-haskell notranslate"><div class="highlight"><pre><span></span><span class="kr">type</span> <span class="kt">Coords</span> <span class="ow">=</span> <span class="p">(</span><span class="kt">Float</span><span class="p">,</span> <span class="kt">Float</span><span class="p">)</span>
-<span class="kr">type</span> <span class="kt">Image</span> <span class="ow">=</span> <span class="kt">Coords</span> <span class="ow">-&gt;</span> <span class="kt">Colour</span>
+<div class="highlight-haskell notranslate"><div class="highlight"><pre><span></span><span class="kr">type</span><span class="w"> </span><span class="kt">Coords</span><span class="w"> </span><span class="ow">=</span><span class="w"> </span><span class="p">(</span><span class="kt">Float</span><span class="p">,</span><span class="w"> </span><span class="kt">Float</span><span class="p">)</span><span class="w"></span>
+<span class="kr">type</span><span class="w"> </span><span class="kt">Image</span><span class="w"> </span><span class="ow">=</span><span class="w"> </span><span class="kt">Coords</span><span class="w"> </span><span class="ow">-&gt;</span><span class="w"> </span><span class="kt">Colour</span><span class="w"></span>
 </pre></div>
 </div>
-<div class="figure align-center" id="id2">
+<figure class="align-center" id="id2">
 <img alt="A picture of a kitten overlaid on graph paper with a magnifying glass focusing on a leaf." src="_images/image-illustration.png" />
-<p class="caption"><span class="caption-number">Fig. 1 </span><span class="caption-text">An image can be thought of as a mapping from a pair of spatial coordinates <span class="math notranslate nohighlight">\((x,y)\)</span>
+<figcaption>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">An image can be thought of as a mapping from a pair of spatial coordinates <span class="math notranslate nohighlight">\((x,y)\)</span>
 to a colour value. (Credits: <a class="reference external" href="https://commons.wikimedia.org/wiki/File:A_curious_kitten_(Pixabay).jpg">catpic</a> and <a class="reference external" href="https://commons.wikimedia.org/wiki/File:Hand_glass.png">magglass</a>)</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
-</div>
+</figcaption>
+</figure>
 <p>Is it too abstract to think of a picture like that? Since we haven’t yet figured out
 how exactly we want to treat pictures, this is a reasonable starting point since we
 can produce a “raster image” (a 2D array of pixels) by calling the “image function”
 for various values of <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> and recording the colour produced.</p>
 <p>Let’s now consider some simple pictures –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; disc :: Float -&gt; Image</span>
-<span class="c1">;</span>
-<span class="c1">; Produces a white disc against a black background.</span>
-<span class="c1">; The background is totally transparent everywhere outside</span>
-<span class="c1">; the radius of the disc.</span>
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">disc</span> <span class="n">radius</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span>
-       <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">r</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="n">x</span> <span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="n">y</span> <span class="n">y</span><span class="p">)))])</span>
-         <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="n">r</span> <span class="n">radius</span><span class="p">)</span>
-             <span class="p">(</span><span class="n">colour</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span><span class="p">)</span>
-             <span class="p">(</span><span class="n">colour</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span><span class="p">)))))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; disc :: Float -&gt; Image</span><span class="w"></span>
+<span class="c1">;</span><span class="w"></span>
+<span class="c1">; Produces a white disc against a black background.</span><span class="w"></span>
+<span class="c1">; The background is totally transparent everywhere outside</span><span class="w"></span>
+<span class="c1">; the radius of the disc.</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">disc</span><span class="w"> </span><span class="n">radius</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"></span>
+<span class="w">       </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">r</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">y</span><span class="p">)))])</span><span class="w"></span>
+<span class="w">         </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">&lt;</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="n">radius</span><span class="p">)</span><span class="w"></span>
+<span class="w">             </span><span class="p">(</span><span class="n">colour</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">1.0</span><span class="p">)</span><span class="w"></span>
+<span class="w">             </span><span class="p">(</span><span class="n">colour</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="p">)))))</span><span class="w"></span>
 
-<span class="c1">; square :: Float -&gt; Image</span>
-<span class="c1">;</span>
-<span class="c1">; (square 1.0) will make a unit square centered around</span>
-<span class="c1">; the origin. Similar colour structure to the disc.</span>
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">square</span> <span class="n">width</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span>
-       <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">half</span> <span class="p">(</span><span class="nb">*</span> <span class="mf">0.5</span> <span class="n">width</span><span class="p">)])</span>
-           <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="k">and</span> <span class="p">(</span><span class="nb">&gt;</span> <span class="n">x</span> <span class="p">(</span><span class="nb">-</span> <span class="n">half</span><span class="p">))</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="n">x</span> <span class="n">half</span><span class="p">)</span>
-                    <span class="p">(</span><span class="nb">&gt;</span> <span class="n">y</span> <span class="p">(</span><span class="nb">-</span> <span class="n">half</span><span class="p">))</span> <span class="p">(</span><span class="nb">&lt;</span> <span class="n">y</span> <span class="n">half</span><span class="p">))</span>
-               <span class="p">(</span><span class="n">colour</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span><span class="p">)</span>
-               <span class="p">(</span><span class="n">colour</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span><span class="p">)))))</span>
+<span class="c1">; square :: Float -&gt; Image</span><span class="w"></span>
+<span class="c1">;</span><span class="w"></span>
+<span class="c1">; (square 1.0) will make a unit square centered around</span><span class="w"></span>
+<span class="c1">; the origin. Similar colour structure to the disc.</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">width</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"></span>
+<span class="w">       </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">half</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="n">width</span><span class="p">)])</span><span class="w"></span>
+<span class="w">           </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">and</span><span class="w"> </span><span class="p">(</span><span class="nb">&gt;</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">half</span><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="nb">&lt;</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">half</span><span class="p">)</span><span class="w"></span>
+<span class="w">                    </span><span class="p">(</span><span class="nb">&gt;</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">half</span><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="nb">&lt;</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">half</span><span class="p">))</span><span class="w"></span>
+<span class="w">               </span><span class="p">(</span><span class="n">colour</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">1.0</span><span class="p">)</span><span class="w"></span>
+<span class="w">               </span><span class="p">(</span><span class="n">colour</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="p">)))))</span><span class="w"></span>
 </pre></div>
 </div>
 <p>We can also write functions that transform these primitives spatially and in colour –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; translate :: Float -&gt; Float -&gt; Image -&gt; Image</span>
-<span class="c1">;</span>
-<span class="c1">; Translates the given image by the given delta values in X and Y directions.</span>
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">translate</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">img</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span>
-       <span class="p">(</span><span class="n">img</span> <span class="p">(</span><span class="nb">-</span> <span class="n">x</span> <span class="n">dx</span><span class="p">)</span> <span class="p">(</span><span class="nb">-</span> <span class="n">y</span> <span class="n">dy</span><span class="p">))))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; translate :: Float -&gt; Float -&gt; Image -&gt; Image</span><span class="w"></span>
+<span class="c1">;</span><span class="w"></span>
+<span class="c1">; Translates the given image by the given delta values in X and Y directions.</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">translate</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">img</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"></span>
+<span class="w">       </span><span class="p">(</span><span class="n">img</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">dy</span><span class="p">))))</span><span class="w"></span>
 </pre></div>
 </div>
-<div class="figure align-center" id="id3">
+<figure class="align-center" id="id3">
 <img alt="Image translated by (3,2)" src="_images/translation.png" />
-<p class="caption"><span class="caption-number">Fig. 2 </span><span class="caption-text">The same cat picture above translated by <span class="math notranslate nohighlight">\((3,2)\)</span>. The colour we’re now
+<figcaption>
+<p><span class="caption-number">Fig. 2 </span><span class="caption-text">The same cat picture above translated by <span class="math notranslate nohighlight">\((3,2)\)</span>. The colour we’re now
 looking at at <span class="math notranslate nohighlight">\((6,8)\)</span> is at <span class="math notranslate nohighlight">\((3,6)\)</span> relative to the bottom left
 corner of the cat picture.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
-</div>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; scale :: Float -&gt; Float -&gt; Image -&gt; Image</span>
-<span class="c1">;</span>
-<span class="c1">; (scale 0.5 0.5 &lt;img&gt;) will result in an image</span>
-<span class="c1">; that&#39;s half the size in both x and y dimensions.</span>
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">scale</span> <span class="n">xscale</span> <span class="n">yscale</span> <span class="n">img</span><span class="p">)</span>
-   <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span>
-      <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">x2</span> <span class="p">(</span><span class="nb">/</span> <span class="n">x</span> <span class="n">xscale</span><span class="p">)]</span>
-            <span class="p">[</span><span class="n">y2</span> <span class="p">(</span><span class="nb">/</span> <span class="n">y</span> <span class="n">yscale</span><span class="p">)])</span>
-        <span class="p">(</span><span class="n">img</span> <span class="n">x2</span> <span class="n">y2</span><span class="p">))))</span>
+</figcaption>
+</figure>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; scale :: Float -&gt; Float -&gt; Image -&gt; Image</span><span class="w"></span>
+<span class="c1">;</span><span class="w"></span>
+<span class="c1">; (scale 0.5 0.5 &lt;img&gt;) will result in an image</span><span class="w"></span>
+<span class="c1">; that&#39;s half the size in both x and y dimensions.</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">scale</span><span class="w"> </span><span class="n">xscale</span><span class="w"> </span><span class="n">yscale</span><span class="w"> </span><span class="n">img</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"></span>
+<span class="w">      </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">x2</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">xscale</span><span class="p">)]</span><span class="w"></span>
+<span class="w">            </span><span class="p">[</span><span class="n">y2</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">yscale</span><span class="p">)])</span><span class="w"></span>
+<span class="w">        </span><span class="p">(</span><span class="n">img</span><span class="w"> </span><span class="n">x2</span><span class="w"> </span><span class="n">y2</span><span class="p">))))</span><span class="w"></span>
 </pre></div>
 </div>
-<div class="figure align-center" id="id4">
+<figure class="align-center" id="id4">
 <img alt="Image scaled by (0.5,0.5)" src="_images/scaling.png" />
-<p class="caption"><span class="caption-number">Fig. 3 </span><span class="caption-text">The same cat picture above scaled by <span class="math notranslate nohighlight">\((0.5,0.5)\)</span>. The colour we’re
+<figcaption>
+<p><span class="caption-number">Fig. 3 </span><span class="caption-text">The same cat picture above scaled by <span class="math notranslate nohighlight">\((0.5,0.5)\)</span>. The colour we’re
 looking at when we look at <span class="math notranslate nohighlight">\((3,4)\)</span> in the result image is the same
 colour we get when we looked at <span class="math notranslate nohighlight">\((6,8)\)</span> in the original image.</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
-</div>
+</figcaption>
+</figure>
 <p>Notice that though our scaling factors are <span class="math notranslate nohighlight">\((0.5,0.5)\)</span>, we need to use
 the inverse of the scaling factors when figuring out which point in the
 original image we should look at.</p>
@@ -252,61 +259,61 @@ original image we should look at.</p>
 rotation matrix from your linear algebra course.</p>
 </div>
 <p>We’ll do a simple colour inversion before we go any further.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; invert-colour :: Image -&gt; Image</span>
-<span class="c1">;</span>
-<span class="c1">; Note that we preserve the alpha as is so that opaque colours</span>
-<span class="c1">; in the original are mapped to opaque but inverted colours in</span>
-<span class="c1">; the transformed picture.</span>
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">invert-colour</span> <span class="n">img</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span>
-       <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">c</span> <span class="p">(</span><span class="n">img</span> <span class="n">x</span> <span class="n">y</span><span class="p">)])</span>
-         <span class="p">(</span><span class="n">colour</span> <span class="p">(</span><span class="n">colour-a</span> <span class="n">c</span><span class="p">)</span>
-                 <span class="p">(</span><span class="nb">-</span> <span class="mf">1.0</span> <span class="p">(</span><span class="n">colour-r</span> <span class="n">c</span><span class="p">))</span>
-                 <span class="p">(</span><span class="nb">-</span> <span class="mf">1.0</span> <span class="p">(</span><span class="n">colour-g</span> <span class="n">c</span><span class="p">))</span>
-                 <span class="p">(</span><span class="nb">-</span> <span class="mf">1.0</span> <span class="p">(</span><span class="n">colour-b</span> <span class="n">c</span><span class="p">))))))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; invert-colour :: Image -&gt; Image</span><span class="w"></span>
+<span class="c1">;</span><span class="w"></span>
+<span class="c1">; Note that we preserve the alpha as is so that opaque colours</span><span class="w"></span>
+<span class="c1">; in the original are mapped to opaque but inverted colours in</span><span class="w"></span>
+<span class="c1">; the transformed picture.</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">invert-colour</span><span class="w"> </span><span class="n">img</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"></span>
+<span class="w">       </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">c</span><span class="w"> </span><span class="p">(</span><span class="n">img</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)])</span><span class="w"></span>
+<span class="w">         </span><span class="p">(</span><span class="n">colour</span><span class="w"> </span><span class="p">(</span><span class="n">colour-a</span><span class="w"> </span><span class="n">c</span><span class="p">)</span><span class="w"></span>
+<span class="w">                 </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="p">(</span><span class="n">colour-r</span><span class="w"> </span><span class="n">c</span><span class="p">))</span><span class="w"></span>
+<span class="w">                 </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="p">(</span><span class="n">colour-g</span><span class="w"> </span><span class="n">c</span><span class="p">))</span><span class="w"></span>
+<span class="w">                 </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="p">(</span><span class="n">colour-b</span><span class="w"> </span><span class="n">c</span><span class="p">))))))</span><span class="w"></span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="composing-transformations-as-functions">
-<h2>Composing transformations as functions<a class="headerlink" href="#composing-transformations-as-functions" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="composing-transformations-as-functions">
+<h2>Composing transformations as functions<a class="headerlink" href="#composing-transformations-as-functions" title="Permalink to this heading">¶</a></h2>
 <p>We now have a mini language at hand. Using the functions we’ve defined above,
-we can combine them to make new images. For example, <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">translate</span></span> <span class="literal number integer"><span class="pre">5</span></span> <span class="literal number integer"><span class="pre">5</span></span>
-<span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">rotate</span></span> <span class="literal number integer"><span class="pre">30</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="literal number float"><span class="pre">2.0</span></span><span class="punctuation"><span class="pre">)))</span></span></code>. The expression <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="literal number float"><span class="pre">2.0</span></span><span class="punctuation"><span class="pre">)</span></span></code> produces an
+we can combine them to make new images. For example, <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">translate</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">5</span><span class="w"></span>
+<span class="p">(</span><span class="n">rotate</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="mf">2.0</span><span class="p">)))</span><span class="w"></span></code>. The expression <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="mf">2.0</span><span class="p">)</span><span class="w"></span></code> produces an
 image function that represents a square of width <span class="math notranslate nohighlight">\(2.0\)</span>, which we rotate
 around the origin by <span class="math notranslate nohighlight">\(30\)</span> degrees and then translate it by <span class="math notranslate nohighlight">\((5,5)\)</span>.</p>
-</div>
-<div class="section" id="a-first-step-to-making-an-interpreter">
-<h2>A first step to making an interpreter<a class="headerlink" href="#a-first-step-to-making-an-interpreter" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="a-first-step-to-making-an-interpreter">
+<h2>A first step to making an interpreter<a class="headerlink" href="#a-first-step-to-making-an-interpreter" title="Permalink to this heading">¶</a></h2>
 <p>We now consider what if we don’t evaluate that expression as a Scheme
-expression, but treat it as a program by quoting it – i.e. <code class="code highlight racket docutils literal notranslate"><span class="operator"><span class="pre">‘</span></span><span class="punctuation"><span class="pre">(</span></span><span class="literal string symbol"><span class="pre">translate</span></span> <span class="literal number integer"><span class="pre">5</span></span>
-<span class="literal number integer"><span class="pre">5</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="literal string symbol"><span class="pre">rotate</span></span> <span class="literal number integer"><span class="pre">30</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="literal string symbol"><span class="pre">square</span></span> <span class="literal number float"><span class="pre">2.0</span></span><span class="punctuation"><span class="pre">)))</span></span></code>. To dissect that, what we really have are
+expression, but treat it as a program by quoting it – i.e. <code class="code highlight racket docutils literal highlight-racket"><span class="o">&#39;</span><span class="p">(</span><span class="ss">translate</span><span class="w"> </span><span class="mi">5</span><span class="w"></span>
+<span class="mi">5</span><span class="w"> </span><span class="p">(</span><span class="ss">rotate</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="p">(</span><span class="ss">square</span><span class="w"> </span><span class="mf">2.0</span><span class="p">)))</span><span class="w"></span></code>. To dissect that, what we really have are
 three types of “picture expressions” –</p>
 <ol class="arabic simple">
-<li><p><code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="name"><span class="pre">&lt;width&gt;</span></span><span class="punctuation"><span class="pre">)</span></span></code> which should produce a square.</p></li>
-<li><p><code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">rotate</span></span> <span class="name"><span class="pre">&lt;angle&gt;</span></span> <span class="name"><span class="pre">&lt;picture-expression&gt;</span></span><span class="punctuation"><span class="pre">)</span></span></code> which should rotate the specified picture.</p></li>
-<li><p><code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">translate</span></span> <span class="name"><span class="pre">&lt;dx&gt;</span></span> <span class="name"><span class="pre">&lt;dy&gt;</span></span> <span class="name"><span class="pre">&lt;picture-expression&gt;</span></span><span class="punctuation"><span class="pre">)</span></span></code> which should move the specified picture.</p></li>
+<li><p><code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">&lt;width&gt;</span><span class="p">)</span><span class="w"></span></code> which should produce a square.</p></li>
+<li><p><code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">rotate</span><span class="w"> </span><span class="n">&lt;angle&gt;</span><span class="w"> </span><span class="n">&lt;picture-expression&gt;</span><span class="p">)</span><span class="w"></span></code> which should rotate the specified picture.</p></li>
+<li><p><code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">translate</span><span class="w"> </span><span class="n">&lt;dx&gt;</span><span class="w"> </span><span class="n">&lt;dy&gt;</span><span class="w"> </span><span class="n">&lt;picture-expression&gt;</span><span class="p">)</span><span class="w"></span></code> which should move the specified picture.</p></li>
 </ol>
 <p>Notice that these picture expressions can also consist of other picture expressions
 and hence the possibility of composition.</p>
-<p>The <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">racket/match</span></span></code> library provides a <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">match</span></span></code> macro that makes it
+<p>The <code class="code highlight racket docutils literal highlight-racket"><span class="n">racket/match</span><span class="w"></span></code> library provides a <code class="code highlight racket docutils literal highlight-racket"><span class="k">match</span><span class="w"></span></code> macro that makes it
 easy for us to write an interpreter for such expressions.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="kn">#lang </span><span class="nn">racket</span>
-<span class="p">(</span><span class="k">require</span> <span class="n">racket/match</span><span class="p">)</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="kn">#lang </span><span class="nn">racket</span><span class="w"></span>
+<span class="p">(</span><span class="k">require</span><span class="w"> </span><span class="n">racket/match</span><span class="p">)</span><span class="w"></span>
 
-<span class="c1">; Our interpreter takes a &quot;picture expression&quot; and computes a picture</span>
-<span class="c1">; by interpreting the instructions in it. Since these expressions can</span>
-<span class="c1">; themselves contain other picture expressions, the interpreter is</span>
-<span class="c1">; invoked recursively to compute them.</span>
-<span class="p">(</span><span class="k">define</span> <span class="n">interpret-v1</span>
-    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">picexpr</span><span class="p">)</span>
-       <span class="p">(</span><span class="k">match</span> <span class="n">picexpr</span>
-         <span class="p">[(</span><span class="nb">list</span> <span class="o">&#39;</span><span class="ss">square</span> <span class="n">width</span><span class="p">)</span> <span class="p">(</span><span class="n">square</span> <span class="n">width</span><span class="p">)]</span>
-         <span class="p">[(</span><span class="nb">list</span> <span class="o">&#39;</span><span class="ss">rotate</span> <span class="nb">angle</span> <span class="n">picexpr2</span><span class="p">)</span> <span class="p">(</span><span class="n">rotate</span> <span class="nb">angle</span> <span class="p">(</span><span class="n">interpret-v1</span> <span class="n">picexpr2</span><span class="p">))]</span>
-         <span class="p">[(</span><span class="nb">list</span> <span class="o">&#39;</span><span class="ss">translate</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">picexpr3</span><span class="p">)</span> <span class="p">(</span><span class="n">translate</span> <span class="n">dx</span> <span class="n">dy</span> <span class="p">(</span><span class="n">interpret-v1</span> <span class="n">picexpr3</span><span class="p">))]</span>
-         <span class="p">[</span><span class="k">_</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">interpret-v1</span> <span class="s2">&quot;Picture expression&quot;</span> <span class="n">picexpr</span><span class="p">)])))</span>
+<span class="c1">; Our interpreter takes a &quot;picture expression&quot; and computes a picture</span><span class="w"></span>
+<span class="c1">; by interpreting the instructions in it. Since these expressions can</span><span class="w"></span>
+<span class="c1">; themselves contain other picture expressions, the interpreter is</span><span class="w"></span>
+<span class="c1">; invoked recursively to compute them.</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">interpret-v1</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">picexpr</span><span class="p">)</span><span class="w"></span>
+<span class="w">       </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">picexpr</span><span class="w"></span>
+<span class="w">         </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">square</span><span class="w"> </span><span class="n">width</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">width</span><span class="p">)]</span><span class="w"></span>
+<span class="w">         </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">rotate</span><span class="w"> </span><span class="nb">angle</span><span class="w"> </span><span class="n">picexpr2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">rotate</span><span class="w"> </span><span class="nb">angle</span><span class="w"> </span><span class="p">(</span><span class="n">interpret-v1</span><span class="w"> </span><span class="n">picexpr2</span><span class="p">))]</span><span class="w"></span>
+<span class="w">         </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">translate</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">picexpr3</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">translate</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="p">(</span><span class="n">interpret-v1</span><span class="w"> </span><span class="n">picexpr3</span><span class="p">))]</span><span class="w"></span>
+<span class="w">         </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="p">(</span><span class="nb">raise-argument-error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">interpret-v1</span><span class="w"> </span><span class="s2">&quot;Picture expression&quot;</span><span class="w"> </span><span class="n">picexpr</span><span class="p">)])))</span><span class="w"></span>
 </pre></div>
 </div>
-<p>In this case, we’ve used certain words like <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">square</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">translate</span></span></code>
+<p>In this case, we’ve used certain words like <code class="code highlight racket docutils literal highlight-racket"><span class="n">square</span><span class="w"></span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">translate</span><span class="w"></span></code>
 to express some concepts in our “language” and mapped these concepts to
 implementations specified in our “host language”, which is racket. In
 terminology, the “meaning” we give to these words is captured in our
@@ -316,24 +323,24 @@ as “<strong>syntax</strong>”.</p>
 <p>Observe that the interpreter is recursive since the expressions that it works
 with are recursively specified. We can now use the above interpreter to compute
 our expression like this -</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">program</span> <span class="o">&#39;</span><span class="p">(</span><span class="ss">translate</span> <span class="mf">5.0</span> <span class="mf">5.0</span> <span class="p">(</span><span class="ss">rotate</span> <span class="mf">30.0</span> <span class="p">(</span><span class="ss">square</span> <span class="mf">2.0</span><span class="p">))))</span>
-<span class="p">(</span><span class="n">interpret-v1</span> <span class="n">program</span><span class="p">)</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">program</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="ss">translate</span><span class="w"> </span><span class="mf">5.0</span><span class="w"> </span><span class="mf">5.0</span><span class="w"> </span><span class="p">(</span><span class="ss">rotate</span><span class="w"> </span><span class="mf">30.0</span><span class="w"> </span><span class="p">(</span><span class="ss">square</span><span class="w"> </span><span class="mf">2.0</span><span class="p">))))</span><span class="w"></span>
+<span class="p">(</span><span class="n">interpret-v1</span><span class="w"> </span><span class="n">program</span><span class="p">)</span><span class="w"></span>
 </pre></div>
 </div>
 <div class="admonition-exercise admonition">
 <p class="admonition-title"><strong>Exercise</strong></p>
 <p>Read the documentation for <a class="reference external" href="https://docs.racket-lang.org/reference/match.html">match</a> in the Racket docs to understand how the
 pattern is being specified in the code above. In particular, lists can be
-matched using the <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">list</span></span></code> constructor based expression. Quoted symbols
+matched using the <code class="code highlight racket docutils literal highlight-racket"><span class="nb">list</span><span class="w"></span></code> constructor based expression. Quoted symbols
 will be matched literally and unquoted symbols will be taken as variables
 to be bound to the values in the corresponding slots in the list.</p>
 </div>
-<p>Once you’ve written the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">read-image</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">write-image</span></span></code> functions in
+<p>Once you’ve written the <code class="code highlight racket docutils literal highlight-racket"><span class="n">read-image</span><span class="w"></span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">write-image</span><span class="w"></span></code> functions in
 your assignment, you’ll be able to run the above interpreter to do some simple
 things with them. In the next section, we’ll look into what would make for a
 “core language” versus “surface syntax”.</p>
-<div class="section" id="an-alternative-representation">
-<h3>An alternative representation<a class="headerlink" href="#an-alternative-representation" title="Permalink to this headline">¶</a></h3>
+<section id="an-alternative-representation">
+<h3>An alternative representation<a class="headerlink" href="#an-alternative-representation" title="Permalink to this heading">¶</a></h3>
 <p>We represented the “program” as simply an s-expression. Our program in this
 case consisted of a single expression which our interpret “evaluated”.
 More typically when working on programming languages, the sub-expressions
@@ -343,42 +350,42 @@ as it captures the syntactic structure of the program, leaving aside
 (i.e. absracting) the sequence of characters from which it s constructed.</p>
 <p>To capture the spirit of that, we can also represent our image primitives
 and transformations as structures like below –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">Disc</span> <span class="p">(</span><span class="n">radius</span><span class="p">))</span>
-<span class="p">(</span><span class="k">struct</span> <span class="n">Translate</span> <span class="p">(</span><span class="n">dx</span> <span class="n">dy</span> <span class="n">picexpr</span><span class="p">))</span>
-<span class="p">(</span><span class="k">struct</span> <span class="n">Rotate</span> <span class="p">(</span><span class="n">deg</span> <span class="n">picexpr</span><span class="p">))</span>
-<span class="c1">; etc.</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">Disc</span><span class="w"> </span><span class="p">(</span><span class="n">radius</span><span class="p">))</span><span class="w"></span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">Translate</span><span class="w"> </span><span class="p">(</span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">picexpr</span><span class="p">))</span><span class="w"></span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">Rotate</span><span class="w"> </span><span class="p">(</span><span class="n">deg</span><span class="w"> </span><span class="n">picexpr</span><span class="p">))</span><span class="w"></span>
+<span class="c1">; etc.</span><span class="w"></span>
 
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">picexpr?</span> <span class="n">e</span><span class="p">)</span>
-   <span class="p">(</span><span class="k">or</span> <span class="p">(</span><span class="n">Disc?</span> <span class="n">e</span><span class="p">)</span>
-       <span class="p">(</span><span class="n">Translate?</span> <span class="n">e</span><span class="p">)</span>
-       <span class="p">(</span><span class="n">Rotate?</span> <span class="n">e</span><span class="p">)</span>
-       <span class="c1">; ...</span>
-       <span class="p">))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">picexpr?</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="p">(</span><span class="k">or</span><span class="w"> </span><span class="p">(</span><span class="n">Disc?</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"></span>
+<span class="w">       </span><span class="p">(</span><span class="n">Translate?</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"></span>
+<span class="w">       </span><span class="p">(</span><span class="n">Rotate?</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"></span>
+<span class="w">       </span><span class="c1">; ...</span><span class="w"></span>
+<span class="w">       </span><span class="p">))</span><span class="w"></span>
 </pre></div>
 </div>
 <p>We can then represent our program as an expression using the struct
-constructors as – <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Translate</span></span> <span class="name"><span class="pre">dx</span></span> <span class="name"><span class="pre">dy</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Rotate</span></span> <span class="name"><span class="pre">deg</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Disc</span></span> <span class="name"><span class="pre">radius</span></span><span class="punctuation"><span class="pre">)))</span></span></code>. Note
+constructors as – <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">Translate</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="p">(</span><span class="n">Rotate</span><span class="w"> </span><span class="n">deg</span><span class="w"> </span><span class="p">(</span><span class="n">Disc</span><span class="w"> </span><span class="n">radius</span><span class="p">)))</span><span class="w"></span></code>. Note
 that this is not quoted, which means that the value which Scheme will compute
 when given this expression is a tree of sub-expressions. We can interpret this
 tree as follows -</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">interpret-v2</span>
-    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">picexpr</span><span class="p">)</span>
-       <span class="p">(</span><span class="k">match</span> <span class="n">picexpr</span>
-          <span class="p">[(</span><span class="n">Disc</span> <span class="n">radius</span><span class="p">)</span> <span class="p">(</span><span class="n">disc</span> <span class="n">radius</span><span class="p">)]</span>
-          <span class="p">[(</span><span class="n">Translate</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">picexpr</span><span class="p">)</span> <span class="p">(</span><span class="n">translate</span> <span class="n">dx</span> <span class="n">dy</span> <span class="p">(</span><span class="n">interpret-v2</span> <span class="n">picexpr</span><span class="p">))]</span>
-          <span class="p">[(</span><span class="n">Rotate</span> <span class="n">deg</span> <span class="n">picexpr</span><span class="p">)</span> <span class="p">(</span><span class="n">rotate</span> <span class="n">deg</span> <span class="p">(</span><span class="n">interpret-v2</span> <span class="n">picexpr</span><span class="p">))]</span>
-          <span class="p">[</span><span class="k">_</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">interpret-v2</span> <span class="s2">&quot;Picture expression as node&quot;</span> <span class="n">picexpr</span><span class="p">)])))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">interpret-v2</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">picexpr</span><span class="p">)</span><span class="w"></span>
+<span class="w">       </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">picexpr</span><span class="w"></span>
+<span class="w">          </span><span class="p">[(</span><span class="n">Disc</span><span class="w"> </span><span class="n">radius</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">disc</span><span class="w"> </span><span class="n">radius</span><span class="p">)]</span><span class="w"></span>
+<span class="w">          </span><span class="p">[(</span><span class="n">Translate</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">picexpr</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">translate</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="p">(</span><span class="n">interpret-v2</span><span class="w"> </span><span class="n">picexpr</span><span class="p">))]</span><span class="w"></span>
+<span class="w">          </span><span class="p">[(</span><span class="n">Rotate</span><span class="w"> </span><span class="n">deg</span><span class="w"> </span><span class="n">picexpr</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">rotate</span><span class="w"> </span><span class="n">deg</span><span class="w"> </span><span class="p">(</span><span class="n">interpret-v2</span><span class="w"> </span><span class="n">picexpr</span><span class="p">))]</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="p">(</span><span class="nb">raise-argument-error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">interpret-v2</span><span class="w"> </span><span class="s2">&quot;Picture expression as node&quot;</span><span class="w"> </span><span class="n">picexpr</span><span class="p">)])))</span><span class="w"></span>
 </pre></div>
 </div>
-<p><code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">match</span></span></code> lets you use the constructor names of struct declarations to
+<p><code class="code highlight racket docutils literal highlight-racket"><span class="k">match</span><span class="w"></span></code> lets you use the constructor names of struct declarations to
 deconstruct them and extract the parts. When you’re writing your own or
 extending the interpreter, remember that the tree is not made of pictures, but
 expressions that stand for pictures. These expressions will need to be
 interpreted to give them their meanings as pictures, hence the recursive calls
 to transform these sub-expressions to pictures that we can then compose.</p>
-</div>
-<div class="section" id="why-bother">
-<h3>Why bother?<a class="headerlink" href="#why-bother" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="why-bother">
+<h3>Why bother?<a class="headerlink" href="#why-bother" title="Permalink to this heading">¶</a></h3>
 <p>We already had good enough functions that we can make use of to construct
 pictures. Why would we bother to make such an “interpreter” that so blatantly
 uses the same functions to do the same thing?</p>
@@ -401,29 +408,29 @@ programming ability into our image synthesizer.</p>
 <p>There’s still one more aspect. Our functions do not fully capture what we know
 about these operators. In particular, they do not capture some algebraic
 properties of these operators when they’re used together. For example,
-the expression <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Translate</span></span> <span class="literal number integer"><span class="pre">2</span></span> <span class="literal number integer"><span class="pre">3</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Translate</span></span> <span class="literal number integer"><span class="pre">20</span></span> <span class="literal number integer"><span class="pre">30</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Disc</span></span> <span class="literal number integer"><span class="pre">25</span></span><span class="punctuation"><span class="pre">)))</span></span></code> is expected
-to produce the same picture as <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Translate</span></span> <span class="literal number integer"><span class="pre">20</span></span> <span class="literal number integer"><span class="pre">30</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Translate</span></span> <span class="literal number integer"><span class="pre">2</span></span> <span class="literal number integer"><span class="pre">3</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Disc</span></span> <span class="literal number integer"><span class="pre">25</span></span><span class="punctuation"><span class="pre">)))</span></span></code>
-which in turn produces the same picture as <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Translate</span></span> <span class="literal number integer"><span class="pre">22</span></span> <span class="literal number integer"><span class="pre">33</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Disc</span></span> <span class="literal number integer"><span class="pre">25</span></span><span class="punctuation"><span class="pre">))</span></span></code>.</p>
+the expression <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">Translate</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">(</span><span class="n">Translate</span><span class="w"> </span><span class="mi">20</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="p">(</span><span class="n">Disc</span><span class="w"> </span><span class="mi">25</span><span class="p">)))</span><span class="w"></span></code> is expected
+to produce the same picture as <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">Translate</span><span class="w"> </span><span class="mi">20</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="p">(</span><span class="n">Translate</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">(</span><span class="n">Disc</span><span class="w"> </span><span class="mi">25</span><span class="p">)))</span><span class="w"></span></code>
+which in turn produces the same picture as <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">Translate</span><span class="w"> </span><span class="mi">22</span><span class="w"> </span><span class="mi">33</span><span class="w"> </span><span class="p">(</span><span class="n">Disc</span><span class="w"> </span><span class="mi">25</span><span class="p">))</span><span class="w"></span></code>.</p>
 <p>So we can write an independent “program transformation function” that encodes
 this knowledge like this –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">rewrite</span> <span class="n">picexpr</span><span class="p">)</span>
-   <span class="p">(</span><span class="k">match</span> <span class="n">picexpr</span>
-     <span class="p">[(</span><span class="n">Translate</span> <span class="n">dx1</span> <span class="n">dy1</span> <span class="p">(</span><span class="n">Translate</span> <span class="n">dx2</span> <span class="n">dy2</span> <span class="n">picexpr</span><span class="p">))</span>
-      <span class="p">(</span><span class="n">rewrite</span> <span class="p">(</span><span class="n">Translate</span> <span class="p">(</span><span class="nb">+</span> <span class="n">dx1</span> <span class="n">dx2</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="n">dy1</span> <span class="n">dy2</span><span class="p">)</span> <span class="n">picexpr</span><span class="p">))]</span>
-     <span class="p">[(</span><span class="n">Scale</span> <span class="n">xscale</span> <span class="n">yscale</span> <span class="n">picexpr</span><span class="p">)</span> <span class="p">(</span><span class="n">Scale</span> <span class="n">xscale</span> <span class="n">yscale</span> <span class="p">(</span><span class="n">rewrite</span> <span class="n">picexpr</span><span class="p">))]</span>
-     <span class="c1">; ... and so on for other untouched expressions.</span>
-     <span class="p">[</span><span class="k">_</span> <span class="n">picexpr</span><span class="p">]))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">rewrite</span><span class="w"> </span><span class="n">picexpr</span><span class="p">)</span><span class="w"></span>
+<span class="w">   </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">picexpr</span><span class="w"></span>
+<span class="w">     </span><span class="p">[(</span><span class="n">Translate</span><span class="w"> </span><span class="n">dx1</span><span class="w"> </span><span class="n">dy1</span><span class="w"> </span><span class="p">(</span><span class="n">Translate</span><span class="w"> </span><span class="n">dx2</span><span class="w"> </span><span class="n">dy2</span><span class="w"> </span><span class="n">picexpr</span><span class="p">))</span><span class="w"></span>
+<span class="w">      </span><span class="p">(</span><span class="n">rewrite</span><span class="w"> </span><span class="p">(</span><span class="n">Translate</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">dx1</span><span class="w"> </span><span class="n">dx2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">dy1</span><span class="w"> </span><span class="n">dy2</span><span class="p">)</span><span class="w"> </span><span class="n">picexpr</span><span class="p">))]</span><span class="w"></span>
+<span class="w">     </span><span class="p">[(</span><span class="n">Scale</span><span class="w"> </span><span class="n">xscale</span><span class="w"> </span><span class="n">yscale</span><span class="w"> </span><span class="n">picexpr</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Scale</span><span class="w"> </span><span class="n">xscale</span><span class="w"> </span><span class="n">yscale</span><span class="w"> </span><span class="p">(</span><span class="n">rewrite</span><span class="w"> </span><span class="n">picexpr</span><span class="p">))]</span><span class="w"></span>
+<span class="w">     </span><span class="c1">; ... and so on for other untouched expressions.</span><span class="w"></span>
+<span class="w">     </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="n">picexpr</span><span class="p">]))</span><span class="w"></span>
 </pre></div>
 </div>
-<p>This function <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">rewrite</span></span></code> will precalculate a sequence of given translations
+<p>This function <code class="code highlight racket docutils literal highlight-racket"><span class="n">rewrite</span><span class="w"></span></code> will precalculate a sequence of given translations
 as a single translation, which should give us some boost in efficiency given
 our underlying representation. Such transformation to code is done in most
 programming languages, working on the underlying “intermediate representation”
 (typically abbreviated IR) to perform various optimizations before generating
 the target machine code from the IR.</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -442,7 +449,7 @@ the target machine code from the IR.</p>
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
@@ -471,12 +478,12 @@ the target machine code from the IR.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -493,7 +500,7 @@ the target machine code from the IR.</p>
       &copy;2022, Srikumar K. S..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

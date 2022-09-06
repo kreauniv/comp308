@@ -1,16 +1,18 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
     <title>Growing the language &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -32,29 +34,29 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="growing-the-language">
-<h1>Growing the language<a class="headerlink" href="#growing-the-language" title="Permalink to this headline">¶</a></h1>
+  <section id="growing-the-language">
+<h1>Growing the language<a class="headerlink" href="#growing-the-language" title="Permalink to this heading">¶</a></h1>
 <p>So far, we have a few “primitives” for creating pictures and some for
 transforming pictures. Let’s list them out to recap –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Shapes</span>
-<span class="p">(</span><span class="n">Disc</span> <span class="n">&lt;radius&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">Circle</span> <span class="n">&lt;radius&gt;</span> <span class="n">&lt;thickness&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">Qquare</span> <span class="n">&lt;width&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">Rectangle</span> <span class="n">&lt;width&gt;</span> <span class="n">&lt;height&gt;</span><span class="p">)</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Shapes</span><span class="w"></span>
+<span class="p">(</span><span class="n">Disc</span><span class="w"> </span><span class="n">&lt;radius&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">Circle</span><span class="w"> </span><span class="n">&lt;radius&gt;</span><span class="w"> </span><span class="n">&lt;thickness&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">Qquare</span><span class="w"> </span><span class="n">&lt;width&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">Rectangle</span><span class="w"> </span><span class="n">&lt;width&gt;</span><span class="w"> </span><span class="n">&lt;height&gt;</span><span class="p">)</span><span class="w"></span>
 
-<span class="c1">; Transformations</span>
-<span class="p">(</span><span class="n">Translate</span> <span class="n">&lt;dx&gt;</span> <span class="n">&lt;dy&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">Rotate</span> <span class="n">&lt;deg&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">Scale</span> <span class="n">&lt;xscale&gt;</span> <span class="n">&lt;yscale&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">InvertColour</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">Opacity</span> <span class="n">&lt;alpha&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">Colourize</span> <span class="n">&lt;colour&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
+<span class="c1">; Transformations</span><span class="w"></span>
+<span class="p">(</span><span class="n">Translate</span><span class="w"> </span><span class="n">&lt;dx&gt;</span><span class="w"> </span><span class="n">&lt;dy&gt;</span><span class="w"> </span><span class="n">&lt;picture&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">Rotate</span><span class="w"> </span><span class="n">&lt;deg&gt;</span><span class="w"> </span><span class="n">&lt;picture&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">Scale</span><span class="w"> </span><span class="n">&lt;xscale&gt;</span><span class="w"> </span><span class="n">&lt;yscale&gt;</span><span class="w"> </span><span class="n">&lt;picture&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">InvertColour</span><span class="w"> </span><span class="n">&lt;picture&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">Opacity</span><span class="w"> </span><span class="n">&lt;alpha&gt;</span><span class="w"> </span><span class="n">&lt;picture&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">Colourize</span><span class="w"> </span><span class="n">&lt;colour&gt;</span><span class="w"> </span><span class="n">&lt;picture&gt;</span><span class="p">)</span><span class="w"></span>
 
-<span class="c1">; Combinations</span>
-<span class="p">(</span><span class="n">Overlay</span> <span class="n">&lt;pictureA&gt;</span> <span class="n">&lt;pictureB&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">Intersect</span> <span class="n">&lt;pictureA&gt;</span> <span class="n">&lt;pictureB&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">LayoutHoriz</span> <span class="n">&lt;hstep&gt;</span> <span class="n">&lt;pictureA&gt;</span> <span class="n">&lt;pictureB&gt;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">LayoutVert</span> <span class="n">&lt;vstep&gt;</span> <span class="n">&lt;pictureA&gt;</span> <span class="n">&lt;pictureB&gt;</span><span class="p">)</span>
+<span class="c1">; Combinations</span><span class="w"></span>
+<span class="p">(</span><span class="n">Overlay</span><span class="w"> </span><span class="n">&lt;pictureA&gt;</span><span class="w"> </span><span class="n">&lt;pictureB&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">Intersect</span><span class="w"> </span><span class="n">&lt;pictureA&gt;</span><span class="w"> </span><span class="n">&lt;pictureB&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">LayoutHoriz</span><span class="w"> </span><span class="n">&lt;hstep&gt;</span><span class="w"> </span><span class="n">&lt;pictureA&gt;</span><span class="w"> </span><span class="n">&lt;pictureB&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">LayoutVert</span><span class="w"> </span><span class="n">&lt;vstep&gt;</span><span class="w"> </span><span class="n">&lt;pictureA&gt;</span><span class="w"> </span><span class="n">&lt;pictureB&gt;</span><span class="p">)</span><span class="w"></span>
 </pre></div>
 </div>
 <div class="admonition-exercise admonition">
@@ -63,157 +65,316 @@ transforming pictures. Let’s list them out to recap –</p>
 to convince yourself that the representation we’ve chosen still
 serves to model this whole set.</p>
 </div>
-<p>Some of you may have noticed that if we have <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Rectangle</span></span></code>,
-we don’t really need <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Square</span></span></code> since a square is just a rectangle
-with equal sides. Even in the case of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Disc</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Circle</span></span></code>,
-we can see that a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Disc</span></span></code> or radius <span class="math notranslate nohighlight">\(R\)</span> can be thought of
+<p>Some of you may have noticed that if we have <code class="code highlight racket docutils literal highlight-racket"><span class="n">Rectangle</span><span class="w"></span></code>,
+we don’t really need <code class="code highlight racket docutils literal highlight-racket"><span class="n">Square</span><span class="w"></span></code> since a square is just a rectangle
+with equal sides. Even in the case of <code class="code highlight racket docutils literal highlight-racket"><span class="n">Disc</span><span class="w"></span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">Circle</span><span class="w"></span></code>,
+we can see that a <code class="code highlight racket docutils literal highlight-racket"><span class="n">Disc</span><span class="w"></span></code> or radius <span class="math notranslate nohighlight">\(R\)</span> can be thought of
 as a circle of radius <span class="math notranslate nohighlight">\(R/2\)</span> of thickness <span class="math notranslate nohighlight">\(R\)</span>.</p>
 <p>Those who have your linear algebra course still on top of your minds
-will perhaps be able to see that <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Translate</span></span></code>, <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Rotate</span></span></code>
-and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Scale</span></span></code> are all special cases of “affine transforms” which
-we can model using a single <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Affine</span></span></code> operator which applies a
+will perhaps be able to see that <code class="code highlight racket docutils literal highlight-racket"><span class="n">Translate</span><span class="w"></span></code>, <code class="code highlight racket docutils literal highlight-racket"><span class="n">Rotate</span><span class="w"></span></code>
+and <code class="code highlight racket docutils literal highlight-racket"><span class="n">Scale</span><span class="w"></span></code> are all special cases of “affine transforms” which
+we can model using a single <code class="code highlight racket docutils literal highlight-racket"><span class="n">Affine</span><span class="w"></span></code> operator which applies a
 matrix operation followed by translation.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">Affine</span> <span class="p">(</span><span class="n">mxx</span> <span class="n">mxy</span> <span class="n">myx</span> <span class="n">myy</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">pic</span><span class="p">))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">Affine</span><span class="w"> </span><span class="p">(</span><span class="n">mxx</span><span class="w"> </span><span class="n">mxy</span><span class="w"> </span><span class="n">myx</span><span class="w"> </span><span class="n">myy</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">pic</span><span class="p">))</span><span class="w"></span>
 </pre></div>
 </div>
-<p>We also see how something like <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">LayoutHoriz</span></span></code> can be expressed
-in terms of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Overlay</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Translate</span></span></code> like this -</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">LayoutHoriz</span> <span class="n">xstep</span> <span class="n">picA</span> <span class="n">picB</span><span class="p">)</span> <span class="nb">=</span> <span class="p">(</span><span class="n">Overlay</span> <span class="n">picA</span> <span class="p">(</span><span class="n">Translate</span> <span class="n">xstep</span> <span class="mf">0.0</span> <span class="n">picB</span><span class="p">))</span>
+<p>We also see how something like <code class="code highlight racket docutils literal highlight-racket"><span class="n">LayoutHoriz</span><span class="w"></span></code> can be expressed
+in terms of <code class="code highlight racket docutils literal highlight-racket"><span class="n">Overlay</span><span class="w"></span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">Translate</span><span class="w"></span></code> like this -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">LayoutHoriz</span><span class="w"> </span><span class="n">xstep</span><span class="w"> </span><span class="n">picA</span><span class="w"> </span><span class="n">picB</span><span class="p">)</span><span class="w"> </span><span class="nb">=</span><span class="w"> </span><span class="p">(</span><span class="n">Overlay</span><span class="w"> </span><span class="n">picA</span><span class="w"> </span><span class="p">(</span><span class="n">Translate</span><span class="w"> </span><span class="n">xstep</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="n">picB</span><span class="p">))</span><span class="w"></span>
 </pre></div>
 </div>
-<p>So <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">LayoutHoriz</span></span></code> is not really “fundamental” or “core” in that sense.
+<p>So <code class="code highlight racket docutils literal highlight-racket"><span class="n">LayoutHoriz</span><span class="w"></span></code> is not really “fundamental” or “core” in that sense.
 Having a small “core” for our language is valuable because it reduces the
 possibilities over which we need to reason in order to be convinced that
-our language is good. <a class="footnote-reference brackets" href="#sound" id="id1">1</a></p>
-<dl class="footnote brackets">
-<dt class="label" id="sound"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
-<dd><p>There are theoretical “goodness” properties we won’t get into
+our language is good. <a class="footnote-reference brackets" href="#sound" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
+<aside class="footnote brackets" id="sound" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>There are theoretical “goodness” properties we won’t get into
 right now (and likely not in this course). These go by “soundness”,
 in reference to type systems, and “consistency” with respect to logic.
 We’ll bank on our intuitive sense of “this looks right” until we need
 more formal support.</p>
-</dd>
-</dl>
+</aside>
 <p>It would appear that a language that has a small “core” is at loggerheads
 with the goal of growing the language to be able to do more interesting
 things with it. To meet this, we’ll still keep the core small, but add a
 transformation from a larger set of “sugary” constructs to the core language,
 so we can have our cake and eat it too. We’ll refer to this transformation
 as “<strong>desugaring</strong>”. You’ve already seen examples of desugaring in Scheme,
-when we talked about how the <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">let</span></span></code> construct can be expressed using
-<code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code> and application.</p>
+when we talked about how the <code class="code highlight racket docutils literal highlight-racket"><span class="k">let</span><span class="w"></span></code> construct can be expressed using
+<code class="code highlight racket docutils literal highlight-racket"><span class="k">lambda</span><span class="w"></span></code> and application.</p>
 <p>To make our core language terms stand out compared to the “surface” or
 “sugar” layer, we’ll add a <code class="docutils literal notranslate"><span class="pre">C</span></code> suffix to core terms and <code class="docutils literal notranslate"><span class="pre">S</span></code> suffix to
 sugar/syntax terms.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picexprS</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">match</span> <span class="n">picexprS</span>
-        <span class="p">[(</span><span class="n">LayoutHorizS</span> <span class="n">xstep</span> <span class="n">picA</span> <span class="n">picB</span><span class="p">)</span>
-         <span class="p">(</span><span class="n">OverlayC</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picA</span><span class="p">)</span> <span class="p">(</span><span class="n">desugar</span> <span class="p">(</span><span class="n">TranslateS</span> <span class="n">xstep</span> <span class="mf">0.0</span> <span class="n">picB</span><span class="p">)))]</span>
-        <span class="p">[(</span><span class="n">TranslateS</span> <span class="n">xstep</span> <span class="n">ystep</span> <span class="n">picA</span><span class="p">)</span>
-         <span class="p">(</span><span class="n">AffineC</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">1.0</span> <span class="n">xstep</span> <span class="mf">0.0</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picA</span><span class="p">))]</span>
-        <span class="c1">; ... other such conversion rules.</span>
-        <span class="c1">; Our contract is that desugar must not produce any</span>
-        <span class="c1">; of the sugar terms. The result expression must only involve</span>
-        <span class="c1">; the core terms.</span>
-        <span class="p">[</span><span class="k">_</span> <span class="n">picexprS</span><span class="p">]))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picexprS</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">picexprS</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="n">LayoutHorizS</span><span class="w"> </span><span class="n">xstep</span><span class="w"> </span><span class="n">picA</span><span class="w"> </span><span class="n">picB</span><span class="p">)</span><span class="w"></span>
+<span class="w">         </span><span class="p">(</span><span class="n">OverlayC</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picA</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="p">(</span><span class="n">TranslateS</span><span class="w"> </span><span class="n">xstep</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="n">picB</span><span class="p">)))]</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="n">TranslateS</span><span class="w"> </span><span class="n">xstep</span><span class="w"> </span><span class="n">ystep</span><span class="w"> </span><span class="n">picA</span><span class="p">)</span><span class="w"></span>
+<span class="w">         </span><span class="p">(</span><span class="n">AffineC</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="n">xstep</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picA</span><span class="p">))]</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; ... other such conversion rules.</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; Our contract is that desugar must not produce any</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; of the sugar terms. The result expression must only involve</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; the core terms.</span><span class="w"></span>
+<span class="w">        </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="n">picexprS</span><span class="p">]))</span><span class="w"></span>
 </pre></div>
 </div>
-<p>Now, when we want to add a new operation that we know can be expressed in
-terms of our “core expressions”, we can add it to our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">desugar</span></span></code> function
-withou touching our core interpreter.</p>
-<div class="section" id="typed-racket-advanced">
-<h2>Typed racket (<strong>ADVANCED</strong>)<a class="headerlink" href="#typed-racket-advanced" title="Permalink to this headline">¶</a></h2>
-<p>We stepped out of <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">plai-typed</span></span></code> into plain racket because it was
+<p>It is easy to forget to call <code class="code highlight racket docutils literal highlight-racket"><span class="n">desugar</span><span class="w"></span></code> recursively. Remember that everywhere
+we have a “surface expression”, we’ll need to convert it into a “core expression”
+and that’s the purpose of <code class="code highlight racket docutils literal highlight-racket"><span class="n">desugar</span><span class="w"></span></code>.</p>
+<p>Now, when we want to add a new operation that we know can be expressed in terms
+of our “core expressions”, we can add it to our <code class="code highlight racket docutils literal highlight-racket"><span class="n">desugar</span><span class="w"></span></code> function without
+touching our core interpreter. So this “surface-vs-core” split helps us grow
+the language in one way.</p>
+<section id="typed-racket-advanced-optional">
+<h2>Typed racket (<strong>advanced</strong> / optional)<a class="headerlink" href="#typed-racket-advanced-optional" title="Permalink to this heading">¶</a></h2>
+<p>We stepped out of <code class="code highlight racket docutils literal highlight-racket"><span class="kn">#lang </span><span class="nn">plai-typed</span><span class="w"></span></code> into plain racket because it was
 too restrictive for the picture language we’re setting out to build. In perhaps
 a later version of this course, we’ll augment the language to help meet this
-constraint. For now though, you can use either plain Racket or <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">typed/racket</span></span></code>
-if you’re brave enough to get similar type checking as <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">plai-typed</span></span></code>.
-Below is some of our code in <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">typed/racket</span></span></code>.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="kn">#lang </span><span class="nn">typed/racket</span>
+constraint. For now though, you can use either plain Racket or <code class="code highlight racket docutils literal highlight-racket"><span class="kn">#lang </span><span class="nn">typed/racket</span><span class="w"></span></code>
+if you’re brave enough to get similar type checking as <code class="code highlight racket docutils literal highlight-racket"><span class="kn">#lang </span><span class="nn">plai-typed</span><span class="w"></span></code>.
+Below is some of our code in <code class="code highlight racket docutils literal highlight-racket"><span class="n">typed/racket</span><span class="w"></span></code>.</p>
+<p>The advantage of using a type system is that the “compilation” step will
+detect places where you’re being inconsistent and throw up errors so that
+you don’t face these errors when running your program. Using a type system
+also helps design your program in the initial stages.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="kn">#lang </span><span class="nn">typed/racket</span><span class="w"></span>
 
-<span class="p">(</span><span class="k">require</span> <span class="n">typed-racket-datatype</span><span class="p">)</span>
-<span class="p">(</span><span class="k">require</span> <span class="n">racket/match</span><span class="p">)</span>
+<span class="p">(</span><span class="k">require</span><span class="w"> </span><span class="n">typed-racket-datatype</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="k">require</span><span class="w"> </span><span class="n">racket/match</span><span class="p">)</span><span class="w"></span>
 
-<span class="p">(</span><span class="k">struct</span> <span class="n">Colour</span> <span class="p">[</span><span class="n">a</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span> <span class="p">[</span><span class="n">r</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span> <span class="p">[</span><span class="n">g</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span> <span class="p">[</span><span class="n">b</span> <span class="n">:</span> <span class="n">Float</span><span class="p">])</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">Colour</span><span class="w"> </span><span class="p">[</span><span class="n">a</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">r</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">g</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">b</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
 
-<span class="p">(</span><span class="n">define-datatype</span> <span class="n">PicExprC</span>
-    <span class="p">(</span><span class="n">DiscC</span> <span class="p">[</span><span class="n">radius</span> <span class="n">:</span> <span class="n">Float</span><span class="p">])</span>
-    <span class="p">(</span><span class="n">CircleC</span> <span class="p">[</span><span class="n">radius</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span> <span class="p">[</span><span class="n">thickness</span> <span class="n">:</span> <span class="n">Float</span><span class="p">])</span>
-    <span class="p">(</span><span class="n">RectangleC</span> <span class="p">[</span><span class="n">width</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span> <span class="p">[</span><span class="n">height</span> <span class="n">:</span> <span class="n">Float</span><span class="p">])</span>
-    <span class="p">(</span><span class="n">AffineC</span> <span class="p">[</span><span class="n">mxx</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
-             <span class="p">[</span><span class="n">mxy</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
-             <span class="p">[</span><span class="n">myx</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
-             <span class="p">[</span><span class="n">myy</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
-             <span class="p">[</span><span class="n">dx</span>  <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
-             <span class="p">[</span><span class="n">dy</span>  <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
-             <span class="p">[</span><span class="n">pic</span> <span class="n">:</span> <span class="n">PicExprC</span><span class="p">])</span>
-    <span class="p">(</span><span class="n">ColourizeC</span> <span class="p">[</span><span class="n">colour</span> <span class="n">:</span> <span class="n">Colour</span><span class="p">]</span> <span class="p">[</span><span class="n">pic</span> <span class="n">:</span> <span class="n">PicExprC</span><span class="p">]))</span>
+<span class="p">(</span><span class="n">define-datatype</span><span class="w"> </span><span class="n">PicExprC</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">DiscC</span><span class="w"> </span><span class="p">[</span><span class="n">radius</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">CircleC</span><span class="w"> </span><span class="p">[</span><span class="n">radius</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">thickness</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">RectangleC</span><span class="w"> </span><span class="p">[</span><span class="n">width</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">height</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">AffineC</span><span class="w"> </span><span class="p">[</span><span class="n">mxx</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"></span>
+<span class="w">             </span><span class="p">[</span><span class="n">mxy</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"></span>
+<span class="w">             </span><span class="p">[</span><span class="n">myx</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"></span>
+<span class="w">             </span><span class="p">[</span><span class="n">myy</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"></span>
+<span class="w">             </span><span class="p">[</span><span class="n">dx</span><span class="w">  </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"></span>
+<span class="w">             </span><span class="p">[</span><span class="n">dy</span><span class="w">  </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"></span>
+<span class="w">             </span><span class="p">[</span><span class="n">pic</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">PicExprC</span><span class="p">])</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">ColourizeC</span><span class="w"> </span><span class="p">[</span><span class="n">colour</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Colour</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">pic</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">PicExprC</span><span class="p">]))</span><span class="w"></span>
 
-<span class="p">(</span><span class="n">define-datatype</span> <span class="n">PicExprS</span>
-    <span class="p">(</span><span class="n">DiscS</span> <span class="p">[</span><span class="n">radius</span> <span class="n">:</span> <span class="n">Float</span><span class="p">])</span>
-    <span class="p">(</span><span class="n">CircleS</span> <span class="p">[</span><span class="n">radius</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span> <span class="p">[</span><span class="n">thickness</span> <span class="n">:</span> <span class="n">Float</span><span class="p">])</span>
-    <span class="p">(</span><span class="n">RectangleS</span> <span class="p">[</span><span class="n">width</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span> <span class="p">[</span><span class="n">height</span> <span class="n">:</span> <span class="n">Float</span><span class="p">])</span>
-    <span class="p">(</span><span class="n">SquareS</span> <span class="p">[</span><span class="n">width</span> <span class="n">:</span> <span class="n">Float</span><span class="p">])</span>
-    <span class="p">(</span><span class="n">TranslateS</span> <span class="p">[</span><span class="n">dx</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span> <span class="p">[</span><span class="n">dy</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span> <span class="p">[</span><span class="n">pic</span> <span class="n">:</span> <span class="n">PicExprS</span><span class="p">])</span>
-    <span class="p">(</span><span class="n">RotateS</span> <span class="p">[</span><span class="nb">angle</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span> <span class="p">[</span><span class="n">pic</span> <span class="n">:</span> <span class="n">PicExprS</span><span class="p">])</span>
-    <span class="p">(</span><span class="n">ScaleS</span> <span class="p">[</span><span class="n">xscale</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span> <span class="p">[</span><span class="n">yscale</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span> <span class="p">[</span><span class="n">pic</span> <span class="n">:</span> <span class="n">PicExprS</span><span class="p">])</span>
-    <span class="p">(</span><span class="n">ColourizeS</span> <span class="p">[</span><span class="n">colour</span> <span class="n">:</span> <span class="n">Colour</span><span class="p">]</span> <span class="p">[</span><span class="n">pic</span> <span class="n">:</span> <span class="n">PicExprS</span><span class="p">]))</span>
+<span class="p">(</span><span class="n">define-datatype</span><span class="w"> </span><span class="n">PicExprS</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">DiscS</span><span class="w"> </span><span class="p">[</span><span class="n">radius</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">CircleS</span><span class="w"> </span><span class="p">[</span><span class="n">radius</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">thickness</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">RectangleS</span><span class="w"> </span><span class="p">[</span><span class="n">width</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">height</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">SquareS</span><span class="w"> </span><span class="p">[</span><span class="n">width</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">TranslateS</span><span class="w"> </span><span class="p">[</span><span class="n">dx</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">dy</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">pic</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">PicExprS</span><span class="p">])</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">RotateS</span><span class="w"> </span><span class="p">[</span><span class="nb">angle</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">pic</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">PicExprS</span><span class="p">])</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">ScaleS</span><span class="w"> </span><span class="p">[</span><span class="n">xscale</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">yscale</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">pic</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">PicExprS</span><span class="p">])</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">ColourizeS</span><span class="w"> </span><span class="p">[</span><span class="n">colour</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Colour</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">pic</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">PicExprS</span><span class="p">]))</span><span class="w"></span>
 
-<span class="p">(</span><span class="n">:</span> <span class="n">desugar</span> <span class="p">(</span><span class="k">-&gt;</span> <span class="n">PicExprS</span> <span class="n">PicExprC</span><span class="p">))</span>
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picexprS</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">match</span> <span class="n">picexprS</span>
-        <span class="p">[(</span><span class="n">DiscS</span> <span class="n">radius</span><span class="p">)</span>
-         <span class="p">(</span><span class="n">DiscC</span> <span class="n">radius</span><span class="p">)]</span>
-        <span class="p">[(</span><span class="n">CircleS</span> <span class="n">radius</span> <span class="n">thickness</span><span class="p">)</span>
-         <span class="p">(</span><span class="n">CircleC</span> <span class="n">radius</span> <span class="n">thickness</span><span class="p">)]</span>
-        <span class="p">[(</span><span class="n">RectangleS</span> <span class="n">width</span> <span class="n">height</span><span class="p">)</span>
-         <span class="p">(</span><span class="n">RectangleC</span> <span class="n">width</span> <span class="n">height</span><span class="p">)]</span>
-        <span class="p">[(</span><span class="n">SquareS</span> <span class="n">width</span><span class="p">)</span>
-         <span class="p">(</span><span class="n">RectangleC</span> <span class="n">width</span> <span class="n">width</span><span class="p">)]</span>
-        <span class="p">[(</span><span class="n">TranslateS</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">picS</span><span class="p">)</span>
-         <span class="p">(</span><span class="n">AffineC</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">1.0</span> <span class="n">dx</span> <span class="n">dy</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picS</span><span class="p">))]</span>
-        <span class="p">[(</span><span class="n">RotateS</span> <span class="nb">angle</span> <span class="n">picS</span><span class="p">)</span>
-         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">c</span> <span class="p">(</span><span class="nb">cos</span> <span class="nb">angle</span><span class="p">)]</span> <span class="p">[</span><span class="n">s</span> <span class="p">(</span><span class="nb">sin</span> <span class="nb">angle</span><span class="p">)])</span>
-            <span class="p">(</span><span class="n">AffineC</span> <span class="n">c</span> <span class="p">(</span><span class="nb">-</span> <span class="n">s</span><span class="p">)</span> <span class="n">s</span> <span class="n">c</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picS</span><span class="p">)))]</span>
-        <span class="p">[(</span><span class="n">ScaleS</span> <span class="n">xscale</span> <span class="n">yscale</span> <span class="n">picS</span><span class="p">)</span>
-         <span class="p">(</span><span class="n">AffineC</span> <span class="n">xscale</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="n">yscale</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picS</span><span class="p">))]</span>
-        <span class="p">[(</span><span class="n">ColourizeS</span> <span class="n">colour</span> <span class="n">picS</span><span class="p">)</span>
-         <span class="p">(</span><span class="n">ColourizeC</span> <span class="n">colour</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picS</span><span class="p">))]</span>
-        <span class="p">(</span><span class="k">_</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">desugar</span> <span class="s2">&quot;PicExprS&quot;</span> <span class="n">picexprS</span><span class="p">))))</span>
+<span class="p">(</span><span class="n">:</span><span class="w"> </span><span class="n">desugar</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">PicExprS</span><span class="w"> </span><span class="n">PicExprC</span><span class="p">))</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picexprS</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">picexprS</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="n">DiscS</span><span class="w"> </span><span class="n">radius</span><span class="p">)</span><span class="w"></span>
+<span class="w">         </span><span class="p">(</span><span class="n">DiscC</span><span class="w"> </span><span class="n">radius</span><span class="p">)]</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="n">CircleS</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="n">thickness</span><span class="p">)</span><span class="w"></span>
+<span class="w">         </span><span class="p">(</span><span class="n">CircleC</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="n">thickness</span><span class="p">)]</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="n">RectangleS</span><span class="w"> </span><span class="n">width</span><span class="w"> </span><span class="n">height</span><span class="p">)</span><span class="w"></span>
+<span class="w">         </span><span class="p">(</span><span class="n">RectangleC</span><span class="w"> </span><span class="n">width</span><span class="w"> </span><span class="n">height</span><span class="p">)]</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="n">SquareS</span><span class="w"> </span><span class="n">width</span><span class="p">)</span><span class="w"></span>
+<span class="w">         </span><span class="p">(</span><span class="n">RectangleC</span><span class="w"> </span><span class="n">width</span><span class="w"> </span><span class="n">width</span><span class="p">)]</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="n">TranslateS</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">picS</span><span class="p">)</span><span class="w"></span>
+<span class="w">         </span><span class="p">(</span><span class="n">AffineC</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picS</span><span class="p">))]</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="n">RotateS</span><span class="w"> </span><span class="nb">angle</span><span class="w"> </span><span class="n">picS</span><span class="p">)</span><span class="w"></span>
+<span class="w">         </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">c</span><span class="w"> </span><span class="p">(</span><span class="nb">cos</span><span class="w"> </span><span class="nb">angle</span><span class="p">)]</span><span class="w"> </span><span class="p">[</span><span class="n">s</span><span class="w"> </span><span class="p">(</span><span class="nb">sin</span><span class="w"> </span><span class="nb">angle</span><span class="p">)])</span><span class="w"></span>
+<span class="w">            </span><span class="p">(</span><span class="n">AffineC</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picS</span><span class="p">)))]</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="n">ScaleS</span><span class="w"> </span><span class="n">xscale</span><span class="w"> </span><span class="n">yscale</span><span class="w"> </span><span class="n">picS</span><span class="p">)</span><span class="w"></span>
+<span class="w">         </span><span class="p">(</span><span class="n">AffineC</span><span class="w"> </span><span class="n">xscale</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="n">yscale</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picS</span><span class="p">))]</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="n">ColourizeS</span><span class="w"> </span><span class="n">colour</span><span class="w"> </span><span class="n">picS</span><span class="p">)</span><span class="w"></span>
+<span class="w">         </span><span class="p">(</span><span class="n">ColourizeC</span><span class="w"> </span><span class="n">colour</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picS</span><span class="p">))]</span><span class="w"></span>
+<span class="w">        </span><span class="p">(</span><span class="k">_</span><span class="w"> </span><span class="p">(</span><span class="nb">raise-argument-error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">desugar</span><span class="w"> </span><span class="s2">&quot;PicExprS&quot;</span><span class="w"> </span><span class="n">picexprS</span><span class="p">))))</span><span class="w"></span>
 
 
-<span class="p">(</span><span class="n">define-type</span> <span class="n">Picture</span> <span class="p">(</span><span class="k">-&gt;</span> <span class="n">Float</span> <span class="n">Float</span> <span class="n">Colour</span><span class="p">))</span>
+<span class="p">(</span><span class="n">define-type</span><span class="w"> </span><span class="n">Picture</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Colour</span><span class="p">))</span><span class="w"></span>
 
-<span class="p">(</span><span class="n">:</span> <span class="n">affine</span> <span class="p">(</span><span class="k">-&gt;</span> <span class="n">Float</span> <span class="n">Float</span> <span class="n">Float</span> <span class="n">Float</span> <span class="n">Float</span> <span class="n">Float</span> <span class="n">Picture</span> <span class="n">Picture</span><span class="p">))</span>
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">affine</span> <span class="n">mxx</span> <span class="n">mxy</span> <span class="n">myx</span> <span class="n">myy</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">pic</span><span class="p">)</span>
-    <span class="c1">; Note that we need to apply the inverse of</span>
-    <span class="c1">; the specified Affine transform on the given</span>
-    <span class="c1">; (x y) coordinates to get the coordinates to</span>
-    <span class="c1">; be passed to the given pic. The given transform</span>
-    <span class="c1">; is to apply the matrix followed by the translation,</span>
-    <span class="c1">; so the inverse would be the inverse translation</span>
-    <span class="c1">; followed by the inverse of the matrix.</span>
-    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">det</span> <span class="p">(</span><span class="nb">-</span> <span class="p">(</span><span class="nb">*</span> <span class="n">mxx</span> <span class="n">myy</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="n">mxy</span> <span class="n">myx</span><span class="p">))])</span>
-        <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">mixx</span> <span class="p">(</span><span class="nb">/</span> <span class="n">myy</span> <span class="n">det</span><span class="p">)]</span>
-              <span class="p">[</span><span class="n">mixy</span> <span class="p">(</span><span class="nb">-</span> <span class="p">(</span><span class="nb">/</span> <span class="n">mxy</span> <span class="n">det</span><span class="p">))]</span>
-              <span class="p">[</span><span class="n">miyy</span> <span class="p">(</span><span class="nb">/</span> <span class="n">mxx</span> <span class="n">det</span><span class="p">)]</span>
-              <span class="p">[</span><span class="n">miyx</span> <span class="p">(</span><span class="nb">-</span> <span class="p">(</span><span class="nb">/</span> <span class="n">myx</span> <span class="n">det</span><span class="p">))])</span>
-            <span class="p">(</span><span class="k">λ</span> <span class="p">([</span><span class="n">x</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span> <span class="p">[</span><span class="n">y</span> <span class="n">:</span> <span class="n">Float</span><span class="p">])</span>
-                <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">x2</span> <span class="p">(</span><span class="nb">-</span> <span class="n">x</span> <span class="n">dx</span><span class="p">)]</span>
-                      <span class="p">[</span><span class="n">y2</span> <span class="p">(</span><span class="nb">-</span> <span class="n">y</span> <span class="n">dy</span><span class="p">)])</span>
-                    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">x3</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="n">mixx</span> <span class="n">x2</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="n">mixy</span> <span class="n">y2</span><span class="p">))]</span>
-                          <span class="p">[</span><span class="n">y3</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="n">miyx</span> <span class="n">x2</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="n">miyy</span> <span class="n">y2</span><span class="p">))])</span>
-                        <span class="p">(</span><span class="n">pic</span> <span class="n">x3</span> <span class="n">y3</span><span class="p">)))))))</span>
+<span class="p">(</span><span class="n">:</span><span class="w"> </span><span class="n">affine</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Picture</span><span class="w"> </span><span class="n">Picture</span><span class="p">))</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">affine</span><span class="w"> </span><span class="n">mxx</span><span class="w"> </span><span class="n">mxy</span><span class="w"> </span><span class="n">myx</span><span class="w"> </span><span class="n">myy</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">pic</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="c1">; Note that we need to apply the inverse of</span><span class="w"></span>
+<span class="w">    </span><span class="c1">; the specified Affine transform on the given</span><span class="w"></span>
+<span class="w">    </span><span class="c1">; (x y) coordinates to get the coordinates to</span><span class="w"></span>
+<span class="w">    </span><span class="c1">; be passed to the given pic. The given transform</span><span class="w"></span>
+<span class="w">    </span><span class="c1">; is to apply the matrix followed by the translation,</span><span class="w"></span>
+<span class="w">    </span><span class="c1">; so the inverse would be the inverse translation</span><span class="w"></span>
+<span class="w">    </span><span class="c1">; followed by the inverse of the matrix.</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">det</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">mxx</span><span class="w"> </span><span class="n">myy</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">mxy</span><span class="w"> </span><span class="n">myx</span><span class="p">))])</span><span class="w"></span>
+<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">mixx</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">myy</span><span class="w"> </span><span class="n">det</span><span class="p">)]</span><span class="w"></span>
+<span class="w">              </span><span class="p">[</span><span class="n">mixy</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">mxy</span><span class="w"> </span><span class="n">det</span><span class="p">))]</span><span class="w"></span>
+<span class="w">              </span><span class="p">[</span><span class="n">miyy</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">mxx</span><span class="w"> </span><span class="n">det</span><span class="p">)]</span><span class="w"></span>
+<span class="w">              </span><span class="p">[</span><span class="n">miyx</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">myx</span><span class="w"> </span><span class="n">det</span><span class="p">))])</span><span class="w"></span>
+<span class="w">            </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">([</span><span class="n">x</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">y</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
+<span class="w">                </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">x2</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">dx</span><span class="p">)]</span><span class="w"></span>
+<span class="w">                      </span><span class="p">[</span><span class="n">y2</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">dy</span><span class="p">)])</span><span class="w"></span>
+<span class="w">                    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">x3</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">mixx</span><span class="w"> </span><span class="n">x2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">mixy</span><span class="w"> </span><span class="n">y2</span><span class="p">))]</span><span class="w"></span>
+<span class="w">                          </span><span class="p">[</span><span class="n">y3</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">miyx</span><span class="w"> </span><span class="n">x2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">miyy</span><span class="w"> </span><span class="n">y2</span><span class="p">))])</span><span class="w"></span>
+<span class="w">                        </span><span class="p">(</span><span class="n">pic</span><span class="w"> </span><span class="n">x3</span><span class="w"> </span><span class="n">y3</span><span class="p">)))))))</span><span class="w"></span>
 
-<span class="c1">; ... and so on.</span>
+<span class="c1">; ... and so on.</span><span class="w"></span>
 </pre></div>
 </div>
 <div class="admonition-exercise admonition">
 <p class="admonition-title"><strong>Exercise</strong></p>
-<p>Write the interpreter using <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">typed/racket</span></span></code>.</p>
+<p>Write the interpreter using <code class="code highlight racket docutils literal highlight-racket"><span class="n">typed/racket</span><span class="w"></span></code>.</p>
 </div>
+</section>
+<section id="a-mental-model-for-the-machine">
+<h2>A mental model for the machine<a class="headerlink" href="#a-mental-model-for-the-machine" title="Permalink to this heading">¶</a></h2>
+<p>The way we’ve written the interpreter thus far, using a recursive function
+to evaluate the sub-expressions constituting an container expression
+(such as <code class="code highlight racket docutils literal highlight-racket"><span class="n">TranslateS</span><span class="w"></span></code>), offers us some initial view into how we might
+build a language from ground up. However, we’re using a base – or “host” –
+language that is too powerful to gain insights into the mechanics of the language.
+We’ve simply used the host’s own recursion capability to express recursive
+interpretation in our mini language. When we’re looking to further develop
+our language into a programmable image synthesizer, we’re going to have to do
+better than that and understand how we might actually implement the control
+flow implicit in the expressions we’ve been writing thus far.</p>
+<p>To dive in, we can restrict ourselves to simple loops (expressed as “tail
+recursion”) and try to capture a mental model of our machine as a program in
+its own right. When we do that, we now get something concrete on our hands to
+work with and ask questions about. We can therefore use this approach to
+inquire into language construction and meaning.</p>
+<p>When we interpret an expression like <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">rotate</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="p">(</span><span class="n">translate</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">(</span><span class="n">disc</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)))</span><span class="w"></span></code>,
+the sequence of calculations being performed by the interpreter is actually</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">disc</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">translate</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="n">&lt;result&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">rotate</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="n">&lt;result&gt;</span><span class="p">)</span><span class="w"></span>
+</pre></div>
 </div>
+<p>i.e. it goes in the order from innermost to outermost.</p>
+<p>We can take a cue from this observation and consider the simplest machine we
+can think of – something that does the following –</p>
+<ol class="arabic simple">
+<li><p>Take a list of instructions – i.e. the “program”</p></li>
+<li><p>Take the first instruction and execute it. Store its result in a bucket.</p></li>
+<li><p>Take the second instruction and execute it, passing the results of the bucket
+in case it needs any input. Ask it to store its result in the same bucket.</p></li>
+<li><p>Take the third instruction … and so on.</p></li>
+</ol>
+<p>The simplest construct for the “bucket” is the “stack”, where we get access
+to the most recent results on the top and earlier results go below the more
+recent ones.</p>
+<p>Our “machine”, therefore, is a function that accepts a list of instructions to
+perform and a stack containing data on which it should perform them and into
+which it must store the result in the end. We can easily model such a stack
+using a simple list - using <code class="code highlight racket docutils literal highlight-racket"><span class="nb">cons</span><span class="w"></span></code> to “push” values at the head
+and <code class="code highlight racket docutils literal highlight-racket"><span class="nb">rest</span><span class="w"></span></code> to drop the top value and pick the rest of the stack.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">stack-machine</span><span class="w"> </span><span class="n">program</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">empty?</span><span class="w"> </span><span class="n">program</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; The result is the stack when we&#39;re done</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; with the program or there is nothing to do.</span><span class="w"></span>
+<span class="w">        </span><span class="n">stack</span><span class="w"></span>
+
+<span class="w">        </span><span class="c1">; As the Red Queen says in &quot;Alice in Wonderland&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; take the first instruction.</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; execute it.</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; go on until you reach the end.</span><span class="w"></span>
+<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">instr</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="n">program</span><span class="p">)])</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; &quot;perform-instruction&quot; is the name we&#39;re giving to</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; the part of our interpreter that evaluates a single</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; instruction and modifies the stack accordingly.</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; Since we expect it to return the result stack,</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; we can pass that as input to the next step of our</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; machine.</span><span class="w"></span>
+<span class="w">            </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">next-stack</span><span class="w"> </span><span class="p">(</span><span class="n">perform-instruction</span><span class="w"> </span><span class="n">instr</span><span class="w"> </span><span class="n">stack</span><span class="p">)])</span><span class="w"></span>
+<span class="w">                </span><span class="p">(</span><span class="n">stack-machine</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="n">program</span><span class="p">)</span><span class="w"> </span><span class="n">next-stack</span><span class="p">)))))</span><span class="w"></span>
+</pre></div>
 </div>
+<p>Now let’s look at what <code class="code highlight racket docutils literal highlight-racket"><span class="n">perform-instruction</span><span class="w"></span></code> must do –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">perform-instruction</span><span class="w"> </span><span class="n">instr</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">instr</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">disc</span><span class="w"> </span><span class="n">radius</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">disc/s</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="n">stack</span><span class="p">)]</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">translate</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">translate/s</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">stack</span><span class="p">)]</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">rotate</span><span class="w"> </span><span class="n">deg</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">rotate/s</span><span class="w"> </span><span class="n">deg</span><span class="w"> </span><span class="n">stack</span><span class="p">)]</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; ...</span><span class="w"></span>
+<span class="w">        </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="p">(</span><span class="nb">raise-argument-error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">perform-instruction</span><span class="w"></span>
+<span class="w">                                 </span><span class="s2">&quot;Machine instruction&quot;</span><span class="w"></span>
+<span class="w">                                 </span><span class="n">instr</span><span class="p">)]))</span><span class="w"></span>
+</pre></div>
+</div>
+<p>In this code, we’ve used <code class="code highlight racket docutils literal highlight-racket"><span class="n">disc/s</span><span class="w"></span></code> (read “disc with stack”)
+and so on to stand for slightly different functions that compute
+our pictures based on data on the stack and store their results on the
+stack. Here is how we might implement them –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">background</span><span class="w"> </span><span class="p">(</span><span class="n">color</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="p">))</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">white</span><span class="w"> </span><span class="p">(</span><span class="n">color</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">1.0</span><span class="p">))</span><span class="w"></span>
+
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">disc/s</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"></span>
+<span class="w">             </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">&lt;</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">y</span><span class="p">)))</span><span class="w"> </span><span class="n">radius</span><span class="p">)</span><span class="w"></span>
+<span class="w">                </span><span class="n">white</span><span class="w"></span>
+<span class="w">                </span><span class="n">background</span><span class="p">))</span><span class="w"></span>
+<span class="w">          </span><span class="n">stack</span><span class="p">))</span><span class="w"></span>
+
+<span class="c1">; And along the way we&#39;ll define what push/pop etc mean</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="n">stack</span><span class="p">))</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">pop</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="n">stack</span><span class="p">))</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">top</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="n">stack</span><span class="p">))</span><span class="w"></span>
+
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">translate/s</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="c1">; What&#39;s on top of the stack is the input image</span><span class="w"></span>
+<span class="w">    </span><span class="c1">; we want translated.</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">input-image</span><span class="w"> </span><span class="p">(</span><span class="n">top</span><span class="w"> </span><span class="n">stack</span><span class="p">)])</span><span class="w"></span>
+<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">result</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"></span>
+<span class="w">                            </span><span class="p">(</span><span class="n">input-image</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">dy</span><span class="p">)))])</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; We replace the top of the stack with the</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; translated result. i.e. we &quot;consume&quot; the image</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; on the top of the stack and push the result</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; which then takes its place.</span><span class="w"></span>
+<span class="w">            </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="p">(</span><span class="n">pop</span><span class="w"> </span><span class="n">stack</span><span class="p">)))))</span><span class="w"></span>
+
+
+<span class="c1">; Essentially the same idea as for translate/s above.</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">rotate/s</span><span class="w"> </span><span class="nb">angle</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">c</span><span class="w"> </span><span class="p">(</span><span class="nb">cos</span><span class="w"> </span><span class="nb">angle</span><span class="p">)]</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="n">s</span><span class="w"> </span><span class="p">(</span><span class="nb">sin</span><span class="w"> </span><span class="nb">angle</span><span class="p">)]</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="n">img</span><span class="w"> </span><span class="p">(</span><span class="n">top</span><span class="w"> </span><span class="n">stack</span><span class="p">)])</span><span class="w"></span>
+<span class="w">        </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"></span>
+<span class="w">                </span><span class="c1">; Applies the inverse of the rotation matrix.</span><span class="w"></span>
+<span class="w">                </span><span class="p">(</span><span class="n">img</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="n">y</span><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="n">y</span><span class="p">))))</span><span class="w"></span>
+<span class="w">              </span><span class="p">(</span><span class="n">pop</span><span class="w"> </span><span class="n">stack</span><span class="p">))))</span><span class="w"></span>
+</pre></div>
+</div>
+<p>In the above examples of the “/s” (i.e. “with stack”) functions,
+they take their input from the top of the stack and add the result
+that they compute to the stack and return the new stack.</p>
+<p>Note that the “push” and “pop” operations do not mutate the stack, but just
+deconstruct parts of it and make a new stack. For example, if the stack was
+<code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">&lt;one&gt;</span><span class="w"> </span><span class="n">&lt;two&gt;</span><span class="p">)</span><span class="w"></span></code>, doing a <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="n">&lt;three&gt;</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"></span></code> will produce
+<code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">&lt;three&gt;</span><span class="w"> </span><span class="n">&lt;one&gt;</span><span class="w"> </span><span class="n">&lt;two&gt;</span><span class="p">)</span><span class="w"></span></code> and doing <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="n">&lt;three&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">pop</span><span class="w"> </span><span class="n">stack</span><span class="p">))</span><span class="w"></span></code> will
+produce <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">&lt;three&gt;</span><span class="w"> </span><span class="n">&lt;two&gt;</span><span class="p">)</span><span class="w"></span></code>.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">stack</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span><span class="w"></span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w">             </span><span class="c1">; Prints out (1 2)</span><span class="w"></span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="n">stack</span><span class="p">))</span><span class="w">    </span><span class="c1">; Prints out (3 1 2)</span><span class="w"></span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w">             </span><span class="c1">; Prints out (1 2). Shows that the original</span><span class="w"></span>
+<span class="w">                            </span><span class="c1">; is not mutated with the new entry.</span><span class="w"></span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="p">(</span><span class="n">pop</span><span class="w"> </span><span class="n">stack</span><span class="p">))</span><span class="w">       </span><span class="c1">; Prints (2)</span><span class="w"></span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">(</span><span class="n">pop</span><span class="w"> </span><span class="n">stack</span><span class="p">)))</span><span class="w"> </span><span class="c1">; Prints (3 2).</span><span class="w"></span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w">             </span><span class="c1">; Prints (1 2)</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The <code class="code highlight racket docutils literal highlight-racket"><span class="n">stack-machine</span><span class="w"></span></code> we defined above offers a closer picture to how the
+Racket runtime evaluates the program that we give it in the form of the nested
+expression.</p>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Define the “compose/s” operator which combines two images present on the
+stack and pushes a composite image that consists of the contents of both
+the images. <strong>Tip</strong>: If at a given point <span class="math notranslate nohighlight">\((x,y)\)</span>, <span class="math notranslate nohighlight">\(c_1\)</span> and
+<span class="math notranslate nohighlight">\(c_2\)</span> are the colours that the two images being composed produce,
+then the result <span class="math notranslate nohighlight">\(c\)</span> can be computed using – <span class="math notranslate nohighlight">\(c_a = c_{1a} + (1 - c_{1a}) c_{2a}\)</span>
+and <span class="math notranslate nohighlight">\(c_{rgb} = (c_{1a} c_{1rgb} + (1 - c_{1a}) c_{2a} c_{2rgb}) / c_a\)</span>.
+For more ways to compose two images with transparency, see <a class="reference external" href="https://en.wikipedia.org/wiki/Alpha_compositing">Alpha compositing</a>.
+Also define <code class="code highlight racket docutils literal highlight-racket"><span class="nb">compose</span><span class="w"></span></code> in a way suitable for our original expression
+interpreter.</p>
+</div>
+</section>
+</section>
 
 
           </div>
@@ -232,13 +393,14 @@ Below is some of our code in <code class="code highlight racket docutils literal
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
 <li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Growing the language</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#typed-racket-advanced">Typed racket (<strong>ADVANCED</strong>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#typed-racket-advanced-optional">Typed racket (<strong>advanced</strong> / optional)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#a-mental-model-for-the-machine">A mental model for the machine</a></li>
 </ul>
 </li>
 </ul>
@@ -255,12 +417,12 @@ Below is some of our code in <code class="code highlight racket docutils literal
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -277,7 +439,7 @@ Below is some of our code in <code class="code highlight racket docutils literal
       &copy;2022, Srikumar K. S..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

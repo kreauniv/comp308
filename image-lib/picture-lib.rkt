@@ -1,6 +1,6 @@
 #lang racket
 
-(require "./image-io.rkt")
+(require "./picture-io.rkt")
 (require rackunit)
 
 ; Remember that our "picture" type is simply a function

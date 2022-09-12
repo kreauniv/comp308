@@ -1,26 +1,21 @@
 
 <!DOCTYPE html>
 
-<html lang="en">
+<html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Growing the language &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-<<<<<<< HEAD
     <link rel="next" title="Functions and scope" href="fun.html" />
-=======
->>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
     <link rel="prev" title="A mental model for the machine" href="machine.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -38,29 +33,29 @@
 
           <div class="body" role="main">
             
-  <section id="growing-the-language">
-<h1>Growing the language<a class="headerlink" href="#growing-the-language" title="Permalink to this heading">¶</a></h1>
+  <div class="section" id="growing-the-language">
+<h1>Growing the language<a class="headerlink" href="#growing-the-language" title="Permalink to this headline">¶</a></h1>
 <p>So far, we have a few “primitives” for creating pictures and some for
 transforming pictures. Let’s list them out to recap –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Shapes</span><span class="w"></span>
-<span class="p">(</span><span class="n">Disc</span><span class="w"> </span><span class="n">&lt;radius&gt;</span><span class="p">)</span><span class="w"></span>
-<span class="p">(</span><span class="n">Circle</span><span class="w"> </span><span class="n">&lt;radius&gt;</span><span class="w"> </span><span class="n">&lt;thickness&gt;</span><span class="p">)</span><span class="w"></span>
-<span class="p">(</span><span class="n">Qquare</span><span class="w"> </span><span class="n">&lt;width&gt;</span><span class="p">)</span><span class="w"></span>
-<span class="p">(</span><span class="n">Rectangle</span><span class="w"> </span><span class="n">&lt;width&gt;</span><span class="w"> </span><span class="n">&lt;height&gt;</span><span class="p">)</span><span class="w"></span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Shapes</span>
+<span class="p">(</span><span class="n">Disc</span> <span class="n">&lt;radius&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">Circle</span> <span class="n">&lt;radius&gt;</span> <span class="n">&lt;thickness&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">Qquare</span> <span class="n">&lt;width&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">Rectangle</span> <span class="n">&lt;width&gt;</span> <span class="n">&lt;height&gt;</span><span class="p">)</span>
 
-<span class="c1">; Transformations</span><span class="w"></span>
-<span class="p">(</span><span class="n">Translate</span><span class="w"> </span><span class="n">&lt;dx&gt;</span><span class="w"> </span><span class="n">&lt;dy&gt;</span><span class="w"> </span><span class="n">&lt;picture&gt;</span><span class="p">)</span><span class="w"></span>
-<span class="p">(</span><span class="n">Rotate</span><span class="w"> </span><span class="n">&lt;deg&gt;</span><span class="w"> </span><span class="n">&lt;picture&gt;</span><span class="p">)</span><span class="w"></span>
-<span class="p">(</span><span class="n">Scale</span><span class="w"> </span><span class="n">&lt;xscale&gt;</span><span class="w"> </span><span class="n">&lt;yscale&gt;</span><span class="w"> </span><span class="n">&lt;picture&gt;</span><span class="p">)</span><span class="w"></span>
-<span class="p">(</span><span class="n">InvertColour</span><span class="w"> </span><span class="n">&lt;picture&gt;</span><span class="p">)</span><span class="w"></span>
-<span class="p">(</span><span class="n">Opacity</span><span class="w"> </span><span class="n">&lt;alpha&gt;</span><span class="w"> </span><span class="n">&lt;picture&gt;</span><span class="p">)</span><span class="w"></span>
-<span class="p">(</span><span class="n">Colourize</span><span class="w"> </span><span class="n">&lt;colour&gt;</span><span class="w"> </span><span class="n">&lt;picture&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="c1">; Transformations</span>
+<span class="p">(</span><span class="n">Translate</span> <span class="n">&lt;dx&gt;</span> <span class="n">&lt;dy&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">Rotate</span> <span class="n">&lt;deg&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">Scale</span> <span class="n">&lt;xscale&gt;</span> <span class="n">&lt;yscale&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">InvertColour</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">Opacity</span> <span class="n">&lt;alpha&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">Colourize</span> <span class="n">&lt;colour&gt;</span> <span class="n">&lt;picture&gt;</span><span class="p">)</span>
 
-<span class="c1">; Combinations</span><span class="w"></span>
-<span class="p">(</span><span class="n">Overlay</span><span class="w"> </span><span class="n">&lt;pictureA&gt;</span><span class="w"> </span><span class="n">&lt;pictureB&gt;</span><span class="p">)</span><span class="w"></span>
-<span class="p">(</span><span class="n">Intersect</span><span class="w"> </span><span class="n">&lt;pictureA&gt;</span><span class="w"> </span><span class="n">&lt;pictureB&gt;</span><span class="p">)</span><span class="w"></span>
-<span class="p">(</span><span class="n">LayoutHoriz</span><span class="w"> </span><span class="n">&lt;hstep&gt;</span><span class="w"> </span><span class="n">&lt;pictureA&gt;</span><span class="w"> </span><span class="n">&lt;pictureB&gt;</span><span class="p">)</span><span class="w"></span>
-<span class="p">(</span><span class="n">LayoutVert</span><span class="w"> </span><span class="n">&lt;vstep&gt;</span><span class="w"> </span><span class="n">&lt;pictureA&gt;</span><span class="w"> </span><span class="n">&lt;pictureB&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="c1">; Combinations</span>
+<span class="p">(</span><span class="n">Overlay</span> <span class="n">&lt;pictureA&gt;</span> <span class="n">&lt;pictureB&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">Intersect</span> <span class="n">&lt;pictureA&gt;</span> <span class="n">&lt;pictureB&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">LayoutHoriz</span> <span class="n">&lt;hstep&gt;</span> <span class="n">&lt;pictureA&gt;</span> <span class="n">&lt;pictureB&gt;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">LayoutVert</span> <span class="n">&lt;vstep&gt;</span> <span class="n">&lt;pictureA&gt;</span> <span class="n">&lt;pictureB&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition-exercise admonition">
@@ -69,61 +64,61 @@ transforming pictures. Let’s list them out to recap –</p>
 to convince yourself that the representation we’ve chosen still
 serves to model this whole set.</p>
 </div>
-<p>Some of you may have noticed that if we have <code class="code highlight racket docutils literal highlight-racket"><span class="n">Rectangle</span><span class="w"></span></code>,
-we don’t really need <code class="code highlight racket docutils literal highlight-racket"><span class="n">Square</span><span class="w"></span></code> since a square is just a rectangle
-with equal sides. Even in the case of <code class="code highlight racket docutils literal highlight-racket"><span class="n">Disc</span><span class="w"></span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">Circle</span><span class="w"></span></code>,
-we can see that a <code class="code highlight racket docutils literal highlight-racket"><span class="n">Disc</span><span class="w"></span></code> or radius <span class="math notranslate nohighlight">\(R\)</span> can be thought of
+<p>Some of you may have noticed that if we have <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Rectangle</span></span></code>,
+we don’t really need <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Square</span></span></code> since a square is just a rectangle
+with equal sides. Even in the case of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Disc</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Circle</span></span></code>,
+we can see that a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Disc</span></span></code> or radius <span class="math notranslate nohighlight">\(R\)</span> can be thought of
 as a circle of radius <span class="math notranslate nohighlight">\(R/2\)</span> of thickness <span class="math notranslate nohighlight">\(R\)</span>.</p>
 <p>Those who have your linear algebra course still on top of your minds
-will perhaps be able to see that <code class="code highlight racket docutils literal highlight-racket"><span class="n">Translate</span><span class="w"></span></code>, <code class="code highlight racket docutils literal highlight-racket"><span class="n">Rotate</span><span class="w"></span></code>
-and <code class="code highlight racket docutils literal highlight-racket"><span class="n">Scale</span><span class="w"></span></code> are all special cases of “affine transforms” which
-we can model using a single <code class="code highlight racket docutils literal highlight-racket"><span class="n">Affine</span><span class="w"></span></code> operator which applies a
+will perhaps be able to see that <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Translate</span></span></code>, <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Rotate</span></span></code>
+and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Scale</span></span></code> are all special cases of “affine transforms” which
+we can model using a single <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Affine</span></span></code> operator which applies a
 matrix operation followed by translation.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">Affine</span><span class="w"> </span><span class="p">(</span><span class="n">mxx</span><span class="w"> </span><span class="n">mxy</span><span class="w"> </span><span class="n">myx</span><span class="w"> </span><span class="n">myy</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">pic</span><span class="p">))</span><span class="w"></span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">Affine</span> <span class="p">(</span><span class="n">mxx</span> <span class="n">mxy</span> <span class="n">myx</span> <span class="n">myy</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">pic</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>We also see how something like <code class="code highlight racket docutils literal highlight-racket"><span class="n">LayoutHoriz</span><span class="w"></span></code> can be expressed
-in terms of <code class="code highlight racket docutils literal highlight-racket"><span class="n">Overlay</span><span class="w"></span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">Translate</span><span class="w"></span></code> like this -</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">LayoutHoriz</span><span class="w"> </span><span class="n">xstep</span><span class="w"> </span><span class="n">picA</span><span class="w"> </span><span class="n">picB</span><span class="p">)</span><span class="w"> </span><span class="nb">=</span><span class="w"> </span><span class="p">(</span><span class="n">Overlay</span><span class="w"> </span><span class="n">picA</span><span class="w"> </span><span class="p">(</span><span class="n">Translate</span><span class="w"> </span><span class="n">xstep</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="n">picB</span><span class="p">))</span><span class="w"></span>
+<p>We also see how something like <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">LayoutHoriz</span></span></code> can be expressed
+in terms of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Overlay</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Translate</span></span></code> like this -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">LayoutHoriz</span> <span class="n">xstep</span> <span class="n">picA</span> <span class="n">picB</span><span class="p">)</span> <span class="nb">=</span> <span class="p">(</span><span class="n">Overlay</span> <span class="n">picA</span> <span class="p">(</span><span class="n">Translate</span> <span class="n">xstep</span> <span class="mf">0.0</span> <span class="n">picB</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>So <code class="code highlight racket docutils literal highlight-racket"><span class="n">LayoutHoriz</span><span class="w"></span></code> is not really “fundamental” or “core” in that sense.
+<p>So <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">LayoutHoriz</span></span></code> is not really “fundamental” or “core” in that sense.
 Having a small “core” for our language is valuable because it reduces the
 possibilities over which we need to reason in order to be convinced that
-our language is good. <a class="footnote-reference brackets" href="#sound" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
-<aside class="footnote brackets" id="sound" role="note">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
-<p>There are theoretical “goodness” properties we won’t get into
+our language is good. <a class="footnote-reference brackets" href="#sound" id="id1">1</a></p>
+<dl class="footnote brackets">
+<dt class="label" id="sound"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>There are theoretical “goodness” properties we won’t get into
 right now (and likely not in this course). These go by “soundness”,
 in reference to type systems, and “consistency” with respect to logic.
 We’ll bank on our intuitive sense of “this looks right” until we need
 more formal support.</p>
-</aside>
+</dd>
+</dl>
 <p>It would appear that a language that has a small “core” is at loggerheads
 with the goal of growing the language to be able to do more interesting
 things with it. To meet this, we’ll still keep the core small, but add a
 transformation from a larger set of “sugary” constructs to the core language,
 so we can have our cake and eat it too. We’ll refer to this transformation
 as “<strong>desugaring</strong>”. You’ve already seen examples of desugaring in Scheme,
-when we talked about how the <code class="code highlight racket docutils literal highlight-racket"><span class="k">let</span><span class="w"></span></code> construct can be expressed using
-<code class="code highlight racket docutils literal highlight-racket"><span class="k">lambda</span><span class="w"></span></code> and application.</p>
+when we talked about how the <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">let</span></span></code> construct can be expressed using
+<code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code> and application.</p>
 <p>To make our core language terms stand out compared to the “surface” or
 “sugar” layer, we’ll add a <code class="docutils literal notranslate"><span class="pre">C</span></code> suffix to core terms and <code class="docutils literal notranslate"><span class="pre">S</span></code> suffix to
 sugar/syntax terms.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picexprS</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">picexprS</span><span class="w"></span>
-<span class="w">        </span><span class="p">[(</span><span class="n">LayoutHorizS</span><span class="w"> </span><span class="n">xstep</span><span class="w"> </span><span class="n">picA</span><span class="w"> </span><span class="n">picB</span><span class="p">)</span><span class="w"></span>
-<span class="w">         </span><span class="p">(</span><span class="n">OverlayC</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picA</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="p">(</span><span class="n">TranslateS</span><span class="w"> </span><span class="n">xstep</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="n">picB</span><span class="p">)))]</span><span class="w"></span>
-<span class="w">        </span><span class="p">[(</span><span class="n">TranslateS</span><span class="w"> </span><span class="n">xstep</span><span class="w"> </span><span class="n">ystep</span><span class="w"> </span><span class="n">picA</span><span class="p">)</span><span class="w"></span>
-<span class="w">         </span><span class="p">(</span><span class="n">AffineC</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="n">xstep</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picA</span><span class="p">))]</span><span class="w"></span>
-<span class="w">        </span><span class="c1">; ... other such conversion rules.</span><span class="w"></span>
-<span class="w">        </span><span class="c1">; Our contract is that desugar must not produce any</span><span class="w"></span>
-<span class="w">        </span><span class="c1">; of the sugar terms. The result expression must only involve</span><span class="w"></span>
-<span class="w">        </span><span class="c1">; the core terms.</span><span class="w"></span>
-<span class="w">        </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="n">picexprS</span><span class="p">]))</span><span class="w"></span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picexprS</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">match</span> <span class="n">picexprS</span>
+        <span class="p">[(</span><span class="n">LayoutHorizS</span> <span class="n">xstep</span> <span class="n">picA</span> <span class="n">picB</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">OverlayC</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picA</span><span class="p">)</span> <span class="p">(</span><span class="n">desugar</span> <span class="p">(</span><span class="n">TranslateS</span> <span class="n">xstep</span> <span class="mf">0.0</span> <span class="n">picB</span><span class="p">)))]</span>
+        <span class="p">[(</span><span class="n">TranslateS</span> <span class="n">xstep</span> <span class="n">ystep</span> <span class="n">picA</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">AffineC</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">1.0</span> <span class="n">xstep</span> <span class="mf">0.0</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picA</span><span class="p">))]</span>
+        <span class="c1">; ... other such conversion rules.</span>
+        <span class="c1">; Our contract is that desugar must not produce any</span>
+        <span class="c1">; of the sugar terms. The result expression must only involve</span>
+        <span class="c1">; the core terms.</span>
+        <span class="p">[</span><span class="k">_</span> <span class="n">picexprS</span><span class="p">]))</span>
 </pre></div>
 </div>
-<<<<<<< HEAD
 <p>It is easy to forget to call <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">desugar</span></span></code> recursively. Remember that everywhere
 we have a “surface expression”, we’ll need to convert it into a “core expression”
 and that’s the purpose of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">desugar</span></span></code>.</p>
@@ -139,28 +134,10 @@ a later version of this course, we’ll augment the language to help meet this
 constraint. For now though, you can use either plain Racket or <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">typed/racket</span></span></code>
 if you’re brave enough to get similar type checking as <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">plai-typed</span></span></code>.
 Below is some of our code in <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">typed/racket</span></span></code>.</p>
-=======
-<p>It is easy to forget to call <code class="code highlight racket docutils literal highlight-racket"><span class="n">desugar</span><span class="w"></span></code> recursively. Remember that everywhere
-we have a “surface expression”, we’ll need to convert it into a “core expression”
-and that’s the purpose of <code class="code highlight racket docutils literal highlight-racket"><span class="n">desugar</span><span class="w"></span></code>.</p>
-<p>Now, when we want to add a new operation that we know can be expressed in terms
-of our “core expressions”, we can add it to our <code class="code highlight racket docutils literal highlight-racket"><span class="n">desugar</span><span class="w"></span></code> function without
-touching our core interpreter. So this “surface-vs-core” split helps us grow
-the language in one way.</p>
-<section id="typed-racket-advanced-optional">
-<h2>Typed racket (<strong>advanced</strong> / optional)<a class="headerlink" href="#typed-racket-advanced-optional" title="Permalink to this heading">¶</a></h2>
-<p>We stepped out of <code class="code highlight racket docutils literal highlight-racket"><span class="kn">#lang </span><span class="nn">plai-typed</span><span class="w"></span></code> into plain racket because it was
-too restrictive for the picture language we’re setting out to build. In perhaps
-a later version of this course, we’ll augment the language to help meet this
-constraint. For now though, you can use either plain Racket or <code class="code highlight racket docutils literal highlight-racket"><span class="kn">#lang </span><span class="nn">typed/racket</span><span class="w"></span></code>
-if you’re brave enough to get similar type checking as <code class="code highlight racket docutils literal highlight-racket"><span class="kn">#lang </span><span class="nn">plai-typed</span><span class="w"></span></code>.
-Below is some of our code in <code class="code highlight racket docutils literal highlight-racket"><span class="n">typed/racket</span><span class="w"></span></code>.</p>
->>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
 <p>The advantage of using a type system is that the “compilation” step will
 detect places where you’re being inconsistent and throw up errors so that
 you don’t face these errors when running your program. Using a type system
 also helps design your program in the initial stages.</p>
-<<<<<<< HEAD
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="kn">#lang </span><span class="nn">typed/racket</span>
 
 <span class="p">(</span><span class="k">require</span> <span class="n">typed-racket-datatype</span><span class="p">)</span>
@@ -238,93 +215,14 @@ also helps design your program in the initial stages.</p>
                         <span class="p">(</span><span class="n">pic</span> <span class="n">x3</span> <span class="n">y3</span><span class="p">)))))))</span>
 
 <span class="c1">; ... and so on.</span>
-=======
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="kn">#lang </span><span class="nn">typed/racket</span><span class="w"></span>
-
-<span class="p">(</span><span class="k">require</span><span class="w"> </span><span class="n">typed-racket-datatype</span><span class="p">)</span><span class="w"></span>
-<span class="p">(</span><span class="k">require</span><span class="w"> </span><span class="n">racket/match</span><span class="p">)</span><span class="w"></span>
-
-<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">Colour</span><span class="w"> </span><span class="p">[</span><span class="n">a</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">r</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">g</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">b</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
-
-<span class="p">(</span><span class="n">define-datatype</span><span class="w"> </span><span class="n">PicExprC</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">DiscC</span><span class="w"> </span><span class="p">[</span><span class="n">radius</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">CircleC</span><span class="w"> </span><span class="p">[</span><span class="n">radius</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">thickness</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">RectangleC</span><span class="w"> </span><span class="p">[</span><span class="n">width</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">height</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">AffineC</span><span class="w"> </span><span class="p">[</span><span class="n">mxx</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"></span>
-<span class="w">             </span><span class="p">[</span><span class="n">mxy</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"></span>
-<span class="w">             </span><span class="p">[</span><span class="n">myx</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"></span>
-<span class="w">             </span><span class="p">[</span><span class="n">myy</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"></span>
-<span class="w">             </span><span class="p">[</span><span class="n">dx</span><span class="w">  </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"></span>
-<span class="w">             </span><span class="p">[</span><span class="n">dy</span><span class="w">  </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"></span>
-<span class="w">             </span><span class="p">[</span><span class="n">pic</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">PicExprC</span><span class="p">])</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">ColourizeC</span><span class="w"> </span><span class="p">[</span><span class="n">colour</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Colour</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">pic</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">PicExprC</span><span class="p">]))</span><span class="w"></span>
-
-<span class="p">(</span><span class="n">define-datatype</span><span class="w"> </span><span class="n">PicExprS</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">DiscS</span><span class="w"> </span><span class="p">[</span><span class="n">radius</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">CircleS</span><span class="w"> </span><span class="p">[</span><span class="n">radius</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">thickness</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">RectangleS</span><span class="w"> </span><span class="p">[</span><span class="n">width</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">height</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">SquareS</span><span class="w"> </span><span class="p">[</span><span class="n">width</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">TranslateS</span><span class="w"> </span><span class="p">[</span><span class="n">dx</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">dy</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">pic</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">PicExprS</span><span class="p">])</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">RotateS</span><span class="w"> </span><span class="p">[</span><span class="nb">angle</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">pic</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">PicExprS</span><span class="p">])</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">ScaleS</span><span class="w"> </span><span class="p">[</span><span class="n">xscale</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">yscale</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">pic</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">PicExprS</span><span class="p">])</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="n">ColourizeS</span><span class="w"> </span><span class="p">[</span><span class="n">colour</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Colour</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">pic</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">PicExprS</span><span class="p">]))</span><span class="w"></span>
-
-<span class="p">(</span><span class="n">:</span><span class="w"> </span><span class="n">desugar</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">PicExprS</span><span class="w"> </span><span class="n">PicExprC</span><span class="p">))</span><span class="w"></span>
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picexprS</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">picexprS</span><span class="w"></span>
-<span class="w">        </span><span class="p">[(</span><span class="n">DiscS</span><span class="w"> </span><span class="n">radius</span><span class="p">)</span><span class="w"></span>
-<span class="w">         </span><span class="p">(</span><span class="n">DiscC</span><span class="w"> </span><span class="n">radius</span><span class="p">)]</span><span class="w"></span>
-<span class="w">        </span><span class="p">[(</span><span class="n">CircleS</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="n">thickness</span><span class="p">)</span><span class="w"></span>
-<span class="w">         </span><span class="p">(</span><span class="n">CircleC</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="n">thickness</span><span class="p">)]</span><span class="w"></span>
-<span class="w">        </span><span class="p">[(</span><span class="n">RectangleS</span><span class="w"> </span><span class="n">width</span><span class="w"> </span><span class="n">height</span><span class="p">)</span><span class="w"></span>
-<span class="w">         </span><span class="p">(</span><span class="n">RectangleC</span><span class="w"> </span><span class="n">width</span><span class="w"> </span><span class="n">height</span><span class="p">)]</span><span class="w"></span>
-<span class="w">        </span><span class="p">[(</span><span class="n">SquareS</span><span class="w"> </span><span class="n">width</span><span class="p">)</span><span class="w"></span>
-<span class="w">         </span><span class="p">(</span><span class="n">RectangleC</span><span class="w"> </span><span class="n">width</span><span class="w"> </span><span class="n">width</span><span class="p">)]</span><span class="w"></span>
-<span class="w">        </span><span class="p">[(</span><span class="n">TranslateS</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">picS</span><span class="p">)</span><span class="w"></span>
-<span class="w">         </span><span class="p">(</span><span class="n">AffineC</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picS</span><span class="p">))]</span><span class="w"></span>
-<span class="w">        </span><span class="p">[(</span><span class="n">RotateS</span><span class="w"> </span><span class="nb">angle</span><span class="w"> </span><span class="n">picS</span><span class="p">)</span><span class="w"></span>
-<span class="w">         </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">c</span><span class="w"> </span><span class="p">(</span><span class="nb">cos</span><span class="w"> </span><span class="nb">angle</span><span class="p">)]</span><span class="w"> </span><span class="p">[</span><span class="n">s</span><span class="w"> </span><span class="p">(</span><span class="nb">sin</span><span class="w"> </span><span class="nb">angle</span><span class="p">)])</span><span class="w"></span>
-<span class="w">            </span><span class="p">(</span><span class="n">AffineC</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picS</span><span class="p">)))]</span><span class="w"></span>
-<span class="w">        </span><span class="p">[(</span><span class="n">ScaleS</span><span class="w"> </span><span class="n">xscale</span><span class="w"> </span><span class="n">yscale</span><span class="w"> </span><span class="n">picS</span><span class="p">)</span><span class="w"></span>
-<span class="w">         </span><span class="p">(</span><span class="n">AffineC</span><span class="w"> </span><span class="n">xscale</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="n">yscale</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picS</span><span class="p">))]</span><span class="w"></span>
-<span class="w">        </span><span class="p">[(</span><span class="n">ColourizeS</span><span class="w"> </span><span class="n">colour</span><span class="w"> </span><span class="n">picS</span><span class="p">)</span><span class="w"></span>
-<span class="w">         </span><span class="p">(</span><span class="n">ColourizeC</span><span class="w"> </span><span class="n">colour</span><span class="w"> </span><span class="p">(</span><span class="n">desugar</span><span class="w"> </span><span class="n">picS</span><span class="p">))]</span><span class="w"></span>
-<span class="w">        </span><span class="p">(</span><span class="k">_</span><span class="w"> </span><span class="p">(</span><span class="nb">raise-argument-error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">desugar</span><span class="w"> </span><span class="s2">&quot;PicExprS&quot;</span><span class="w"> </span><span class="n">picexprS</span><span class="p">))))</span><span class="w"></span>
-
-
-<span class="p">(</span><span class="n">define-type</span><span class="w"> </span><span class="n">Picture</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Colour</span><span class="p">))</span><span class="w"></span>
-
-<span class="p">(</span><span class="n">:</span><span class="w"> </span><span class="n">affine</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Float</span><span class="w"> </span><span class="n">Picture</span><span class="w"> </span><span class="n">Picture</span><span class="p">))</span><span class="w"></span>
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">affine</span><span class="w"> </span><span class="n">mxx</span><span class="w"> </span><span class="n">mxy</span><span class="w"> </span><span class="n">myx</span><span class="w"> </span><span class="n">myy</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">pic</span><span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="c1">; Note that we need to apply the inverse of</span><span class="w"></span>
-<span class="w">    </span><span class="c1">; the specified Affine transform on the given</span><span class="w"></span>
-<span class="w">    </span><span class="c1">; (x y) coordinates to get the coordinates to</span><span class="w"></span>
-<span class="w">    </span><span class="c1">; be passed to the given pic. The given transform</span><span class="w"></span>
-<span class="w">    </span><span class="c1">; is to apply the matrix followed by the translation,</span><span class="w"></span>
-<span class="w">    </span><span class="c1">; so the inverse would be the inverse translation</span><span class="w"></span>
-<span class="w">    </span><span class="c1">; followed by the inverse of the matrix.</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">det</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">mxx</span><span class="w"> </span><span class="n">myy</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">mxy</span><span class="w"> </span><span class="n">myx</span><span class="p">))])</span><span class="w"></span>
-<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">mixx</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">myy</span><span class="w"> </span><span class="n">det</span><span class="p">)]</span><span class="w"></span>
-<span class="w">              </span><span class="p">[</span><span class="n">mixy</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">mxy</span><span class="w"> </span><span class="n">det</span><span class="p">))]</span><span class="w"></span>
-<span class="w">              </span><span class="p">[</span><span class="n">miyy</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">mxx</span><span class="w"> </span><span class="n">det</span><span class="p">)]</span><span class="w"></span>
-<span class="w">              </span><span class="p">[</span><span class="n">miyx</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">myx</span><span class="w"> </span><span class="n">det</span><span class="p">))])</span><span class="w"></span>
-<span class="w">            </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">([</span><span class="n">x</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">y</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Float</span><span class="p">])</span><span class="w"></span>
-<span class="w">                </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">x2</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">dx</span><span class="p">)]</span><span class="w"></span>
-<span class="w">                      </span><span class="p">[</span><span class="n">y2</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">dy</span><span class="p">)])</span><span class="w"></span>
-<span class="w">                    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">x3</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">mixx</span><span class="w"> </span><span class="n">x2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">mixy</span><span class="w"> </span><span class="n">y2</span><span class="p">))]</span><span class="w"></span>
-<span class="w">                          </span><span class="p">[</span><span class="n">y3</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">miyx</span><span class="w"> </span><span class="n">x2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">miyy</span><span class="w"> </span><span class="n">y2</span><span class="p">))])</span><span class="w"></span>
-<span class="w">                        </span><span class="p">(</span><span class="n">pic</span><span class="w"> </span><span class="n">x3</span><span class="w"> </span><span class="n">y3</span><span class="p">)))))))</span><span class="w"></span>
-
-<span class="c1">; ... and so on.</span><span class="w"></span>
->>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
 </pre></div>
 </div>
 <div class="admonition-exercise admonition">
 <p class="admonition-title"><strong>Exercise</strong></p>
-<p>Write the interpreter using <code class="code highlight racket docutils literal highlight-racket"><span class="n">typed/racket</span><span class="w"></span></code>.</p>
+<p>Write the interpreter using <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">typed/racket</span></span></code>.</p>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
           </div>
@@ -343,7 +241,7 @@ also helps design your program in the initial stages.</p>
 
 
 <h3>Navigation</h3>
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
@@ -361,10 +259,7 @@ also helps design your program in the initial stages.</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="machine.html" title="previous chapter">A mental model for the machine</a></li>
-<<<<<<< HEAD
       <li>Next: <a href="fun.html" title="next chapter">Functions and scope</a></li>
-=======
->>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
   </ul></li>
 </ul>
 </div>
@@ -372,12 +267,12 @@ also helps design your program in the initial stages.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
+<script>$('#searchbox').show(0);</script>
 
 
 
@@ -394,7 +289,7 @@ also helps design your program in the initial stages.</p>
       &copy;2022, Srikumar K. S..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

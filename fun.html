@@ -51,6 +51,11 @@ the essence of a general enough function within our language.</p>
                  <span class="p">[</span><span class="n">expr</span> <span class="n">:</span> <span class="n">PicExprC</span><span class="p">]))</span>
 </pre></div>
 </div>
+<p>The above is in <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">typed/racket</span></span></code>, but we can write it simpler
+in normal <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">racket</span></span></code> like this -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">FunDefC</span> <span class="p">(</span><span class="n">name</span> <span class="n">arg</span> <span class="n">expr</span><span class="p">))</span>
+</pre></div>
+</div>
 <p>This structure captures what we need to specify a function. We’ll identify
 a function by its name, we’ll identify its argument (a.k.a. “formal parameter”)
 using a symbol and we’ll give a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> expression as the body of

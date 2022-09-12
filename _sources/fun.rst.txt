@@ -12,6 +12,9 @@ didn't have to repeat ourselves about. Functions are about that, and adding
 functions to our language will vastly increase the breadth of what we can
 accomplish within it. 
 
+Defining functions
+------------------
+
 Towards this, we'll consider a function definition structure that captures
 the essence of a general enough function within our language.
 
@@ -85,6 +88,9 @@ within any evaluation context. Such a variable that is not "declared" as a forma
 parameter in the function definition and still finds mention in the function definition's
 body is called a "free variable". In our language so far, we do not ascribe any meaning
 to such "free variables" and therefore consider such an expression to be an error.
+
+Applying functions: substitution a.k.a. β-reduction
+---------------------------------------------------
 
 Ok, we have a function definition now. How do we then use it to make pictures? We
 need a way to "apply" the function to a concrete picture expression value to compute

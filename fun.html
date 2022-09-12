@@ -42,6 +42,8 @@ complexity, we’re bound to come across repeated patterns that we will wish we
 didn’t have to repeat ourselves about. Functions are about that, and adding
 functions to our language will vastly increase the breadth of what we can
 accomplish within it.</p>
+<div class="section" id="defining-functions">
+<h2>Defining functions<a class="headerlink" href="#defining-functions" title="Permalink to this headline">¶</a></h2>
 <p>Towards this, we’ll consider a function definition structure that captures
 the essence of a general enough function within our language.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">FunDefC</span> <span class="p">([</span><span class="n">name</span> <span class="n">:</span> <span class="n">Symbol</span><span class="p">]</span>
@@ -104,6 +106,9 @@ within any evaluation context. Such a variable that is not “declared” as a f
 parameter in the function definition and still finds mention in the function definition’s
 body is called a “free variable”. In our language so far, we do not ascribe any meaning
 to such “free variables” and therefore consider such an expression to be an error.</p>
+</div>
+<div class="section" id="applying-functions-substitution-a-k-a-reduction">
+<h2>Applying functions: substitution a.k.a. β-reduction<a class="headerlink" href="#applying-functions-substitution-a-k-a-reduction" title="Permalink to this headline">¶</a></h2>
 <p>Ok, we have a function definition now. How do we then use it to make pictures? We
 need a way to “apply” the function to a concrete picture expression value to compute
 the required result. We therefore need yet another addition to our language to
@@ -209,6 +214,7 @@ perform a “β-reduction”.</p>
         <span class="c1">;...</span>
         <span class="p">))</span>
 </pre></div>
+</div>
 </div>
 <div class="section" id="two-evaluation-modes">
 <h2>Two evaluation modes<a class="headerlink" href="#two-evaluation-modes" title="Permalink to this headline">¶</a></h2>
@@ -323,6 +329,8 @@ next notion we’ll discuss - that of “environments and scope”.</p>
 <li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Functions and scope</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#defining-functions">Defining functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#applying-functions-substitution-a-k-a-reduction">Applying functions: substitution a.k.a. β-reduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#two-evaluation-modes">Two evaluation modes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scope">Scope</a></li>
 </ul>

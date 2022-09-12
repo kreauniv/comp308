@@ -8,6 +8,8 @@
          AffineC ColorizeC OpacityC CropC OverlayC
          FunDefC ApplyC IdC PictureC
          SquareS TranslateS RotateS ScaleS)
+(provide color color->list)
+(provide (struct-out color))
 
 ; PicExprC type
 (struct PicFromFileC (filename x1 y1 x2 y2))

@@ -15,7 +15,8 @@
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="A language for pictures" href="piclang.html" />
+    <link rel="next" title="Functions and scope" href="fun.html" />
+    <link rel="prev" title="A mental model for the machine" href="machine.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -118,17 +119,25 @@ sugar/syntax terms.</p>
         <span class="p">[</span><span class="k">_</span> <span class="n">picexprS</span><span class="p">]))</span>
 </pre></div>
 </div>
-<p>Now, when we want to add a new operation that we know can be expressed in
-terms of our “core expressions”, we can add it to our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">desugar</span></span></code> function
-withou touching our core interpreter.</p>
-<div class="section" id="typed-racket-advanced">
-<h2>Typed racket (<strong>ADVANCED</strong>)<a class="headerlink" href="#typed-racket-advanced" title="Permalink to this headline">¶</a></h2>
+<p>It is easy to forget to call <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">desugar</span></span></code> recursively. Remember that everywhere
+we have a “surface expression”, we’ll need to convert it into a “core expression”
+and that’s the purpose of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">desugar</span></span></code>.</p>
+<p>Now, when we want to add a new operation that we know can be expressed in terms
+of our “core expressions”, we can add it to our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">desugar</span></span></code> function without
+touching our core interpreter. So this “surface-vs-core” split helps us grow
+the language in one way.</p>
+<div class="section" id="typed-racket-advanced-optional">
+<h2>Typed racket (<strong>advanced</strong> / optional)<a class="headerlink" href="#typed-racket-advanced-optional" title="Permalink to this headline">¶</a></h2>
 <p>We stepped out of <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">plai-typed</span></span></code> into plain racket because it was
 too restrictive for the picture language we’re setting out to build. In perhaps
 a later version of this course, we’ll augment the language to help meet this
 constraint. For now though, you can use either plain Racket or <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">typed/racket</span></span></code>
 if you’re brave enough to get similar type checking as <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">plai-typed</span></span></code>.
 Below is some of our code in <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">typed/racket</span></span></code>.</p>
+<p>The advantage of using a type system is that the “compilation” step will
+detect places where you’re being inconsistent and throw up errors so that
+you don’t face these errors when running your program. Using a type system
+also helps design your program in the initial stages.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="kn">#lang </span><span class="nn">typed/racket</span>
 
 <span class="p">(</span><span class="k">require</span> <span class="n">typed-racket-datatype</span><span class="p">)</span>
@@ -237,17 +246,20 @@ Below is some of our code in <code class="code highlight racket docutils literal
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
 <li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Growing the language</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#typed-racket-advanced">Typed racket (<strong>ADVANCED</strong>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#typed-racket-advanced-optional">Typed racket (<strong>advanced</strong> / optional)</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="fun.html">Functions and scope</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="piclang.html" title="previous chapter">A language for pictures</a></li>
+      <li>Previous: <a href="machine.html" title="previous chapter">A mental model for the machine</a></li>
+      <li>Next: <a href="fun.html" title="next chapter">Functions and scope</a></li>
   </ul></li>
 </ul>
 </div>

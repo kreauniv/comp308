@@ -94,13 +94,17 @@ sugar/syntax terms.
             ; the core terms.
             [_ picexprS]))
 
+It is easy to forget to call :rkt:`desugar` recursively. Remember that everywhere
+we have a "surface expression", we'll need to convert it into a "core expression"
+and that's the purpose of :rkt:`desugar`.
 
-Now, when we want to add a new operation that we know can be expressed in 
-terms of our "core expressions", we can add it to our :rkt:`desugar` function
-withou touching our core interpreter.
+Now, when we want to add a new operation that we know can be expressed in terms
+of our "core expressions", we can add it to our :rkt:`desugar` function without
+touching our core interpreter. So this "surface-vs-core" split helps us grow
+the language in one way.
 
-Typed racket (**ADVANCED**)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Typed racket (**advanced** / optional)
+--------------------------------------
 
 We stepped out of :rkt:`#lang plai-typed` into plain racket because it was
 too restrictive for the picture language we're setting out to build. In perhaps
@@ -108,6 +112,11 @@ a later version of this course, we'll augment the language to help meet this
 constraint. For now though, you can use either plain Racket or :rkt:`#lang typed/racket`
 if you're brave enough to get similar type checking as :rkt:`#lang plai-typed`.
 Below is some of our code in :rkt:`typed/racket`.
+
+The advantage of using a type system is that the "compilation" step will
+detect places where you're being inconsistent and throw up errors so that
+you don't face these errors when running your program. Using a type system
+also helps design your program in the initial stages.
 
 .. code-block:: racket
 
@@ -192,5 +201,4 @@ Below is some of our code in :rkt:`typed/racket`.
 .. admonition:: **Exercise**
 
     Write the interpreter using :rkt:`typed/racket`.
-
 

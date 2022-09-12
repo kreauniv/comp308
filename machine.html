@@ -1,16 +1,28 @@
 
 <!DOCTYPE html>
 
+<<<<<<< HEAD
 <html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+=======
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+>>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
     <title>A mental model for the machine &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+<<<<<<< HEAD
+=======
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+>>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
     <script src="_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -33,11 +45,19 @@
 
           <div class="body" role="main">
             
+<<<<<<< HEAD
   <div class="section" id="a-mental-model-for-the-machine">
 <h1>A mental model for the machine<a class="headerlink" href="#a-mental-model-for-the-machine" title="Permalink to this headline">¶</a></h1>
 <p>The way we’ve written the interpreter thus far, using a recursive function
 to evaluate the sub-expressions constituting an container expression
 (such as <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">TranslateS</span></span></code>), offers us some initial view into how we might
+=======
+  <section id="a-mental-model-for-the-machine">
+<h1>A mental model for the machine<a class="headerlink" href="#a-mental-model-for-the-machine" title="Permalink to this heading">¶</a></h1>
+<p>The way we’ve written the interpreter thus far, using a recursive function
+to evaluate the sub-expressions constituting an container expression
+(such as <code class="code highlight racket docutils literal highlight-racket"><span class="n">TranslateS</span><span class="w"></span></code>), offers us some initial view into how we might
+>>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
 build a language from ground up. However, we’re using a base – or “host” –
 language that is too powerful to gain insights into the mechanics of the language.
 We’ve simply used the host’s own recursion capability to express recursive
@@ -50,11 +70,19 @@ recursion”) and try to capture a mental model of our machine as a program in
 its own right. When we do that, we now get something concrete on our hands to
 work with and ask questions about. We can therefore use this approach to
 inquire into language construction and meaning.</p>
+<<<<<<< HEAD
 <p>When we interpret an expression like <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">rotate</span></span> <span class="literal number integer"><span class="pre">30</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">translate</span></span> <span class="literal number integer"><span class="pre">2</span></span> <span class="literal number integer"><span class="pre">3</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">disc</span></span> <span class="literal number float"><span class="pre">5.0</span></span><span class="punctuation"><span class="pre">)))</span></span></code>,
 the sequence of calculations being performed by the interpreter is actually</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">disc</span> <span class="mf">5.0</span><span class="p">)</span>
 <span class="p">(</span><span class="n">translate</span> <span class="mi">2</span> <span class="mi">3</span> <span class="n">&lt;result&gt;</span><span class="p">)</span>
 <span class="p">(</span><span class="n">rotate</span> <span class="mi">30</span> <span class="n">&lt;result&gt;</span><span class="p">)</span>
+=======
+<p>When we interpret an expression like <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">rotate</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="p">(</span><span class="n">translate</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">(</span><span class="n">disc</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)))</span><span class="w"></span></code>,
+the sequence of calculations being performed by the interpreter is actually</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">disc</span><span class="w"> </span><span class="mf">5.0</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">translate</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="n">&lt;result&gt;</span><span class="p">)</span><span class="w"></span>
+<span class="p">(</span><span class="n">rotate</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="n">&lt;result&gt;</span><span class="p">)</span><span class="w"></span>
+>>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
 </pre></div>
 </div>
 <p>i.e. it goes in the order from innermost to outermost.</p>
@@ -73,6 +101,7 @@ recent ones.</p>
 <p>Our “machine”, therefore, is a function that accepts a list of instructions to
 perform and a stack containing data on which it should perform them and into
 which it must store the result in the end. We can easily model such a stack
+<<<<<<< HEAD
 using a simple list - using <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">cons</span></span></code> to “push” values at the head
 and <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">rest</span></span></code> to drop the top value and pick the rest of the stack.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">stack-machine</span> <span class="n">program</span> <span class="n">stack</span><span class="p">)</span>
@@ -149,6 +178,84 @@ stack. Here is how we might implement them –</p>
                 <span class="c1">; Applies the inverse of the rotation matrix.</span>
                 <span class="p">(</span><span class="n">img</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="n">c</span> <span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="n">s</span> <span class="n">y</span><span class="p">))</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="p">(</span><span class="nb">-</span> <span class="n">s</span><span class="p">)</span> <span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="n">c</span> <span class="n">y</span><span class="p">))))</span>
               <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))))</span>
+=======
+using a simple list - using <code class="code highlight racket docutils literal highlight-racket"><span class="nb">cons</span><span class="w"></span></code> to “push” values at the head
+and <code class="code highlight racket docutils literal highlight-racket"><span class="nb">rest</span><span class="w"></span></code> to drop the top value and pick the rest of the stack.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">stack-machine</span><span class="w"> </span><span class="n">program</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">empty?</span><span class="w"> </span><span class="n">program</span><span class="p">)</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; The result is the stack when we&#39;re done</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; with the program or there is nothing to do.</span><span class="w"></span>
+<span class="w">        </span><span class="n">stack</span><span class="w"></span>
+
+<span class="w">        </span><span class="c1">; As the Red Queen says in &quot;Alice in Wonderland&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; take the first instruction.</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; execute it.</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; go on until you reach the end.</span><span class="w"></span>
+<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">instr</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="n">program</span><span class="p">)])</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; &quot;perform-instruction&quot; is the name we&#39;re giving to</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; the part of our interpreter that evaluates a single</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; instruction and modifies the stack accordingly.</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; Since we expect it to return the result stack,</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; we can pass that as input to the next step of our</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; machine.</span><span class="w"></span>
+<span class="w">            </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">next-stack</span><span class="w"> </span><span class="p">(</span><span class="n">perform-instruction</span><span class="w"> </span><span class="n">instr</span><span class="w"> </span><span class="n">stack</span><span class="p">)])</span><span class="w"></span>
+<span class="w">                </span><span class="p">(</span><span class="n">stack-machine</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="n">program</span><span class="p">)</span><span class="w"> </span><span class="n">next-stack</span><span class="p">)))))</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Now let’s look at what <code class="code highlight racket docutils literal highlight-racket"><span class="n">perform-instruction</span><span class="w"></span></code> must do –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">perform-instruction</span><span class="w"> </span><span class="n">instr</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">instr</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">disc</span><span class="w"> </span><span class="n">radius</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">disc/s</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="n">stack</span><span class="p">)]</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">translate</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">translate/s</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">stack</span><span class="p">)]</span><span class="w"></span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">rotate</span><span class="w"> </span><span class="n">deg</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">rotate/s</span><span class="w"> </span><span class="n">deg</span><span class="w"> </span><span class="n">stack</span><span class="p">)]</span><span class="w"></span>
+<span class="w">        </span><span class="c1">; ...</span><span class="w"></span>
+<span class="w">        </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="p">(</span><span class="nb">raise-argument-error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">perform-instruction</span><span class="w"></span>
+<span class="w">                                 </span><span class="s2">&quot;Machine instruction&quot;</span><span class="w"></span>
+<span class="w">                                 </span><span class="n">instr</span><span class="p">)]))</span><span class="w"></span>
+</pre></div>
+</div>
+<p>In this code, we’ve used <code class="code highlight racket docutils literal highlight-racket"><span class="n">disc/s</span><span class="w"></span></code> (read “disc with stack”)
+and so on to stand for slightly different functions that compute
+our pictures based on data on the stack and store their results on the
+stack. Here is how we might implement them –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">background</span><span class="w"> </span><span class="p">(</span><span class="n">color</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="w"> </span><span class="mf">0.0</span><span class="p">))</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">white</span><span class="w"> </span><span class="p">(</span><span class="n">color</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">1.0</span><span class="w"> </span><span class="mf">1.0</span><span class="p">))</span><span class="w"></span>
+
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">disc/s</span><span class="w"> </span><span class="n">radius</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"></span>
+<span class="w">             </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">&lt;</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">y</span><span class="p">)))</span><span class="w"> </span><span class="n">radius</span><span class="p">)</span><span class="w"></span>
+<span class="w">                </span><span class="n">white</span><span class="w"></span>
+<span class="w">                </span><span class="n">background</span><span class="p">))</span><span class="w"></span>
+<span class="w">          </span><span class="n">stack</span><span class="p">))</span><span class="w"></span>
+
+<span class="c1">; And along the way we&#39;ll define what push/pop etc mean</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="n">stack</span><span class="p">))</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">pop</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="n">stack</span><span class="p">))</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">top</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="n">stack</span><span class="p">))</span><span class="w"></span>
+
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">translate/s</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="c1">; What&#39;s on top of the stack is the input image</span><span class="w"></span>
+<span class="w">    </span><span class="c1">; we want translated.</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">input-image</span><span class="w"> </span><span class="p">(</span><span class="n">top</span><span class="w"> </span><span class="n">stack</span><span class="p">)])</span><span class="w"></span>
+<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">result</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"></span>
+<span class="w">                            </span><span class="p">(</span><span class="n">input-image</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">dy</span><span class="p">)))])</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; We replace the top of the stack with the</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; translated result. i.e. we &quot;consume&quot; the image</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; on the top of the stack and push the result</span><span class="w"></span>
+<span class="w">            </span><span class="c1">; which then takes its place.</span><span class="w"></span>
+<span class="w">            </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="p">(</span><span class="n">pop</span><span class="w"> </span><span class="n">stack</span><span class="p">)))))</span><span class="w"></span>
+
+
+<span class="c1">; Essentially the same idea as for translate/s above.</span><span class="w"></span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">rotate/s</span><span class="w"> </span><span class="nb">angle</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">c</span><span class="w"> </span><span class="p">(</span><span class="nb">cos</span><span class="w"> </span><span class="nb">angle</span><span class="p">)]</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="n">s</span><span class="w"> </span><span class="p">(</span><span class="nb">sin</span><span class="w"> </span><span class="nb">angle</span><span class="p">)]</span><span class="w"></span>
+<span class="w">          </span><span class="p">[</span><span class="n">img</span><span class="w"> </span><span class="p">(</span><span class="n">top</span><span class="w"> </span><span class="n">stack</span><span class="p">)])</span><span class="w"></span>
+<span class="w">        </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"></span>
+<span class="w">                </span><span class="c1">; Applies the inverse of the rotation matrix.</span><span class="w"></span>
+<span class="w">                </span><span class="p">(</span><span class="n">img</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="n">y</span><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="n">y</span><span class="p">))))</span><span class="w"></span>
+<span class="w">              </span><span class="p">(</span><span class="n">pop</span><span class="w"> </span><span class="n">stack</span><span class="p">))))</span><span class="w"></span>
+>>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
 </pre></div>
 </div>
 <p>In the above examples of the “/s” (i.e. “with stack”) functions,
@@ -156,6 +263,7 @@ they take their input from the top of the stack and add the result
 that they compute to the stack and return the new stack.</p>
 <p>Note that the “push” and “pop” operations do not mutate the stack, but just
 deconstruct parts of it and make a new stack. For example, if the stack was
+<<<<<<< HEAD
 <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">&lt;one&gt;</span></span> <span class="name"><span class="pre">&lt;two&gt;</span></span><span class="punctuation"><span class="pre">)</span></span></code>, doing a <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">push</span></span> <span class="name"><span class="pre">&lt;three&gt;</span></span> <span class="name"><span class="pre">stack</span></span><span class="punctuation"><span class="pre">)</span></span></code> will produce
 <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">&lt;three&gt;</span></span> <span class="name"><span class="pre">&lt;one&gt;</span></span> <span class="name"><span class="pre">&lt;two&gt;</span></span><span class="punctuation"><span class="pre">)</span></span></code> and doing <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">push</span></span> <span class="name"><span class="pre">&lt;three&gt;</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">pop</span></span> <span class="name"><span class="pre">stack</span></span><span class="punctuation"><span class="pre">))</span></span></code> will
 produce <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">&lt;three&gt;</span></span> <span class="name"><span class="pre">&lt;two&gt;</span></span><span class="punctuation"><span class="pre">)</span></span></code>.</p>
@@ -170,6 +278,22 @@ produce <code class="code highlight racket docutils literal notranslate"><span c
 </pre></div>
 </div>
 <p>The <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code> we defined above offers a closer picture to how the
+=======
+<code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">&lt;one&gt;</span><span class="w"> </span><span class="n">&lt;two&gt;</span><span class="p">)</span><span class="w"></span></code>, doing a <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="n">&lt;three&gt;</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w"></span></code> will produce
+<code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">&lt;three&gt;</span><span class="w"> </span><span class="n">&lt;one&gt;</span><span class="w"> </span><span class="n">&lt;two&gt;</span><span class="p">)</span><span class="w"></span></code> and doing <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="n">&lt;three&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">pop</span><span class="w"> </span><span class="n">stack</span><span class="p">))</span><span class="w"></span></code> will
+produce <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">&lt;three&gt;</span><span class="w"> </span><span class="n">&lt;two&gt;</span><span class="p">)</span><span class="w"></span></code>.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">stack</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span><span class="w"></span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w">             </span><span class="c1">; Prints out (1 2)</span><span class="w"></span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="n">stack</span><span class="p">))</span><span class="w">    </span><span class="c1">; Prints out (3 1 2)</span><span class="w"></span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w">             </span><span class="c1">; Prints out (1 2). Shows that the original</span><span class="w"></span>
+<span class="w">                            </span><span class="c1">; is not mutated with the new entry.</span><span class="w"></span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="p">(</span><span class="n">pop</span><span class="w"> </span><span class="n">stack</span><span class="p">))</span><span class="w">       </span><span class="c1">; Prints (2)</span><span class="w"></span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">(</span><span class="n">pop</span><span class="w"> </span><span class="n">stack</span><span class="p">)))</span><span class="w"> </span><span class="c1">; Prints (3 2).</span><span class="w"></span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="n">stack</span><span class="p">)</span><span class="w">             </span><span class="c1">; Prints (1 2)</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The <code class="code highlight racket docutils literal highlight-racket"><span class="n">stack-machine</span><span class="w"></span></code> we defined above offers a closer picture to how the
+>>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
 Racket runtime evaluates the program that we give it in the form of the nested
 expression.</p>
 <div class="admonition-exercise admonition">
@@ -181,10 +305,17 @@ the images. <strong>Tip</strong>: If at a given point <span class="math notransl
 then the result <span class="math notranslate nohighlight">\(c\)</span> can be computed using – <span class="math notranslate nohighlight">\(c_a = c_{1a} + (1 - c_{1a}) c_{2a}\)</span>
 and <span class="math notranslate nohighlight">\(c_{rgb} = (c_{1a} c_{1rgb} + (1 - c_{1a}) c_{2a} c_{2rgb}) / c_a\)</span>.
 For more ways to compose two images with transparency, see <a class="reference external" href="https://en.wikipedia.org/wiki/Alpha_compositing">Alpha compositing</a>.
+<<<<<<< HEAD
 Also define <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">compose</span></span></code> in a way suitable for our original expression
 interpreter.</p>
 </div>
 </div>
+=======
+Also define <code class="code highlight racket docutils literal highlight-racket"><span class="nb">compose</span><span class="w"></span></code> in a way suitable for our original expression
+interpreter.</p>
+</div>
+</section>
+>>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
 
 
           </div>
@@ -203,14 +334,21 @@ interpreter.</p>
 
 
 <h3>Navigation</h3>
+<<<<<<< HEAD
 <p class="caption"><span class="caption-text">Contents:</span></p>
+=======
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+>>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
 <li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">A mental model for the machine</a></li>
 <li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>
+<<<<<<< HEAD
 <li class="toctree-l1"><a class="reference internal" href="fun.html">Functions and scope</a></li>
+=======
+>>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
 </ul>
 
 <div class="relations">
@@ -226,12 +364,20 @@ interpreter.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
+<<<<<<< HEAD
       <input type="text" name="q" aria-labelledby="searchlabel" />
+=======
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+>>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
+<<<<<<< HEAD
 <script>$('#searchbox').show(0);</script>
+=======
+<script>document.getElementById('searchbox').style.display = "block"</script>
+>>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
 
 
 
@@ -248,7 +394,11 @@ interpreter.</p>
       &copy;2022, Srikumar K. S..
       
       |
+<<<<<<< HEAD
       Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
+=======
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+>>>>>>> b40c9b9bbb20e806650b351825958537f08322e3
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

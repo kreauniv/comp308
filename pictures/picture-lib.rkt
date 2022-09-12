@@ -175,8 +175,8 @@ should pass once you've implemented the function.
 
 ; Rotates the picture counter-clockwise by the given angle.
 (define (rotate degrees picture)
-  (let ([ex (cos (degrees->radians angle))]
-        [ey (sin (degrees->radians angle))])
+  (let ([ex (cos (degrees->radians degrees))]
+        [ey (sin (degrees->radians degrees))])
     (λ (x y)
       (picture (+ (* x ex) (* y ey))
                (+ (* x (- ey)) (* y ex))))))

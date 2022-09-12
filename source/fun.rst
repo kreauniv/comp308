@@ -24,6 +24,13 @@ the essence of a general enough function within our language.
                      [arg : Symbol]
                      [expr : PicExprC]))
 
+The above is in :rkt:`#lang typed/racket`, but we can write it simpler
+in normal :rkt:`#lang racket` like this -
+
+.. code-block:: racket
+
+    (struct FunDefC (name arg expr))
+
 This structure captures what we need to specify a function. We'll identify
 a function by its name, we'll identify its argument (a.k.a. "formal parameter")
 using a symbol and we'll give a :rkt:`PicExprC` expression as the body of

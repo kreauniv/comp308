@@ -15,5 +15,5 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    piclang
    machine
    growing
-
+   fun
 

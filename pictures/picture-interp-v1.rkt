@@ -4,12 +4,13 @@
 (require racket/match)
 
 (provide desugar interp subst)
-(provide PicFromFileC RectangleC CircleC DiscC BoxC
-         AffineC ColorizeC OpacityC CropC OverlayC
-         FunDefC ApplyC IdC PictureC
-         SquareS TranslateS RotateS ScaleS)
+(provide (struct-out PicFromFileC) (struct-out RectangleC) (struct-out CircleC) (struct-out DiscC) (struct-out BoxC)
+         (struct-out AffineC) (struct-out ColorizeC) (struct-out OpacityC) (struct-out CropC) (struct-out OverlayC)
+         (struct-out FunDefC) (struct-out ApplyC) (struct-out IdC) (struct-out PictureC)
+         (struct-out SquareS) (struct-out TranslateS) (struct-out RotateS) (struct-out ScaleS))
 (provide color color->list)
 (provide (struct-out color))
+(provide lookup-fundef)
 
 ; PicExprC type
 (struct PicFromFileC (filename x1 y1 x2 y2))
@@ -89,7 +90,9 @@
      (overlay (interp pic1 fundefs) (interp pic2 fundefs))]
     [(ApplyC fname expr)
      (let ([fdef (lookup-fundef fname fundefs)])
-       (interp (subst (interp expr fundefs) (FunDefC-arg fdef) (FunDefC-expr fdef))))]
+       (interp (subst (interp expr fundefs)
+                      (FunDefC-arg fdef)
+                      (FunDefC-expr fdef))))]
     [(IdC name) (error "Not expecting free variable")]
     [(PictureC pic) pic]))
 

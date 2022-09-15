@@ -8,7 +8,7 @@
 ; to a 2D array of colour values and "picture" to refer
 ; to a logical composition of a visual.
 
-(provide color)
+(provide color color->list)
 (provide (struct-out color))
 (provide white red green blue black background)
 (provide mix same-color?)

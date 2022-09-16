@@ -1,0 +1,604 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stacks and scope &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="stacks-and-scope">
+<h1>Stacks and scope<a class="headerlink" href="#stacks-and-scope" title="Permalink to this headline">¶</a></h1>
+<p>We considered a minimally useful stack machine in the preceding quiz, which is
+reproduced below for reference -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="kn">#lang </span><span class="nn">racket</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="nb">first</span> <span class="n">stack</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">push</span> <span class="n">val</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="nb">cons</span> <span class="n">val</span> <span class="n">stack</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">stack</span><span class="p">))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">stack-machine</span> <span class="n">program</span> <span class="n">stack</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">program</span><span class="p">)</span>
+      <span class="n">stack</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">instr</span> <span class="p">(</span><span class="nb">first</span> <span class="n">program</span><span class="p">)])</span>
+        <span class="p">(</span><span class="n">stack-machine</span>
+         <span class="p">(</span><span class="nb">rest</span> <span class="n">program</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">process-instruction</span> <span class="n">instr</span> <span class="n">stack</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">process-instruction</span> <span class="n">instr</span> <span class="n">stack</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">cond</span>
+    <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">+</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))]</span>
+    <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">-</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="nb">-</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))]</span>
+    <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">*</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="nb">*</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))]</span>
+    <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">/</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="nb">/</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))]</span>
+    <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">dup</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="n">stack</span><span class="p">)]</span>
+    <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">rot2</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))</span>
+           <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span>
+                 <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))))]</span>
+    <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">rot3</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))</span>
+           <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span>
+                 <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))))))]</span>
+    <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">rot4</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))</span>
+           <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span>
+                 <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))))</span>
+                       <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span>
+                             <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))))))))]</span>
+    <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">drop</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)]</span>
+    <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">sqrt</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">))</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))]</span>
+    <span class="p">[(</span><span class="nb">number?</span> <span class="n">instr</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">push</span> <span class="n">instr</span> <span class="n">stack</span><span class="p">)]</span>
+    <span class="p">[</span><span class="no">#t</span>
+     <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">do-instruction</span> <span class="s2">&quot;Valid instruction&quot;</span> <span class="n">instr</span><span class="p">)]))</span>
+</pre></div>
+</div>
+<p>This machine lets us perform simple arithmetic calculations. For example,
+<code class="code highlight racket docutils literal notranslate"><span class="operator"><span class="pre">‘</span></span><span class="punctuation"><span class="pre">(</span></span><span class="literal string symbol"><span class="pre">dup</span></span> <span class="literal string symbol"><span class="pre">*</span></span> <span class="literal string symbol"><span class="pre">rot2</span></span> <span class="literal string symbol"><span class="pre">dup</span></span> <span class="literal string symbol"><span class="pre">*</span></span> <span class="literal string symbol"><span class="pre">+</span></span> <span class="literal string symbol"><span class="pre">sqrt</span></span><span class="punctuation"><span class="pre">)</span></span></code> is a program that can be used to compute the
+distance from the origin to a point <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">x</span></span> <span class="name"><span class="pre">y</span></span><span class="punctuation"><span class="pre">)</span></span></code> where the coordinates are
+given on the stack. For example,</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">stack-machine</span> <span class="o">&#39;</span><span class="p">(</span><span class="ss">dup</span> <span class="ss">*</span> <span class="ss">rot2</span> <span class="ss">dup</span> <span class="ss">*</span> <span class="ss">+</span> <span class="ss">sqrt</span><span class="p">)</span> <span class="o">&#39;</span><span class="p">(</span><span class="mi">3</span> <span class="mi">4</span><span class="p">))</span>
+<span class="c1">; Produces &#39;(5) as the result stack</span>
+</pre></div>
+</div>
+<p>While this program is understandable without much effort, it is not obvious
+that the program <code class="code highlight racket docutils literal notranslate"><span class="operator"><span class="pre">‘</span></span><span class="punctuation"><span class="pre">(</span></span><span class="literal string symbol"><span class="pre">dup</span></span> <span class="literal string symbol"><span class="pre">dup</span></span> <span class="literal string symbol"><span class="pre">*</span></span> <span class="literal string symbol"><span class="pre">rot3</span></span> <span class="literal string symbol"><span class="pre">rot2</span></span> <span class="literal string symbol"><span class="pre">dup</span></span> <span class="literal string symbol"><span class="pre">dup</span></span> <span class="literal string symbol"><span class="pre">*</span></span> <span class="literal string symbol"><span class="pre">rot3</span></span> <span class="literal string symbol"><span class="pre">*</span></span> <span class="literal string symbol"><span class="pre">dup</span></span> <span class="literal string symbol"><span class="pre">+</span></span> <span class="literal string symbol"><span class="pre">+</span></span> <span class="literal string symbol"><span class="pre">+</span></span><span class="punctuation"><span class="pre">)</span></span></code>
+computes the algebraic expression <span class="math notranslate nohighlight">\((a^2 + 2ab + b^2)\)</span>, so that we can
+transform it into the equivalent program <code class="code highlight racket docutils literal notranslate"><span class="operator"><span class="pre">‘</span></span><span class="punctuation"><span class="pre">(</span></span><span class="literal string symbol"><span class="pre">+</span></span> <span class="literal string symbol"><span class="pre">dup</span></span> <span class="literal string symbol"><span class="pre">*</span></span><span class="punctuation"><span class="pre">)</span></span></code> – i.e.
+<span class="math notranslate nohighlight">\((a+b)^2\)</span>. Maybe if we work with such expressions enough, we’ll build
+sufficient algebraic prowess to see how the longer expression can be reduced to
+the shorter one.</p>
+<p>Given that the mechanisms we don’t have prior familiarity with are the
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">dup</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">rotN</span></span></code> family which juggle elements on the stack in
+preparation for future operations, it is easy to see that if we can simply
+name the elements on top of the stack, the program can become more comprehensible.
+For example, if <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">a</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">b</span></span></code> stood for the top two elements of the stack,
+the longer program above could be written as <code class="code highlight racket docutils literal notranslate"><span class="operator"><span class="pre">‘</span></span><span class="punctuation"><span class="pre">(</span></span><span class="literal string symbol"><span class="pre">a</span></span> <span class="literal string symbol"><span class="pre">a</span></span> <span class="literal string symbol"><span class="pre">*</span></span> <span class="literal number integer"><span class="pre">2</span></span> <span class="literal string symbol"><span class="pre">a</span></span> <span class="literal string symbol"><span class="pre">b</span></span> <span class="literal string symbol"><span class="pre">*</span></span> <span class="literal string symbol"><span class="pre">*</span></span> <span class="literal string symbol"><span class="pre">b</span></span> <span class="literal string symbol"><span class="pre">b</span></span> <span class="literal string symbol"><span class="pre">*</span></span> <span class="literal string symbol"><span class="pre">+</span></span> <span class="literal string symbol"><span class="pre">+</span></span><span class="punctuation"><span class="pre">)</span></span></code>,
+which is much better for the human reader. Similarly, the distance formula
+also can be written as <code class="code highlight racket docutils literal notranslate"><span class="operator"><span class="pre">‘</span></span><span class="punctuation"><span class="pre">(</span></span><span class="literal string symbol"><span class="pre">a</span></span> <span class="literal string symbol"><span class="pre">a</span></span> <span class="literal string symbol"><span class="pre">*</span></span> <span class="literal string symbol"><span class="pre">b</span></span> <span class="literal string symbol"><span class="pre">b</span></span> <span class="literal string symbol"><span class="pre">*</span></span> <span class="literal string symbol"><span class="pre">+</span></span> <span class="literal string symbol"><span class="pre">sqrt</span></span><span class="punctuation"><span class="pre">)</span></span></code>.</p>
+<p>This version of the distance formula should look familiar!</p>
+<p>Consider the expression we would’ve written in Racket –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">distance</span> <span class="n">a</span> <span class="n">b</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="n">a</span> <span class="n">a</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="n">b</span> <span class="n">b</span><span class="p">))))</span>
+
+<span class="c1">; Focus on the &quot;sqrt&quot; expression</span>
+<span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="n">a</span> <span class="n">a</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="n">b</span> <span class="n">b</span><span class="p">)))</span>
+
+<span class="c1">; Remove all the parentheses</span>
+<span class="nb">sqrt</span> <span class="nb">+</span> <span class="nb">*</span> <span class="n">a</span> <span class="n">a</span> <span class="nb">*</span> <span class="n">b</span> <span class="n">b</span>
+</pre></div>
+</div>
+<p>This is just the stack machine program written from right to left order! For
+this reason, programs like the ones we wrote for the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code> are
+said to be “postfix notation” while LiSP’s notation is also called “prefix
+notation”. LiSP’s notation admits variadic functions (functions which can take
+any number of arguments such as <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">+</span></span></code>) whereas with the postfix notation the
+“arity” of an operator, or “words” as operators are called in such languages,
+is in general fixed. “Arity” refers to the number of arguments to a function or
+procedure.</p>
+<div class="admonition-aside admonition">
+<p class="admonition-title"><strong>Aside</strong></p>
+<p>Apart from <a class="reference external" href="https://en.wikipedia.org/wiki/Forth_(programming_language)">Forth</a> being the canonical “postfix notation language”, you
+perhaps pretty much use a postfix language on a daily basis without knowing
+it – <a class="reference external" href="https://en.wikipedia.org/wiki/PostScript">PostScript</a> and PDF files! Adobe’s <a class="reference external" href="https://en.wikipedia.org/wiki/PostScript">PostScript</a> (“Post” is there in
+the name for a reason) is actually a programming language for drawing. PDF
+, while advertised as a “portable document format”, is a compressed version
+of the drawing commands produced by a <a class="reference external" href="https://en.wikipedia.org/wiki/PostScript">PostScript</a> program. Apple (well,
+NeXT) also adapted Postscript for use in the NeXT OS for controlling the
+display, called <a class="reference external" href="https://en.wikipedia.org/wiki/Display_PostScript">Display PostScript</a> , which enabled the OS to capture
+scalable on-screen vector graphics as <a class="reference external" href="https://en.wikipedia.org/wiki/PostScript">PostScript</a> or PDF files easily for
+print. As we saw, Postfix languages are very easy to write interpeters for
+and these turn out to be low resource processors that can be used in
+devices like printers.</p>
+</div>
+<div class="section" id="adding-names-to-the-stack-machine">
+<h2>Adding names to the stack-machine<a class="headerlink" href="#adding-names-to-the-stack-machine" title="Permalink to this headline">¶</a></h2>
+<p>So we’d like to be able to “bind” symbols to values picked from the stack so we
+can recall them whenever we need their values. For this, we need a kind of
+“dictionary” in which we can lookup values associated with symbols. There is a
+Scheme function <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">assoc</span></span></code> that’ll do this for us -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">alist</span> <span class="p">(</span><span class="nb">list</span> <span class="p">(</span><span class="nb">list</span> <span class="o">&#39;</span><span class="ss">one</span> <span class="s2">&quot;ek&quot;</span><span class="p">)</span>
+                    <span class="p">(</span><span class="nb">list</span> <span class="o">&#39;</span><span class="ss">two</span> <span class="s2">&quot;do&quot;</span><span class="p">)</span>
+                    <span class="p">(</span><span class="nb">list</span> <span class="o">&#39;</span><span class="ss">three</span> <span class="s2">&quot;teen&quot;</span><span class="p">)</span>
+                    <span class="p">(</span><span class="nb">list</span> <span class="o">&#39;</span><span class="ss">three</span> <span class="s2">&quot;theen&quot;</span><span class="p">)))</span>
+<span class="p">(</span><span class="nb">display</span> <span class="p">(</span><span class="nb">assoc</span> <span class="o">&#39;</span><span class="ss">three</span> <span class="n">alist</span><span class="p">))</span>
+<span class="c1">; Prints out (three &quot;teen&quot;)</span>
+<span class="c1">; Notice that only the first occurrence is returned.</span>
+<span class="p">(</span><span class="nb">display</span> <span class="p">(</span><span class="nb">assoc</span> <span class="o">&#39;</span><span class="ss">four</span> <span class="n">alist</span><span class="p">)</span>
+<span class="c1">; Prints out #f to indicate &quot;not found&quot;.</span>
+</pre></div>
+</div>
+<p>So let’s augment our stack machine with such a “dictionary” and interpret
+“symbols” we find in the instruction stream to mean “lookup this symbol in the
+dictionary and push the value you find on the top of the stack”. We’ll call
+this dictionary “bindings” because it is a list of symbols bound to values.
+We’ll also add a new “compound instruction” for popping off a value from the
+stack and binding it to a symbol - as <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">def</span></span> <span class="name"><span class="pre">&lt;symbol&gt;</span></span><span class="punctuation"><span class="pre">)</span></span></code>.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Since our stack-machine now has to consume a stack</span>
+<span class="c1">; and a bindings list and produce new versions of those</span>
+<span class="c1">; as a result, we&#39;ll group them into a simple struct</span>
+<span class="c1">; we&#39;ll call &quot;State&quot;.</span>
+<span class="p">(</span><span class="k">struct</span> <span class="n">State</span> <span class="p">(</span><span class="n">stack</span> <span class="n">bindings</span><span class="p">))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">stack-machine</span> <span class="n">program</span> <span class="n">state</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">program</span><span class="p">)</span>
+      <span class="n">state</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">instr</span> <span class="p">(</span><span class="nb">first</span> <span class="n">program</span><span class="p">)])</span>
+        <span class="p">(</span><span class="n">stack-machine</span>
+         <span class="p">(</span><span class="nb">rest</span> <span class="n">program</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">process-instruction</span> <span class="n">instr</span> <span class="n">state</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">process-instruction</span> <span class="n">instr</span> <span class="n">state</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">match</span> <span class="n">state</span>
+     <span class="p">[(</span><span class="n">State</span> <span class="n">stack</span> <span class="n">bindings</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">cond</span>
+        <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">+</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span> <span class="n">bindings</span><span class="p">)]</span>
+        <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">-</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="nb">-</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span> <span class="n">bindings</span><span class="p">)]</span>
+        <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">*</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="nb">*</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span> <span class="n">bindings</span><span class="p">)]</span>
+        <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">/</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="nb">/</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span> <span class="n">bindings</span><span class="p">)]</span>
+        <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">dup</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)]</span>
+        <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">rot2</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))</span>
+                      <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span>
+                            <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))))</span>
+                <span class="n">bindings</span><span class="p">)]</span>
+        <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">rot3</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))</span>
+                      <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span>
+                            <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))))))</span>
+                <span class="n">bindings</span><span class="p">)]</span>
+        <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">rot4</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))</span>
+                      <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span>
+                            <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))))</span>
+                                  <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span>
+                                        <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))))))))</span>
+                <span class="n">bindings</span><span class="p">)]</span>
+        <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">drop</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)]</span>
+        <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">sqrt</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">))</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))</span> <span class="n">bindings</span><span class="p">)]</span>
+        <span class="p">[(</span><span class="nb">number?</span> <span class="n">instr</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="n">instr</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)]</span>
+        <span class="c1">; Handle (def &lt;symbol&gt;) instruction</span>
+        <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="nb">list?</span> <span class="n">instr</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">instr</span><span class="p">))</span>
+              <span class="p">(</span><span class="nb">equal?</span> <span class="p">(</span><span class="nb">first</span> <span class="n">instr</span><span class="p">)</span> <span class="o">&#39;</span><span class="ss">def</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">symbol?</span> <span class="p">(</span><span class="nb">second</span> <span class="n">instr</span><span class="p">)))</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">list</span> <span class="p">(</span><span class="nb">second</span> <span class="n">instr</span><span class="p">)</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">))</span> <span class="n">bindings</span><span class="p">))]</span>
+        <span class="c1">; Handle symbols that occur that we don&#39;t already know about</span>
+        <span class="c1">; as a &quot;lookup operation&quot;</span>
+        <span class="p">[(</span><span class="nb">symbol?</span> <span class="n">instr</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">match</span> <span class="p">(</span><span class="nb">assoc</span> <span class="n">instr</span> <span class="n">bindings</span><span class="p">)</span>
+             <span class="p">[(</span><span class="nb">list</span> <span class="n">sym</span> <span class="n">value</span><span class="p">)</span>
+              <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="n">value</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)]</span>
+             <span class="p">[</span><span class="no">#f</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction</span>
+                                       <span class="s2">&quot;Defined symbol expected&quot;</span>
+                                       <span class="n">instr</span><span class="p">)])]</span>
+        <span class="p">[</span><span class="no">#t</span>
+         <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction</span> <span class="s2">&quot;Valid instruction&quot;</span> <span class="n">instr</span><span class="p">)])]))</span>
+</pre></div>
+</div>
+<p>With these two additions, we can now express our “Euclidean distance” function
+as <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">def</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">def</span></span> <span class="name"><span class="pre">y</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">x</span></span> <span class="name"><span class="pre">x</span></span> <span class="name builtin"><span class="pre">*</span></span> <span class="name"><span class="pre">y</span></span> <span class="name"><span class="pre">y</span></span> <span class="name builtin"><span class="pre">*</span></span> <span class="name builtin"><span class="pre">+</span></span> <span class="name builtin"><span class="pre">sqrt</span></span><span class="punctuation"><span class="pre">)</span></span></code>. Note how this closely
+resembles <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">y</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">sqrt</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">+</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">*</span></span> <span class="name"><span class="pre">x</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">*</span></span> <span class="name"><span class="pre">y</span></span> <span class="name"><span class="pre">y</span></span><span class="punctuation"><span class="pre">)))))</span></span></code>.</p>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>To make the resemblance to <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code> even closer, modify the
+implementation of the <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">def</span></span> <span class="name"><span class="pre">&lt;symbol&gt;</span></span><span class="punctuation"><span class="pre">)</span></span></code> instruction to support multiple
+symbols. The idea is to pull one value off the stack for each symbol and
+bind it to the corresponding symbol. So encountering a <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">def</span></span> <span class="name"><span class="pre">x</span></span> <span class="name"><span class="pre">y</span></span><span class="punctuation"><span class="pre">)</span></span></code>
+instruction will cause our machine to pull the top two values from the
+stack and bind them to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">y</span></span></code>.</p>
+</div>
+</div>
+<div class="section" id="blocks">
+<h2>Blocks<a class="headerlink" href="#blocks" title="Permalink to this headline">¶</a></h2>
+<p>Though we’ve been able to bind symbols to values and use them, our
+stack-machine programming language does not have the ability to reuse such
+calculations. For example, we’ll have to repeat the whole distance calculation
+code whenever we need to do it.</p>
+<p>We can invent another type of value – the “block” – which contains a list of
+instructions (a “program”) that we can store bound to a symbol and “invoke”
+whenever we need. Surprisingly, this requires only a small change to our
+stack-machine. We’ll also have to add a <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">do</span></span></code> instruction that will
+pop a block off the top of the stack and run its program on the stack.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">Block</span> <span class="p">(</span><span class="n">program</span><span class="p">))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">process-instruction</span> <span class="n">instr</span> <span class="n">state</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">match</span> <span class="n">state</span>
+     <span class="p">[(</span><span class="n">State</span> <span class="n">stack</span> <span class="n">bindings</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">cond</span>
+        <span class="c1">; &lt;common-operators&gt;</span>
+        <span class="c1">; ...</span>
+        <span class="c1">; &lt;/common-operators&gt;</span>
+
+        <span class="c1">; A &quot;block&quot; compound instruction is given like (block dup + sqrt)</span>
+        <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="nb">list?</span> <span class="n">instr</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">instr</span><span class="p">))</span>
+              <span class="p">(</span><span class="nb">equal?</span> <span class="p">(</span><span class="nb">first</span> <span class="n">instr</span><span class="p">)</span> <span class="o">&#39;</span><span class="ss">block</span><span class="p">))</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">Block</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">instr</span><span class="p">))</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)]</span>
+
+        <span class="c1">; A &quot;do&quot; instruction will pop a Block value off the top of the</span>
+        <span class="c1">; stack and &quot;run&quot; it.</span>
+        <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">do</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">match</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span>
+             <span class="p">[(</span><span class="n">Block</span> <span class="n">program</span><span class="p">)</span>
+              <span class="p">(</span><span class="n">stack-machine</span> <span class="n">program</span> <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">))]</span>
+             <span class="p">[</span><span class="k">_</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction</span>
+                                      <span class="s2">&quot;Block value on stack&quot;</span>
+                                      <span class="n">stack</span><span class="p">)])]</span>
+
+        <span class="c1">; Handle (def &lt;symbol&gt;) instruction</span>
+        <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="nb">list?</span> <span class="n">instr</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">instr</span><span class="p">))</span>
+              <span class="p">(</span><span class="nb">equal?</span> <span class="p">(</span><span class="nb">first</span> <span class="n">instr</span><span class="p">)</span> <span class="o">&#39;</span><span class="ss">def</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">symbol?</span> <span class="p">(</span><span class="nb">second</span> <span class="n">instr</span><span class="p">)))</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">list</span> <span class="p">(</span><span class="nb">second</span> <span class="n">instr</span><span class="p">)</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">))</span> <span class="n">bindings</span><span class="p">))]</span>
+
+        <span class="c1">; Handle symbols that occur that we don&#39;t already know about</span>
+        <span class="c1">; as a &quot;lookup operation&quot;</span>
+        <span class="p">[(</span><span class="nb">symbol?</span> <span class="n">instr</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">match</span> <span class="p">(</span><span class="nb">assoc</span> <span class="n">instr</span> <span class="n">bindings</span><span class="p">)</span>
+             <span class="p">[(</span><span class="nb">list</span> <span class="n">sym</span> <span class="n">value</span><span class="p">)</span>
+              <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="n">value</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)]</span>
+             <span class="p">[</span><span class="no">#f</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction</span>
+                                       <span class="s2">&quot;Defined symbol expected&quot;</span>
+                                       <span class="n">instr</span><span class="p">)])]</span>
+
+        <span class="p">[</span><span class="no">#t</span>
+         <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction</span> <span class="s2">&quot;Valid instruction&quot;</span> <span class="n">instr</span><span class="p">)])]))</span>
+</pre></div>
+</div>
+<p>Now, we’re actually equipped to define a “euclidean distance” function in our
+stack-machine language!</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">program</span> <span class="o">&#39;</span><span class="p">(</span> <span class="p">(</span><span class="ss">block</span> <span class="p">(</span><span class="ss">def</span> <span class="ss">x</span><span class="p">)</span> <span class="p">(</span><span class="ss">def</span> <span class="ss">y</span><span class="p">)</span> <span class="ss">x</span> <span class="ss">x</span> <span class="ss">*</span> <span class="ss">y</span> <span class="ss">y</span> <span class="ss">*</span> <span class="ss">+</span> <span class="ss">sqrt</span><span class="p">)</span>
+                   <span class="p">(</span><span class="ss">def</span> <span class="ss">distance</span><span class="p">)</span>
+                   <span class="mi">3</span> <span class="mi">4</span> <span class="ss">distance</span> <span class="p">))</span>
+<span class="p">(</span><span class="n">display-state</span> <span class="p">(</span><span class="n">stack-machine</span> <span class="n">program</span> <span class="p">(</span><span class="n">State</span> <span class="o">&#39;</span><span class="p">()</span> <span class="o">&#39;</span><span class="p">())))</span>
+<span class="c1">; Prints out (5) as the result stack.</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="which-programs-are-valid-blocks">
+<h2>Which programs are valid blocks?<a class="headerlink" href="#which-programs-are-valid-blocks" title="Permalink to this headline">¶</a></h2>
+<p>The way we’ve implemented block execution, the final value of a block’s
+bindings will be available after block execution. So the following
+program will actually produce a value with our stack-machine.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">stack-machine</span> <span class="o">&#39;</span><span class="p">((</span><span class="ss">block</span> <span class="p">(</span><span class="ss">def</span> <span class="ss">x</span><span class="p">)</span> <span class="p">(</span><span class="ss">def</span> <span class="ss">y</span><span class="p">)</span> <span class="ss">x</span> <span class="ss">x</span> <span class="ss">*</span> <span class="ss">y</span> <span class="ss">y</span> <span class="ss">*</span> <span class="ss">+</span> <span class="ss">sqrt</span><span class="p">)</span>
+                 <span class="p">(</span><span class="ss">def</span> <span class="ss">distance</span><span class="p">)</span>
+                 <span class="mi">3</span> <span class="mi">4</span> <span class="ss">distance</span> <span class="ss">do</span>
+                 <span class="ss">x</span> <span class="ss">y</span> <span class="ss">+</span><span class="p">)</span>
+                <span class="p">(</span><span class="n">State</span> <span class="o">&#39;</span><span class="p">()</span> <span class="o">&#39;</span><span class="p">()))</span>
+<span class="c1">; will produce (7 5) as the result stack.</span>
+</pre></div>
+</div>
+<p>What does this program really mean? Why should the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span> <span class="name"><span class="pre">y</span></span> <span class="name builtin"><span class="pre">+</span></span></code> part
+of the program care what variable names the block implementing the
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">distance</span></span></code> calculation uses <strong>internally</strong>?</p>
+<p>Our “block” defines a “region of code” that we wish to be self contained. In
+other words, we want “what happens within the block, stays within the block” to
+hold, except for the effect it has on the stack. In yet more words, we want to
+throw away all symbol bindings done within the block once the block is done.
+We don’t want all our variables to be “global” and interfere with each other.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Why is this required?  Think about it before reading on.</p>
+</div>
+<p>Let’s first fix the problem we noted above, assuming global variables are “a
+bad idea”.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">process-instruction</span> <span class="n">instr</span> <span class="n">state</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">match</span> <span class="n">state</span>
+     <span class="p">[(</span><span class="n">State</span> <span class="n">stack</span> <span class="n">bindings</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">cond</span>
+        <span class="c1">; &lt;common-operators&gt;</span>
+        <span class="c1">; ...</span>
+        <span class="c1">; &lt;/common-operators&gt;</span>
+
+        <span class="c1">; A &quot;block&quot; compound instruction is given like (block dup + sqrt)</span>
+        <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="nb">list?</span> <span class="n">instr</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">instr</span><span class="p">))</span>
+              <span class="p">(</span><span class="nb">equal?</span> <span class="p">(</span><span class="nb">first</span> <span class="n">instr</span><span class="p">)</span> <span class="o">&#39;</span><span class="ss">block</span><span class="p">))</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">Block</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">instr</span><span class="p">))</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)]</span>
+
+        <span class="c1">; A &quot;do&quot; instruction will pop a Block value off the top of the</span>
+        <span class="c1">; stack and &quot;run&quot; it.</span>
+        <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">do</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">match</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span>
+             <span class="p">[(</span><span class="n">Block</span> <span class="n">program</span><span class="p">)</span>
+              <span class="c1">; &lt;&lt;&lt;----&gt;&gt;&gt;&gt;</span>
+              <span class="c1">; We&#39;ve modified this expression to consider only the stack</span>
+              <span class="c1">; as part of the result state of executing a block. We discard</span>
+              <span class="c1">; the bindings it produces and retain the original bindings list.</span>
+              <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">State-stack</span> <span class="p">(</span><span class="n">stack-machine</span> <span class="n">program</span> <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)))</span>
+                     <span class="n">bindings</span><span class="p">)]</span>
+             <span class="p">[</span><span class="k">_</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction</span>
+                                      <span class="s2">&quot;Block value on stack&quot;</span>
+                                      <span class="n">stack</span><span class="p">)])]</span>
+
+        <span class="c1">; Handle (def &lt;symbol&gt;) instruction</span>
+        <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="nb">list?</span> <span class="n">instr</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">instr</span><span class="p">))</span>
+              <span class="p">(</span><span class="nb">equal?</span> <span class="p">(</span><span class="nb">first</span> <span class="n">instr</span><span class="p">)</span> <span class="o">&#39;</span><span class="ss">def</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">symbol?</span> <span class="p">(</span><span class="nb">second</span> <span class="n">instr</span><span class="p">)))</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">list</span> <span class="p">(</span><span class="nb">second</span> <span class="n">instr</span><span class="p">)</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">))</span> <span class="n">bindings</span><span class="p">))]</span>
+
+        <span class="c1">; Handle symbols that occur that we don&#39;t already know about</span>
+        <span class="c1">; as a &quot;lookup operation&quot;</span>
+        <span class="p">[(</span><span class="nb">symbol?</span> <span class="n">instr</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">match</span> <span class="p">(</span><span class="nb">assoc</span> <span class="n">instr</span> <span class="n">bindings</span><span class="p">)</span>
+             <span class="p">[(</span><span class="nb">list</span> <span class="n">sym</span> <span class="n">value</span><span class="p">)</span>
+              <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="n">value</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)]</span>
+             <span class="p">[</span><span class="no">#f</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction</span>
+                                       <span class="s2">&quot;Defined symbol expected&quot;</span>
+                                       <span class="n">instr</span><span class="p">)])]</span>
+
+        <span class="p">[</span><span class="no">#t</span>
+         <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction</span> <span class="s2">&quot;Valid instruction&quot;</span> <span class="n">instr</span><span class="p">)])]))</span>
+</pre></div>
+</div>
+<p>This version of the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code> rightly rejects the program we considered to
+be erroneous. However we have not solved the problem completely. While we’ve
+eliminated the “global variables only” meaning in our program, our blocks can still
+reference variables that are meaningless in certain ways.</p>
+</div>
+<div class="section" id="dynamic-scoping">
+<h2>Dynamic scoping<a class="headerlink" href="#dynamic-scoping" title="Permalink to this headline">¶</a></h2>
+<p>Consider the program below –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">stack-machine</span> <span class="o">&#39;</span><span class="p">((</span><span class="ss">block</span> <span class="p">(</span><span class="ss">def</span> <span class="ss">x</span><span class="p">)</span> <span class="ss">x</span> <span class="ss">x</span> <span class="ss">*</span> <span class="ss">y</span> <span class="ss">y</span> <span class="ss">*</span> <span class="ss">+</span> <span class="ss">sqrt</span><span class="p">)</span>
+                 <span class="p">(</span><span class="ss">def</span> <span class="ss">distance</span><span class="p">)</span>
+                 <span class="p">(</span><span class="ss">block</span> <span class="mi">4</span> <span class="p">(</span><span class="ss">def</span> <span class="ss">y</span><span class="p">)</span> <span class="mi">3</span> <span class="ss">distance</span> <span class="ss">do</span><span class="p">)</span>
+                 <span class="ss">do</span><span class="p">)</span>
+                <span class="p">(</span><span class="n">State</span> <span class="o">&#39;</span><span class="p">()</span> <span class="o">&#39;</span><span class="p">()))</span>
+</pre></div>
+</div>
+<p>Note that in this program, we’ve removed the <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">def</span></span> <span class="name"><span class="pre">y</span></span><span class="punctuation"><span class="pre">)</span></span></code> within the block,
+so the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">distance</span></span></code> definition will only pop one value off the stack and
+name it as <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">x</span></span></code>. Our use of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">y</span></span></code> within the block is meaningless at the
+point at which the block is being defined, because there is no guarantee that
+it will become defined later on, and that could happen within another block
+which accidentally uses a “local variable” <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">y</span></span></code>, which would interfere with
+the reference to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">y</span></span></code> within our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">distance</span></span></code> block.</p>
+<p>So, we want this program to also be treated as erroneous and fail rather than
+be given a spurious meaning.</p>
+<p>Programming languages which give meaning to such programs are said to have
+“dynamic scoping”. The word “dynamic” here refers to the fact that as the program
+is running, the symbol <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">y</span></span></code> takes on different values and the meaning being
+attributed by the interpreter to the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">y</span></span></code> within the first block is
+“whatever value <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">y</span></span></code> happens to have <strong>right now</strong>”.</p>
+<p>That global variables are a bad idea is quite easily argued – two different
+parts of a large program accidentally using the same symbol to refer to
+different kinds of values should not cause the whole program to become invalid.
+The reason dynamic scoping is also “a bad idea” is less obvious.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Think about why, before you read on.</p>
+</div>
+<p>In general, when we encapsulate some computation as a function for purposes of
+reuse, we want to be able to reason about the behaviour of the function without
+having to consider anything apart from the arguments supplied to it. If we’re
+able to do that, the task of ensuring the correctness of a large program is
+tractable – since we only have to validate each function based on the
+constraints of the functions that it relies on. We <strong>do not</strong> want to have to
+check how a function behaves in every context it is being invoked.</p>
+</div>
+<div class="section" id="fixing-dynamic-scoping">
+<h2>Fixing dynamic scoping<a class="headerlink" href="#fixing-dynamic-scoping" title="Permalink to this headline">¶</a></h2>
+<p>To fix the “dynamic scoping bug”, we need to clarify what exactly is the problem
+in the first place.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Think about it before reading on. Why is the stray variable <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">y</span></span></code>
+in our last example taking on an actual value when we’re invoking the block?</p>
+</div>
+<p>The set of bindings in effect when evaluating a particular instruction is
+called its “environment”. For a block, we therefore need to distinguish between
+two such “environments”.</p>
+<p>The bindings in effect at the point we’re creating the “block value” (or “block
+object” if you want) is its “<strong>definition environment</strong>”. This “block value”
+refers to the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Block</span></span></code> type value we’re placing on the stack and therefore
+the “definition environment” is the environment in effect when we’re creating
+this <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Block</span></span></code> type value.</p>
+<p>The bindings in effect at the point we’re invoking the block is called its
+“<strong>evaluation environment</strong>”. This is the environment in effect when we
+evaluate <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">distance</span></span> <span class="keyword"><span class="pre">do</span></span></code>. The problem we currently have is that we’re not
+distinguishing between these two environments. More specifically, we’re letting
+the evaluation environment affect the inside of the block where the definition
+environment is the one that’s supposed to be in effect. This is because the
+definition environment is what lends meaning to the value of the symbols used
+within the block and we don’t want the evaluation environment to be responsible
+for that.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Think about why it is the definition environment that lends meaning
+to the inside of a block. What consequences does it have when building
+large programs as a collection of small pieces of functionality?</p>
+</div>
+<p>As with many problems, identifying the problem is the major part of fixing it.
+In this case, because we only have one notion of environment, we need to store
+away the definition environment along with the block when we’re creating it, so
+that we can refer to it later at evaluation time.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">Block</span> <span class="p">(</span><span class="n">program</span> <span class="n">definition-time-bindings</span><span class="p">))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">process-instruction</span> <span class="n">instr</span> <span class="n">state</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">match</span> <span class="n">state</span>
+     <span class="p">[(</span><span class="n">State</span> <span class="n">stack</span> <span class="n">bindings</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">cond</span>
+        <span class="c1">; &lt;common-operators&gt;</span>
+        <span class="c1">; ...</span>
+        <span class="c1">; &lt;/common-operators&gt;</span>
+
+        <span class="c1">; A &quot;block&quot; compound instruction is given like (block dup + sqrt)</span>
+        <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="nb">list?</span> <span class="n">instr</span><span class="p">)</span>
+              <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">instr</span><span class="p">))</span>
+              <span class="p">(</span><span class="nb">equal?</span> <span class="p">(</span><span class="nb">first</span> <span class="n">instr</span><span class="p">)</span> <span class="o">&#39;</span><span class="ss">block</span><span class="p">))</span>
+         <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="n">Block</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">instr</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)]</span>
+         <span class="c1">;                                ^---- Note that we added this</span>
+         <span class="c1">;                                to store the definition time</span>
+         <span class="c1">;                                bindings when we&#39;re making the block.</span>
+
+        <span class="c1">; A &quot;do&quot; instruction will pop a Block value off the top of the</span>
+        <span class="c1">; stack and &quot;run&quot; it.</span>
+        <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">do</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">match</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span>
+             <span class="p">[(</span><span class="n">Block</span> <span class="n">program</span> <span class="n">definition-time-bindings</span><span class="p">)</span>
+              <span class="c1">;              ^---- Now we pick up what we stored away</span>
+              <span class="c1">;                    at definition time.</span>
+              <span class="c1">; &lt;&lt;&lt;----&gt;&gt;&gt;&gt;</span>
+              <span class="c1">; We&#39;ve modified this expression to consider only the stack</span>
+              <span class="c1">; as part of the result state of executing a block. We discard</span>
+              <span class="c1">; the bindings it produces and retain the original</span>
+              <span class="c1">; definition-time-bindings that were captured when the block</span>
+              <span class="c1">; was created.</span>
+              <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">State-stack</span> <span class="p">(</span><span class="n">stack-machine</span> <span class="n">program</span>
+                                                 <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)</span> <span class="n">definition-time-bindings</span><span class="p">)))</span>
+                                                 <span class="c1">;                  ^---- Note this.</span>
+                     <span class="n">bindings</span><span class="p">)]</span>
+              <span class="c1">;      ^------------ These bindings are unaffected by what happens</span>
+              <span class="c1">;                    when running the block.</span>
+
+             <span class="p">[</span><span class="k">_</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction</span>
+                                      <span class="s2">&quot;Block value on stack&quot;</span>
+                                      <span class="n">stack</span><span class="p">)])]</span>
+
+        <span class="c1">; ...</span>
+        <span class="c1">; THE REST OF (def &lt;symbol&gt;) and (symbol? x) etc.</span>
+        <span class="c1">; ...</span>
+        <span class="p">[</span><span class="no">#t</span>
+         <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction</span> <span class="s2">&quot;Valid instruction&quot;</span> <span class="n">instr</span><span class="p">)])]))</span>
+</pre></div>
+</div>
+<p>With this, we’ve dealt the final blow to dynamic scoping in our interpreter.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Comp308: Principles of Programming Languages</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun.html">Functions and scope</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Srikumar K. S..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/stacksnscope.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

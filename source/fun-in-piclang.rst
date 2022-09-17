@@ -124,7 +124,7 @@ values given the standard library! The snake must eat its own tail!
                     (make-standard-library (rest definitions))))))
             
 There, in all its naïvette, is a fully self referential expression of what we
-actually want to produce. But we `kind of know how <Lambda>_`_ to deal with
+actually want to produce. But we :doc:`kind of know how<lambda>` to deal with
 such self reference. Let's rewrite the above self referential function.
 
 .. code-block:: racket

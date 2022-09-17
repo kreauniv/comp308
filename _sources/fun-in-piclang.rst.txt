@@ -15,6 +15,8 @@ does effectively the same (and correctly) without having to run through a
 We'll call the equivalent of a "block" a :rkt:`FunC` in PicLang, defined
 as below --
 
+.. index:: FunC, ApplyC
+
 .. code-block:: racket
 
     (struct FunC (argname expr))
@@ -138,8 +140,13 @@ such self reference. Let's rewrite the above self referential function.
                     (interp (second def) stdlib)
                     (make-standard-library (rest definitions) stdlib)))))
 
-We want to solve for the fixed point in the following "equation", given a list
-of :rkt:`definitions` -
+Here we're assuming that our function will be passed the result :rkt:`stdlib`
+we're constructing and it makes use of this to construct its result!! That's
+something we did earlier as well in :doc:`Lambda - the everything<lambda>`. We
+want to solve for the fixed point in the following "equation", given a list of
+:rkt:`definitions` -
+
+.. index:: Fixed point
 
 .. code-block:: racket
 
@@ -149,10 +156,13 @@ If we now rewrite the RHS --
 
 .. code-block:: racket
 
-    stdlib = ((λ (stdlib) (make-standard-library definitions stdlib)) stdlib)
     spec = (λ (stdlib) (make-standard-library definitions stdlib))
+    stdlib = (spec stdlib)
 
-We can now apply our "function calls itself" trick to get -
+We can now apply our "function is called with itself to enable the function to
+call itself" trick to get -
+
+.. index:: Turing combinator
 
 .. code-block:: racket
 
@@ -161,10 +171,10 @@ We can now apply our "function calls itself" trick to get -
     (define stdlib (F spec)) 
 
 Note that we've modified the trick above so it would work with eager evaluation
-strategy instead of the original "lazy" language. The expression :rkt:`(λ (g)
-(((f f) spec) g))` is logically equivalent to :rkt:`((f f) spec)` by
-"η-reduction", but helps delay the evaluation of the recursive parts by enough
-so we don't get stuck in an infinite loop.
+strategy instead of the original :rkt:`#lang lazy` choice. The expression
+:rkt:`(λ (g) (((f f) spec) g))` is logically equivalent to :rkt:`((f f) spec)`
+by ":index:`η-reduction`", but helps delay the evaluation of the recursive
+parts by enough so we don't get stuck in an infinite loop.
 
 But this is still pending a specific representation for "bindings". Lets do a
 simple one -
@@ -201,7 +211,7 @@ simple one -
 
 
 .. note:: An extension to the question in :doc:`stacks-and-scope` -- we got an
-   additional super power appart from ordinary functions with the approach to
+   additional super power apart from ordinary functions with the approach to
    :rkt:`FunC` and :rkt:`ApplyC` and :rkt:`IdC` above. Can you recognize it?
    You're so familiar with it by now it probably slipped past you without your
    notice.

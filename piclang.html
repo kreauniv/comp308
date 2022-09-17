@@ -60,18 +60,18 @@ a few things we need to do to build up our understanding of the domain first.
 For what are you going to build a language for if you don’t understand it in the
 first place? We’ll need to –</p>
 <ol class="arabic simple">
-<li><p>Get a sense of the “vocabulary” we want for working with pictures.</p></li>
+<li><p>Get a sense of the “<span class="target" id="index-0"></span>vocabulary” we want for working with pictures.</p></li>
 <li><p>Get a sense of how we wish to be able to generate pictures, transform them
 or combine more than one to form a new picture.</p></li>
-<li><p>Figure out the essence of picture composition – i.e. a minimal “core”
-language in which we we can express the ideas we’re interested in. Translate
+<li><p>Figure out the essence of picture composition – i.e. a minimal “<span class="target" id="index-1"></span>core
+language” in which we we can express the ideas we’re interested in. Translate
 more specific ideas into this core language.</p></li>
 </ol>
 <p>Note that we do not need to get all of this right at the first shot. We can
 take some reasonable steps and improve what we have at hand when we recognize
 the opportunity. To do that effectively, we’ll need to keep our eye on the
 mentioned “minimal core” as we go along.</p>
-<div class="admonition-credits admonition">
+<div class="admonition-credits admonition" id="index-2">
 <p class="admonition-title"><strong>Credits</strong></p>
 <p>This section is named in honour of an amazing talk of the same title by Guy
 Steele, the co-creator of Scheme - <a class="reference external" href="https://www.youtube.com/watch?v=_ahvzDzKdB0">Growing a language, by Guy Steele</a> (youtube link) given in 1998. It is a fantastic talk and a great
@@ -85,15 +85,16 @@ into the talk. So do press on.</p>
 <h2>A plausible vocabulary<a class="headerlink" href="#a-plausible-vocabulary" title="Permalink to this headline">¶</a></h2>
 <p>Let’s consider 3 categories of images that students gave examples of –</p>
 <ol class="arabic simple">
-<li><p>“Primitives” such as discs, rectangles, squares and triangles. We include
-images loaded from files in this category since they do not depend on the
-content of other images. We’ll use the <a class="reference external" href="http://netpbm.sourceforge.net/doc/ppm.html#plainppm">Plain PPM</a> file format since it is
-a simple text-based format that’s easy to parse and write. <a class="footnote-reference brackets" href="#ppm" id="id1">1</a></p></li>
-<li><p>Transformations – including colour transformations and spatial transformations
-like translation, rotation, scaling and mirroring. These take one image and
-modify their appearance to produce another “transformed” image.</p></li>
-<li><p>Combinations – including placing one image on top of another, “blending”
-two images and such.</p></li>
+<li><p>“<span class="target" id="index-3"></span>Primitives” such as discs, rectangles, squares and triangles. We
+include images loaded from files in this category since they do not depend
+on the content of other images. We’ll use the <a class="reference external" href="http://netpbm.sourceforge.net/doc/ppm.html#plainppm">Plain PPM</a> file format since
+it is a simple text-based format that’s easy to parse and write. <a class="footnote-reference brackets" href="#ppm" id="id1">1</a></p></li>
+<li><p><span class="target" id="index-4"></span>Transformations – including colour transformations and spatial
+transformations like translation, rotation, scaling and mirroring. These
+take one image and modify their appearance to produce another “transformed”
+image.</p></li>
+<li><p><span class="target" id="index-5"></span>Combinations – including placing one image on top of another,
+“blending” two images and such.</p></li>
 </ol>
 <p>The above is already giving us a plausible vocabulary for talking about
 pictures to begin with, even though we don’t yet know what exactly a “picture”
@@ -138,7 +139,7 @@ figure out these details.</p>
 </div>
 <div class="section" id="what-is-colour">
 <h2>What is “colour”?<a class="headerlink" href="#what-is-colour" title="Permalink to this headline">¶</a></h2>
-<p>I’m not talking about a general perceptual understanding of colour here, though
+<p id="index-6">I’m not talking about a general perceptual understanding of colour here, though
 that is a fascinating topic worthy of its own course. For our purposes, we’ll
 satisfy ourselves with determing colour in terms of three well known colour
 components – red, green and blue. We’ll represent a mixture of these colour
@@ -289,7 +290,7 @@ three types of “picture expressions” –</p>
 <p>Notice that these picture expressions can also consist of other picture expressions
 and hence the possibility of composition.</p>
 <p>The <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">racket/match</span></span></code> library provides a <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">match</span></span></code> macro that makes it
-easy for us to write an interpreter for such expressions.</p>
+easy for us to write an <span class="target" id="index-7"></span>interpreter for such expressions.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="kn">#lang </span><span class="nn">racket</span>
 <span class="p">(</span><span class="k">require</span> <span class="n">racket/match</span><span class="p">)</span>
 
@@ -335,12 +336,12 @@ things with them. In the next section, we’ll look into what would make for a
 <div class="section" id="an-alternative-representation">
 <h3>An alternative representation<a class="headerlink" href="#an-alternative-representation" title="Permalink to this headline">¶</a></h3>
 <p>We represented the “program” as simply an s-expression. Our program in this
-case consisted of a single expression which our interpret “evaluated”.
-More typically when working on programming languages, the sub-expressions
-we used are given their own data structure and a tree is made by composing
-these sub-expressions. The tree is referred to as the “abstract syntax tree”
-as it captures the syntactic structure of the program, leaving aside
-(i.e. absracting) the sequence of characters from which it s constructed.</p>
+case consisted of a single expression which our interpret “evaluated”. More
+typically when working on programming languages, the sub-expressions we used
+are given their own data structure and a tree is made by composing these
+sub-expressions. The tree is referred to as the “<span class="target" id="index-8"></span>abstract syntax tree”
+as it captures the syntactic structure of the program, leaving aside (i.e.
+absracting) the sequence of characters from which it s constructed.</p>
 <p>To capture the spirit of that, we can also represent our image primitives
 and transformations as structures like below –</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">Disc</span> <span class="p">(</span><span class="n">radius</span><span class="p">))</span>
@@ -390,12 +391,12 @@ the kinds of expressions we wish to construct into an “abstract syntax tree”
 and built an “interpreter” to build what we want. Even if we do not build a
 full fledged programming language and stop here, we’ve done a powerful and
 highly under-used program transformation or “refactoring” technique called
-“defunctionalization”. It is called so because we took what’s initially a set
-of functions and turned calculations using those functions into a pure data
-structure – the AST. The advantage of this is that this AST can now be stored
-on mass media and transmitted over networks, which most host languages will not
-let you do with ordinary functions, especially if they have variables they
-close over.</p>
+“<span class="target" id="index-9"></span>defunctionalization”. It is called so because we took what’s
+initially a set of functions and turned calculations using those functions into
+a pure data structure – the AST. The advantage of this is that this AST can
+now be stored on mass media and transmitted over networks, which most host
+languages will not let you do with ordinary functions, especially if they have
+variables they close over.</p>
 <p>We’re however going to go further than defunctionalization and build “proper”
 programming ability into our image synthesizer.</p>
 <p>There’s still one more aspect. Our functions do not fully capture what we know

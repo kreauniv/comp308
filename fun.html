@@ -57,11 +57,11 @@ in normal <code class="code highlight racket docutils literal notranslate"><span
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">FunDefC</span> <span class="p">(</span><span class="n">name</span> <span class="n">arg</span> <span class="n">expr</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>This structure captures what we need to specify a function. We’ll identify
-a function by its name, we’ll identify its argument (a.k.a. “formal parameter”)
-using a symbol and we’ll give a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> expression as the body of
-the function. In other words, we’re interested in functions that compute
-pictures (via the interpreter).</p>
+<p>This structure captures what we need to specify a function. We’ll identify a
+function by its name, we’ll identify its argument (a.k.a. “<span class="target" id="index-0"></span>formal
+parameter”) using a symbol and we’ll give a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> expression as the
+body of the function. In other words, we’re interested in functions that
+compute pictures (via the interpreter).</p>
 <p>When we call such a function, what kind of value should we pass for the
 argument? We have a couple of choices given our picture language terms. We
 could make functions of type <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Number</span></span> <span class="keyword"><span class="pre">-&gt;</span></span> <span class="name"><span class="pre">Picture</span></span></code> or <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Picture</span></span> <span class="keyword"><span class="pre">-&gt;</span></span>
@@ -80,7 +80,7 @@ example: <code class="code highlight racket docutils literal notranslate"><span 
 have the means to provide expressions in place of numbers so far. So we’ll
 limit our discussion to functions which take a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Picture</span></span></code> as an argument
 and produce a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Picture</span></span></code> as a result.</p>
-<p>Let’s look at an example function definition for a function that encapsulates
+<p id="index-1">Let’s look at an example function definition for a function that encapsulates
 the “translate and colourize” operation. To keep the discussion simple, we’ll
 assume that all terms are part of our core language. You should be able to
 determine which ones are better expressed using a “surface syntax” versus
@@ -115,7 +115,7 @@ to such “free variables” and therefore consider such an expression to be an 
 </div>
 <div class="section" id="applying-functions-substitution-a-k-a-reduction">
 <h2>Applying functions: substitution a.k.a. β-reduction<a class="headerlink" href="#applying-functions-substitution-a-k-a-reduction" title="Permalink to this headline">¶</a></h2>
-<p>Ok, we have a function definition now. How do we then use it to make pictures? We
+<p id="index-2">Ok, we have a function definition now. How do we then use it to make pictures? We
 need a way to “apply” the function to a concrete picture expression value to compute
 the required result. We therefore need yet another addition to our language to
 express this concept of “function application”.</p>
@@ -128,11 +128,11 @@ argument. Note that there is a design choice we can make here since we’re usin
 names to denote functions as well as placeholder slots in expressions that need
 to be filled with values –</p>
 <ol class="arabic simple">
-<li><p>We can permit a “formal parameter” name to be the same that of another function
-since we’re not permitting <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">IdC</span></span></code> references to be used for the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">fn</span></span></code>
-part of our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> structure. So here, we’re keeping function names
-and value identifiers in separate “namespaces”. Some languages like Common Lisp
-take this route.</p></li>
+<li><p>We can permit a “<span class="target" id="index-3"></span>formal parameter” name to be the same that of
+another function since we’re not permitting <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">IdC</span></span></code> references to be used
+for the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">fn</span></span></code> part of our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> structure. So here, we’re
+keeping function names and value identifiers in separate “namespaces”. Some
+languages like Common Lisp take this route.</p></li>
 <li><p>If we permit <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunDefC</span></span></code> itself to be a valid <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> and which can
 be passed as an argument, we can extend our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> to accept such a function
 specification in its <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">fn</span></span></code> slot. This way, we have “first class functions”
@@ -162,9 +162,10 @@ list of function definitions.</p>
             <span class="p">(</span><span class="n">lookup-fundef</span> <span class="n">name</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">fundefs</span><span class="p">)))))</span>
 </pre></div>
 </div>
-<p>Given this, we need a procedure by which we can perform “β-reduction” on the function’s
-definition expression, using the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">arg</span></span></code> part of the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> term.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">subst</span> <span class="n">value</span> <span class="n">for-identifier</span> <span class="n">in-picexpr</span><span class="p">)</span>
+<p>Given this, we need a procedure by which we can perform “<span class="target" id="index-4"></span>β-reduction”
+on the function’s definition expression, using the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">arg</span></span></code> part of the
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> term.</p>
+<div class="highlight-racket notranslate" id="index-5"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">subst</span> <span class="n">value</span> <span class="n">for-identifier</span> <span class="n">in-picexpr</span><span class="p">)</span>
     <span class="p">(</span><span class="k">match</span> <span class="n">in-picexpr</span>
         <span class="c1">; examine each possible term and determine</span>
         <span class="c1">; how to substitute the value for the</span>
@@ -234,12 +235,13 @@ perform a “β-reduction”.</p>
           <span class="p">(</span><span class="n">TranslateC</span> <span class="mf">4.0</span> <span class="p">(</span><span class="n">Opacity</span> <span class="mf">0.5</span> <span class="p">(</span><span class="n">RotateC</span> <span class="mi">30</span> <span class="p">(</span><span class="n">SquareC</span> <span class="mf">5.0</span><span class="p">)))))</span>
 </pre></div>
 </div>
-<p>Note the repeated occurrence of the <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">RotateC…</span></span><span class="punctuation"><span class="pre">)</span></span></code> sub-expression. So what we have
-here in our interpreter is a way of calculating that puts off the actual evaluation of
-the expression when it is actually required. Even there, it performs redundant calculation
-of the same picture. This “putting off until required” strategy is what is called
-“lazy evaluation” – though the expression if repeated in multiple slots is not repeatedly
-evaluated in lazy languages.</p>
+<p>Note the repeated occurrence of the <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">RotateC…</span></span><span class="punctuation"><span class="pre">)</span></span></code> sub-expression. So what
+we have here in our interpreter is a way of calculating that puts off the
+actual evaluation of the expression when it is actually required. Even there,
+it performs redundant calculation of the same picture. This “putting off until
+required” strategy is what is called “<span class="target" id="index-6"></span>lazy evaluation” – though the
+expression if repeated in multiple slots is not repeatedly evaluated in lazy
+languages.</p>
 <div class="admonition-exercise admonition">
 <p class="admonition-title"><strong>Exercise</strong></p>
 <p>Modify the interpreter so that it still performs lazy evaluation, but does

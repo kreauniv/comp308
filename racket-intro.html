@@ -35,15 +35,15 @@
   <div class="section" id="a-quick-introduction-to-racket-and-scheme">
 <h1>A quick introduction to Racket and Scheme<a class="headerlink" href="#a-quick-introduction-to-racket-and-scheme" title="Permalink to this headline">¶</a></h1>
 <p>We’re going to be using the <code class="docutils literal notranslate"><span class="pre">#lang</span> <span class="pre">plai-typed</span></code> in this course and therefore
-it is important that you get some decent familiarity with Scheme. Fortunately,
-if you’re comfortable with normal algebra – i.e. mostly substituting one thing
-for another that’s equal to it – this is rather easy to pick up compared to
-almost any other programming language. In fact, for the purpose of this course,
-you do not need to be able to write very complicated programs using lots of
-complex language features, which in Scheme’s case would’ve been built in Scheme
-itself. You’ll need to be able to read and understand expressions and be able
-to manipulate them in the Racket IDE. We’ll be shooting for minimalism in
-concept, with maximum impact on understanding.</p>
+it is important that you get some decent familiarity with <span class="target" id="index-0"></span>Scheme.
+Fortunately, if you’re comfortable with normal algebra – i.e. mostly
+substituting one thing for another that’s equal to it – this is rather easy to
+pick up compared to almost any other programming language. In fact, for the
+purpose of this course, you do not need to be able to write very complicated
+programs using lots of complex language features, which in Scheme’s case
+would’ve been built in Scheme itself. You’ll need to be able to read and
+understand expressions and be able to manipulate them in the Racket IDE. We’ll
+be shooting for minimalism in concept, with maximum impact on understanding.</p>
 <p>So without further ado, here is a basic “lightning” introduction to Scheme. For
 the purpose of this introduction, you’ll be using <code class="docutils literal notranslate"><span class="pre">#lang</span> <span class="pre">racket</span></code>. We’ll be
 using other languages during this course, but the basic meaning of expressions
@@ -63,11 +63,13 @@ But we’re getting ahead of ourselves now.</p>
 </div>
 <p>In Scheme, there are some basic “things” we work with, which you can type
 into the REPL and it will promptly give it back to you –</p>
-<dl>
+<dl class="simple" id="index-1">
 <dt><strong>Booleans</strong></dt><dd><p>The notation <code class="docutils literal notranslate"><span class="pre">#t</span></code> stands for “true” and <code class="docutils literal notranslate"><span class="pre">#f</span></code> stands for “false”.
-Scheme also supports “generalized booleans” - where <code class="docutils literal notranslate"><span class="pre">#f</span></code> is
+Scheme also supports “<span class="target" id="index-2"></span>generalized booleans” - where <code class="docutils literal notranslate"><span class="pre">#f</span></code> is
 treated as “false”, but everything else is considered to be “true”.</p>
 </dd>
+</dl>
+<dl class="simple" id="index-3">
 <dt><strong>Numbers</strong></dt><dd><p>Ordinary integers like 12 and -456, fractions like 22/7, floating
 point numbers like 31415.926e-4 . The first two types are called
 “exact numerals” since comparison of two numbers is defined.
@@ -75,9 +77,13 @@ The floating point numbers are called “inexact” because the finite
 number of bits used to represent them means there can be round off
 errors that prevent equality comparisons without error bounds.</p>
 </dd>
+</dl>
+<dl class="simple" id="index-4">
 <dt><strong>Strings</strong></dt><dd><p>You write strings within double quotes like <code class="docutils literal notranslate"><span class="pre">&quot;this</span> <span class="pre">simple</span> <span class="pre">string&quot;</span></code>.
 You can use unicode characters within the quotes too.</p>
 </dd>
+</dl>
+<dl id="index-5">
 <dt><strong>Symbols</strong></dt><dd><p>Symbols are written like normal English words. You can also use
 multi-part words (like <code class="docutils literal notranslate"><span class="pre">multi-part-word</span></code>). Symbols permit
 any character to feature in it including unicode characters,
@@ -95,13 +101,15 @@ If you typed that instead, you’ll see that you get it back as is.</p>
 </dl>
 <p>The above “things” are simple data types. Scheme also has compound “things”,
 given below –</p>
-<dl class="simple">
+<dl class="simple" id="index-6">
 <dt><strong>Pairs</strong></dt><dd><p>These are written like this – <code class="docutils literal notranslate"><span class="pre">'(&lt;first-thing&gt;</span> <span class="pre">.</span> <span class="pre">&lt;second-thing&gt;)</span></code>. Note
 the quote character in front telling the REPL that it is intended to be
 treated as a “literal” and not to lookup any symbol’s value or evaluate
 anything. The period character in the middle separates the first and the
 second parts of the “pair”. This is also called a “cons pair”.</p>
 </dd>
+</dl>
+<dl class="simple" id="index-7">
 <dt><strong>Lists</strong></dt><dd><p>You can store many things in a compound structure by nesting pairs like
 this – <code class="docutils literal notranslate"><span class="pre">'(first</span> <span class="pre">.</span> <span class="pre">(second</span> <span class="pre">.</span> <span class="pre">(third</span> <span class="pre">.</span> <span class="pre">(fourth</span> <span class="pre">.</span> <span class="pre">()))))</span></code> – where the last
 <code class="docutils literal notranslate"><span class="pre">()</span></code> stands for <code class="docutils literal notranslate"><span class="pre">empty</span></code>. This is essentially a singly linked list which
@@ -117,9 +125,9 @@ and <code class="docutils literal notranslate"><span class="pre">rest</span></co
 </div>
 <div class="section" id="s-expressions">
 <h2>S-expressions<a class="headerlink" href="#s-expressions" title="Permalink to this headline">¶</a></h2>
-<p>And then you have the famous “s-expressions” (for “symbolic expressions”),
-which also look like lists, except that there is no quote character sticking in
-front of it. A typically s-expression is of the form –</p>
+<p>And then you have the famous “<span class="target" id="index-8"></span>s-expressions” (for “symbolic
+expressions”), which also look like lists, except that there is no quote
+character sticking in front of it. A typically s-expression is of the form –</p>
 <p><code class="docutils literal notranslate"><span class="pre">(&lt;operator&gt;</span> <span class="pre">&lt;operand-1&gt;</span> <span class="pre">&lt;operand-2&gt;</span> <span class="pre">...</span> <span class="pre">&lt;operand-N&gt;)</span></code></p>
 <p>The first entry in the list is special and is taken to be an “operator value”
 that is then applied to the remainder of the list which would be a list of
@@ -165,7 +173,7 @@ in the second definition above will be evaluated in the following sequence -</p>
 </div>
 <div class="section" id="procedures">
 <h2>Procedures<a class="headerlink" href="#procedures" title="Permalink to this headline">¶</a></h2>
-<p>There is another operator that Scheme provides – <code class="docutils literal notranslate"><span class="pre">lambda</span></code> – that’s
+<p id="index-9">There is another operator that Scheme provides – <code class="docutils literal notranslate"><span class="pre">lambda</span></code> – that’s
 used to create your own procedures. The one below, for example,
 creates a “hypotenuse” calculating function.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">x</span> <span class="n">y</span><span class="p">)</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="nb">*</span> <span class="n">x</span> <span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="n">y</span> <span class="n">y</span><span class="p">))))</span>
@@ -221,9 +229,8 @@ in Scheme.</p>
 </div>
 <div class="section" id="evaluation-by-substitution">
 <h2>Evaluation by substitution<a class="headerlink" href="#evaluation-by-substitution" title="Permalink to this headline">¶</a></h2>
-<p>In the absence of side effects, we can evaluate any s-expression
-using a process of substitution. Let’s take the same example
-above –</p>
+<p>In the absence of side effects, we can evaluate any s-expression using a
+process of <span class="target" id="index-10"></span>substitution. Let’s take the same example above –</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For brevity, we’ll write <code class="docutils literal notranslate"><span class="pre">#&lt;procedure:list&gt;</span></code> and such as just
@@ -280,7 +287,7 @@ argument sequence.</p>
 </div>
 <div class="section" id="homoiconicity">
 <h2>Homoiconicity<a class="headerlink" href="#homoiconicity" title="Permalink to this headline">¶</a></h2>
-<p>You’d have noticed that there are two ways of evaluating expressions depending
+<p id="index-11">You’d have noticed that there are two ways of evaluating expressions depending
 on what operator is placed at the head of the list. For example, if you did
 <code class="docutils literal notranslate"><span class="pre">(list</span> <span class="pre">(x</span> <span class="pre">y)</span> <span class="pre">(+</span> <span class="pre">x</span> <span class="pre">y))</span></code>, the RPEL would’ve complained about <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>
 not being defined. However <code class="docutils literal notranslate"><span class="pre">(lambda</span> <span class="pre">(x</span> <span class="pre">y)</span> <span class="pre">(+</span> <span class="pre">x</span> <span class="pre">y))</span></code> turns out ok.</p>
@@ -322,7 +329,7 @@ few common forms such as <code class="docutils literal notranslate"><span class=
 function/procedure being applied to the given list of arguments. So <code class="docutils literal notranslate"><span class="pre">(apply</span>
 <span class="pre">+</span> <span class="pre">(list</span> <span class="pre">2</span> <span class="pre">3))</span></code> reduces to <code class="docutils literal notranslate"><span class="pre">(+</span> <span class="pre">2</span> <span class="pre">3)</span></code> which evaluates to <code class="docutils literal notranslate"><span class="pre">5</span></code>.</p></li>
 </ul>
-<p>Some common useful “macro” operators –</p>
+<p>Some common useful “<span class="target" id="index-12"></span>macro” operators –</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Sequencing computations</span>
 <span class="p">(</span><span class="k">begin</span>
     <span class="n">&lt;expr-1&gt;</span>
@@ -364,7 +371,7 @@ function/procedure being applied to the given list of arguments. So <code class=
 space must be there between the terms of an s-expression.</p>
 <div class="section" id="read-and-write">
 <h3><code class="docutils literal notranslate"><span class="pre">read</span></code> and <code class="docutils literal notranslate"><span class="pre">write</span></code><a class="headerlink" href="#read-and-write" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">write</span></code> procedure can be used to write out a serialized form of the given
+<p id="index-13">The <code class="docutils literal notranslate"><span class="pre">write</span></code> procedure can be used to write out a serialized form of the given
 value. For example <code class="docutils literal notranslate"><span class="pre">(write</span> <span class="pre">'(+</span> <span class="pre">2</span> <span class="pre">3))</span></code> <a class="footnote-reference brackets" href="#quote" id="id2">2</a> will print out <code class="docutils literal notranslate"><span class="pre">(+</span> <span class="pre">2</span> <span class="pre">3)</span></code>
 and <code class="docutils literal notranslate"><span class="pre">(write</span> <span class="pre">(+</span> <span class="pre">2</span> <span class="pre">3))</span></code> will print out <code class="docutils literal notranslate"><span class="pre">5</span></code>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">read</span></code> procedure is like a dual of <code class="docutils literal notranslate"><span class="pre">write</span></code>, in that it will read one

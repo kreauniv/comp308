@@ -19,3 +19,10 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    stacks-and-scope
    fun-in-piclang
 
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

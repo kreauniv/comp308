@@ -44,7 +44,7 @@ does effectively the same (and correctly) without having to run through a
 “substitution pass” before performing interpretation.</p>
 <p>We’ll call the equivalent of a “block” a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> in PicLang, defined
 as below –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">FunC</span> <span class="p">(</span><span class="n">argname</span> <span class="n">expr</span><span class="p">))</span>
+<div class="highlight-racket notranslate" id="index-0"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">FunC</span> <span class="p">(</span><span class="n">argname</span> <span class="n">expr</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>We’ll call the equivalent of the <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">do</span></span></code> instruction <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> here.</p>
@@ -151,27 +151,31 @@ such self reference. Let’s rewrite the above self referential function.</p>
                 <span class="p">(</span><span class="n">make-standard-library</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">definitions</span><span class="p">)</span> <span class="n">stdlib</span><span class="p">)))))</span>
 </pre></div>
 </div>
-<p>We want to solve for the fixed point in the following “equation”, given a list
-of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">definitions</span></span></code> -</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="n">stdlib</span> <span class="nb">=</span> <span class="p">(</span><span class="n">make-standard-library</span> <span class="n">definitions</span> <span class="n">stdlib</span><span class="p">)</span>
+<p>Here we’re assuming that our function will be passed the result <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stdlib</span></span></code>
+we’re constructing and it makes use of this to construct its result!! That’s
+something we did earlier as well in <a class="reference internal" href="lambda.html"><span class="doc">Lambda - the everything</span></a>. We
+want to solve for the fixed point in the following “equation”, given a list of
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">definitions</span></span></code> -</p>
+<div class="highlight-racket notranslate" id="index-1"><div class="highlight"><pre><span></span><span class="n">stdlib</span> <span class="nb">=</span> <span class="p">(</span><span class="n">make-standard-library</span> <span class="n">definitions</span> <span class="n">stdlib</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>If we now rewrite the RHS –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="n">stdlib</span> <span class="nb">=</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">stdlib</span><span class="p">)</span> <span class="p">(</span><span class="n">make-standard-library</span> <span class="n">definitions</span> <span class="n">stdlib</span><span class="p">))</span> <span class="n">stdlib</span><span class="p">)</span>
-<span class="n">spec</span> <span class="nb">=</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">stdlib</span><span class="p">)</span> <span class="p">(</span><span class="n">make-standard-library</span> <span class="n">definitions</span> <span class="n">stdlib</span><span class="p">))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="n">spec</span> <span class="nb">=</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">stdlib</span><span class="p">)</span> <span class="p">(</span><span class="n">make-standard-library</span> <span class="n">definitions</span> <span class="n">stdlib</span><span class="p">))</span>
+<span class="n">stdlib</span> <span class="nb">=</span> <span class="p">(</span><span class="n">spec</span> <span class="n">stdlib</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>We can now apply our “function calls itself” trick to get -</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">G</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="p">(</span><span class="n">spec</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="p">(((</span><span class="n">f</span> <span class="n">f</span><span class="p">)</span> <span class="n">spec</span><span class="p">)</span> <span class="n">g</span><span class="p">))))))</span>
+<p>We can now apply our “function is called with itself to enable the function to
+call itself” trick to get -</p>
+<div class="highlight-racket notranslate" id="index-2"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">G</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="p">(</span><span class="n">spec</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="p">(((</span><span class="n">f</span> <span class="n">f</span><span class="p">)</span> <span class="n">spec</span><span class="p">)</span> <span class="n">g</span><span class="p">))))))</span>
 <span class="p">(</span><span class="k">define</span> <span class="n">F</span> <span class="p">(</span><span class="n">G</span> <span class="n">G</span><span class="p">))</span>
 <span class="p">(</span><span class="k">define</span> <span class="n">stdlib</span> <span class="p">(</span><span class="n">F</span> <span class="n">spec</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Note that we’ve modified the trick above so it would work with eager evaluation
-strategy instead of the original “lazy” language. The expression <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">g</span></span><span class="punctuation"><span class="pre">)</span></span>
-<span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span> <span class="name"><span class="pre">f</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">spec</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">g</span></span><span class="punctuation"><span class="pre">))</span></span></code> is logically equivalent to <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span> <span class="name"><span class="pre">f</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">spec</span></span><span class="punctuation"><span class="pre">)</span></span></code> by
-“η-reduction”, but helps delay the evaluation of the recursive parts by enough
-so we don’t get stuck in an infinite loop.</p>
+strategy instead of the original <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">lazy</span></span></code> choice. The expression
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">g</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span> <span class="name"><span class="pre">f</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">spec</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">g</span></span><span class="punctuation"><span class="pre">))</span></span></code> is logically equivalent to <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span> <span class="name"><span class="pre">f</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">spec</span></span><span class="punctuation"><span class="pre">)</span></span></code>
+by “<span class="target" id="index-3"></span>η-reduction”, but helps delay the evaluation of the recursive
+parts by enough so we don’t get stuck in an infinite loop.</p>
 <p>But this is still pending a specific representation for “bindings”. Lets do a
 simple one -</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">make-empty-bindings</span><span class="p">)</span>
@@ -205,7 +209,7 @@ feature of the language (Racket, not PicLang) that we haven’t used so far?</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>An extension to the question in <a class="reference internal" href="stacks-and-scope.html"><span class="doc">Stacks and scope</span></a> – we got an
-additional super power appart from ordinary functions with the approach to
+additional super power apart from ordinary functions with the approach to
 <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">IdC</span></span></code> above. Can you recognize it?
 You’re so familiar with it by now it probably slipped past you without your
 notice.</p>

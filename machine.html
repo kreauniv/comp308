@@ -45,11 +45,11 @@ interpretation in our mini language. When we’re looking to further develop
 our language into a programmable image synthesizer, we’re going to have to do
 better than that and understand how we might actually implement the control
 flow implicit in the expressions we’ve been writing thus far.</p>
-<p>To dive in, we can restrict ourselves to simple loops (expressed as “tail
-recursion”) and try to capture a mental model of our machine as a program in
-its own right. When we do that, we now get something concrete on our hands to
-work with and ask questions about. We can therefore use this approach to
-inquire into language construction and meaning.</p>
+<p>To dive in, we can restrict ourselves to simple loops (expressed as
+“<span class="target" id="index-0"></span>tail recursion”) and try to capture a mental model of our machine as
+a program in its own right. When we do that, we now get something concrete on
+our hands to work with and ask questions about. We can therefore use this
+approach to inquire into language construction and meaning.</p>
 <p>When we interpret an expression like <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">rotate</span></span> <span class="literal number integer"><span class="pre">30</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">translate</span></span> <span class="literal number integer"><span class="pre">2</span></span> <span class="literal number integer"><span class="pre">3</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">disc</span></span> <span class="literal number float"><span class="pre">5.0</span></span><span class="punctuation"><span class="pre">)))</span></span></code>,
 the sequence of calculations being performed by the interpreter is actually</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">disc</span> <span class="mf">5.0</span><span class="p">)</span>
@@ -70,7 +70,7 @@ in case it needs any input. Ask it to store its result in the same bucket.</p></
 <p>The simplest construct for the “bucket” is the “stack”, where we get access
 to the most recent results on the top and earlier results go below the more
 recent ones.</p>
-<p>Our “machine”, therefore, is a function that accepts a list of instructions to
+<p id="index-1">Our “machine”, therefore, is a function that accepts a list of instructions to
 perform and a stack containing data on which it should perform them and into
 which it must store the result in the end. We can easily model such a stack
 using a simple list - using <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">cons</span></span></code> to “push” values at the head

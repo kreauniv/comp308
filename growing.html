@@ -35,7 +35,7 @@
             
   <div class="section" id="growing-the-language">
 <h1>Growing the language<a class="headerlink" href="#growing-the-language" title="Permalink to this headline">¶</a></h1>
-<p>So far, we have a few “primitives” for creating pictures and some for
+<p id="index-0">So far, we have a few “primitives” for creating pictures and some for
 transforming pictures. Let’s list them out to recap –</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Shapes</span>
 <span class="p">(</span><span class="n">Disc</span> <span class="n">&lt;radius&gt;</span><span class="p">)</span>
@@ -103,7 +103,7 @@ so we can have our cake and eat it too. We’ll refer to this transformation
 as “<strong>desugaring</strong>”. You’ve already seen examples of desugaring in Scheme,
 when we talked about how the <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">let</span></span></code> construct can be expressed using
 <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">lambda</span></span></code> and application.</p>
-<p>To make our core language terms stand out compared to the “surface” or
+<p id="index-1">To make our core language terms stand out compared to the “surface” or
 “sugar” layer, we’ll add a <code class="docutils literal notranslate"><span class="pre">C</span></code> suffix to core terms and <code class="docutils literal notranslate"><span class="pre">S</span></code> suffix to
 sugar/syntax terms.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picexprS</span><span class="p">)</span>
@@ -128,7 +128,7 @@ touching our core interpreter. So this “surface-vs-core” split helps us grow
 the language in one way.</p>
 <div class="section" id="typed-racket-advanced-optional">
 <h2>Typed racket (<strong>advanced</strong> / optional)<a class="headerlink" href="#typed-racket-advanced-optional" title="Permalink to this headline">¶</a></h2>
-<p>We stepped out of <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">plai-typed</span></span></code> into plain racket because it was
+<p id="index-2">We stepped out of <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">plai-typed</span></span></code> into plain racket because it was
 too restrictive for the picture language we’re setting out to build. In perhaps
 a later version of this course, we’ll augment the language to help meet this
 constraint. For now though, you can use either plain Racket or <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">typed/racket</span></span></code>

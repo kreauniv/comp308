@@ -16,5 +16,6 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    machine
    growing
    fun
-   stacksnscope
+   stands-and-scope
+   fun-in-piclang
 

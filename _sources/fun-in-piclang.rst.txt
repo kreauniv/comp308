@@ -201,7 +201,7 @@ simple one -
     feature of the language (Racket, not PicLang) that we haven't used so far?
 
 
-.. note:: An extension to the question in `Stacks and scope`_ -- we got an
+.. note:: An extension to the question in :ref:`Stacks and scope` -- we got an
    additional super power appart from ordinary functions with the approach to
    :rkt:`FunC` and :rkt:`ApplyC` and :rkt:`IdC` above. Can you recognize it?
    You're so familiar with it by now it probably slipped past you without your

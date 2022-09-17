@@ -2,15 +2,15 @@ A quick introduction to Racket and Scheme
 =========================================
 
 We're going to be using the ``#lang plai-typed`` in this course and therefore
-it is important that you get some decent familiarity with Scheme. Fortunately,
-if you're comfortable with normal algebra -- i.e. mostly substituting one thing
-for another that's equal to it -- this is rather easy to pick up compared to
-almost any other programming language. In fact, for the purpose of this course,
-you do not need to be able to write very complicated programs using lots of
-complex language features, which in Scheme's case would've been built in Scheme
-itself. You'll need to be able to read and understand expressions and be able
-to manipulate them in the Racket IDE. We'll be shooting for minimalism in
-concept, with maximum impact on understanding.
+it is important that you get some decent familiarity with :index:`Scheme`.
+Fortunately, if you're comfortable with normal algebra -- i.e. mostly
+substituting one thing for another that's equal to it -- this is rather easy to
+pick up compared to almost any other programming language. In fact, for the
+purpose of this course, you do not need to be able to write very complicated
+programs using lots of complex language features, which in Scheme's case
+would've been built in Scheme itself. You'll need to be able to read and
+understand expressions and be able to manipulate them in the Racket IDE. We'll
+be shooting for minimalism in concept, with maximum impact on understanding.
 
 So without further ado, here is a basic "lightning" introduction to Scheme. For
 the purpose of this introduction, you'll be using ``#lang racket``. We'll be
@@ -35,10 +35,14 @@ things "values" or, if you want to sound sophisticated, "objects".
 In Scheme, there are some basic "things" we work with, which you can type
 into the REPL and it will promptly give it back to you --
 
+.. index:: Scheme Booleans
+
 **Booleans**
     The notation ``#t`` stands for "true" and ``#f`` stands for "false".
-    Scheme also supports "generalized booleans" - where ``#f`` is
+    Scheme also supports ":index:`generalized booleans`" - where ``#f`` is
     treated as "false", but everything else is considered to be "true".
+
+.. index:: Scheme Numbers
 
 **Numbers**
     Ordinary integers like 12 and -456, fractions like 22/7, floating
@@ -48,9 +52,13 @@ into the REPL and it will promptly give it back to you --
     number of bits used to represent them means there can be round off
     errors that prevent equality comparisons without error bounds.
 
+.. index:: Scheme Strings
+
 **Strings**
     You write strings within double quotes like ``"this simple string"``.
     You can use unicode characters within the quotes too.
+
+.. index:: Scheme Symbols
 
 **Symbols**
     Symbols are written like normal English words. You can also use
@@ -73,12 +81,16 @@ into the REPL and it will promptly give it back to you --
 The above "things" are simple data types. Scheme also has compound "things",
 given below --
 
+.. index:: Scheme Pairs
+
 **Pairs**
     These are written like this -- ``'(<first-thing> . <second-thing>)``. Note
     the quote character in front telling the REPL that it is intended to be
     treated as a "literal" and not to lookup any symbol's value or evaluate
     anything. The period character in the middle separates the first and the
     second parts of the "pair". This is also called a "cons pair".
+
+.. index:: Scheme Lists
 
 **Lists**
     You can store many things in a compound structure by nesting pairs like
@@ -95,9 +107,9 @@ given below --
 S-expressions
 -------------
 
-And then you have the famous "s-expressions" (for "symbolic expressions"),
-which also look like lists, except that there is no quote character sticking in
-front of it. A typically s-expression is of the form --
+And then you have the famous ":index:`s-expressions`" (for "symbolic
+expressions"), which also look like lists, except that there is no quote
+character sticking in front of it. A typically s-expression is of the form --
 
 ``(<operator> <operand-1> <operand-2> ... <operand-N>)``
 
@@ -150,6 +162,8 @@ in the second definition above will be evaluated in the following sequence -
 
 Procedures
 ----------
+
+.. index:: Procedures, Scheme lambda
 
 There is another operator that Scheme provides -- ``lambda`` -- that's
 used to create your own procedures. The one below, for example,
@@ -213,9 +227,8 @@ in the REPL like ``(hypotenuse 3 4)``.
 Evaluation by substitution
 --------------------------
 
-In the absence of side effects, we can evaluate any s-expression
-using a process of substitution. Let's take the same example
-above --
+In the absence of side effects, we can evaluate any s-expression using a
+process of :index:`substitution`. Let's take the same example above --
 
 .. note:: For brevity, we'll write ``#<procedure:list>`` and such as just
    ``#<list>`` and will skip evaluation of simple entities like numbers. Note
@@ -277,6 +290,8 @@ argument sequence.
 Homoiconicity
 -------------
 
+.. index:: Homoiconicity
+
 You'd have noticed that there are two ways of evaluating expressions depending
 on what operator is placed at the head of the list. For example, if you did
 ``(list (x y) (+ x y))``, the RPEL would've complained about ``x`` and ``y``
@@ -326,7 +341,7 @@ Some common and useful functions --
   + (list 2 3))`` reduces to ``(+ 2 3)`` which evaluates to ``5``.
 
 
-Some common useful "macro" operators --
+Some common useful ":index:`macro`" operators --
 
 .. code-block:: racket
 
@@ -371,6 +386,8 @@ space must be there between the terms of an s-expression.
 
 ``read`` and ``write``
 ~~~~~~~~~~~~~~~~~~~~~~
+
+.. index:: Scheme read, Scheme write
 
 The ``write`` procedure can be used to write out a serialized form of the given
 value. For example ``(write '(+ 2 3))`` [#quote]_ will print out ``(+ 2 3)``

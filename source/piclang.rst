@@ -26,19 +26,21 @@ a few things we need to do to build up our understanding of the domain first.
 For what are you going to build a language for if you don't understand it in the
 first place? We'll need to --
 
-1. Get a sense of the "vocabulary" we want for working with pictures.
+1. Get a sense of the ":index:`vocabulary`" we want for working with pictures.
 
 2. Get a sense of how we wish to be able to generate pictures, transform them
    or combine more than one to form a new picture.
 
-3. Figure out the essence of picture composition -- i.e. a minimal "core"
-   language in which we we can express the ideas we're interested in. Translate
+3. Figure out the essence of picture composition -- i.e. a minimal ":index:`core
+   language`" in which we we can express the ideas we're interested in. Translate
    more specific ideas into this core language.
 
 Note that we do not need to get all of this right at the first shot. We can
 take some reasonable steps and improve what we have at hand when we recognize
 the opportunity. To do that effectively, we'll need to keep our eye on the
 mentioned "minimal core" as we go along.
+
+.. index:: Guy Steele, Growing a language talk
 
 .. admonition:: **Credits**
 
@@ -57,17 +59,18 @@ A plausible vocabulary
 
 Let's consider 3 categories of images that students gave examples of --
 
-1. "Primitives" such as discs, rectangles, squares and triangles. We include
-   images loaded from files in this category since they do not depend on the
-   content of other images. We'll use the `Plain PPM`_ file format since it is
-   a simple text-based format that's easy to parse and write. [#ppm]_
+1. ":index:`Primitives`" such as discs, rectangles, squares and triangles. We
+   include images loaded from files in this category since they do not depend
+   on the content of other images. We'll use the `Plain PPM`_ file format since
+   it is a simple text-based format that's easy to parse and write. [#ppm]_
 
-2. Transformations -- including colour transformations and spatial transformations
-   like translation, rotation, scaling and mirroring. These take one image and
-   modify their appearance to produce another "transformed" image.
+2. :index:`Transformations` -- including colour transformations and spatial
+   transformations like translation, rotation, scaling and mirroring. These
+   take one image and modify their appearance to produce another "transformed"
+   image.
 
-3. Combinations -- including placing one image on top of another, "blending"
-   two images and such.
+3. :index:`Combinations` -- including placing one image on top of another,
+   "blending" two images and such.
 
 The above is already giving us a plausible vocabulary for talking about
 pictures to begin with, even though we don't yet know what exactly a "picture"
@@ -75,7 +78,6 @@ is. We can represent these ideas using s-expressions like below --
 
 .. [#ppm] You've already been given instructions to write functions to read and
    write this format.
-
 
 Primitives
 
@@ -113,6 +115,8 @@ In particular we need to understand "colour" first.
 
 What is "colour"?
 -----------------
+
+.. index:: Colour, Color, RGB, Opacity
 
 I'm not talking about a general perceptual understanding of colour here, though
 that is a fascinating topic worthy of its own course. For our purposes, we'll
@@ -297,7 +301,7 @@ Notice that these picture expressions can also consist of other picture expressi
 and hence the possibility of composition.
 
 The :rkt:`racket/match` library provides a :rkt:`match` macro that makes it
-easy for us to write an interpreter for such expressions.
+easy for us to write an :index:`interpreter` for such expressions.
 
 .. code-block:: racket
 
@@ -352,12 +356,12 @@ An alternative representation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We represented the "program" as simply an s-expression. Our program in this
-case consisted of a single expression which our interpret "evaluated".
-More typically when working on programming languages, the sub-expressions
-we used are given their own data structure and a tree is made by composing
-these sub-expressions. The tree is referred to as the "abstract syntax tree"
-as it captures the syntactic structure of the program, leaving aside
-(i.e. absracting) the sequence of characters from which it s constructed.
+case consisted of a single expression which our interpret "evaluated". More
+typically when working on programming languages, the sub-expressions we used
+are given their own data structure and a tree is made by composing these
+sub-expressions. The tree is referred to as the ":index:`abstract syntax tree`"
+as it captures the syntactic structure of the program, leaving aside (i.e.
+absracting) the sequence of characters from which it s constructed.
 
 To capture the spirit of that, we can also represent our image primitives
 and transformations as structures like below --
@@ -415,12 +419,12 @@ the kinds of expressions we wish to construct into an "abstract syntax tree"
 and built an "interpreter" to build what we want. Even if we do not build a
 full fledged programming language and stop here, we've done a powerful and
 highly under-used program transformation or "refactoring" technique called
-"defunctionalization". It is called so because we took what's initially a set
-of functions and turned calculations using those functions into a pure data
-structure -- the AST. The advantage of this is that this AST can now be stored
-on mass media and transmitted over networks, which most host languages will not
-let you do with ordinary functions, especially if they have variables they
-close over.
+":index:`defunctionalization`". It is called so because we took what's
+initially a set of functions and turned calculations using those functions into
+a pure data structure -- the AST. The advantage of this is that this AST can
+now be stored on mass media and transmitted over networks, which most host
+languages will not let you do with ordinary functions, especially if they have
+variables they close over.
 
 We're however going to go further than defunctionalization and build "proper"
 programming ability into our image synthesizer.

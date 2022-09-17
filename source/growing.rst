@@ -1,6 +1,8 @@
 Growing the language
 ====================
 
+.. index:: PicLang, Primitives
+
 So far, we have a few "primitives" for creating pictures and some for
 transforming pictures. Let's list them out to recap --
 
@@ -76,6 +78,8 @@ as "**desugaring**". You've already seen examples of desugaring in Scheme,
 when we talked about how the :rkt:`let` construct can be expressed using
 :rkt:`lambda` and application.
 
+.. index:: Surface syntax, desugar
+
 To make our core language terms stand out compared to the "surface" or
 "sugar" layer, we'll add a ``C`` suffix to core terms and ``S`` suffix to
 sugar/syntax terms.
@@ -105,6 +109,8 @@ the language in one way.
 
 Typed racket (**advanced** / optional)
 --------------------------------------
+
+.. index:: Typed racket
 
 We stepped out of :rkt:`#lang plai-typed` into plain racket because it was
 too restrictive for the picture language we're setting out to build. In perhaps

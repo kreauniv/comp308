@@ -31,11 +31,11 @@ in normal :rkt:`#lang racket` like this -
 
     (struct FunDefC (name arg expr))
 
-This structure captures what we need to specify a function. We'll identify
-a function by its name, we'll identify its argument (a.k.a. "formal parameter")
-using a symbol and we'll give a :rkt:`PicExprC` expression as the body of
-the function. In other words, we're interested in functions that compute
-pictures (via the interpreter). 
+This structure captures what we need to specify a function. We'll identify a
+function by its name, we'll identify its argument (a.k.a. ":index:`formal
+parameter`") using a symbol and we'll give a :rkt:`PicExprC` expression as the
+body of the function. In other words, we're interested in functions that
+compute pictures (via the interpreter). 
 
 When we call such a function, what kind of value should we pass for the
 argument? We have a couple of choices given our picture language terms. We
@@ -53,6 +53,8 @@ example: :rkt:`(RotateS 30.0 (TranslateS 3 4 (SquareS 15.0)))`. We don't
 have the means to provide expressions in place of numbers so far. So we'll
 limit our discussion to functions which take a :rkt:`Picture` as an argument
 and produce a :rkt:`Picture` as a result.
+
+.. index:: desugar
 
 Let's look at an example function definition for a function that encapsulates
 the "translate and colourize" operation. To keep the discussion simple, we'll
@@ -99,6 +101,8 @@ to such "free variables" and therefore consider such an expression to be an erro
 Applying functions: substitution a.k.a. β-reduction
 ---------------------------------------------------
 
+.. index:: β-reduction, apply, ApplyC
+
 Ok, we have a function definition now. How do we then use it to make pictures? We
 need a way to "apply" the function to a concrete picture expression value to compute
 the required result. We therefore need yet another addition to our language to
@@ -114,11 +118,11 @@ argument. Note that there is a design choice we can make here since we're using
 names to denote functions as well as placeholder slots in expressions that need
 to be filled with values --
 
-1. We can permit a "formal parameter" name to be the same that of another function 
-   since we're not permitting :rkt:`IdC` references to be used for the :rkt:`fn`
-   part of our :rkt:`ApplyC` structure. So here, we're keeping function names
-   and value identifiers in separate "namespaces". Some languages like Common Lisp
-   take this route.
+1. We can permit a ":index:`formal parameter`" name to be the same that of
+   another function since we're not permitting :rkt:`IdC` references to be used
+   for the :rkt:`fn` part of our :rkt:`ApplyC` structure. So here, we're
+   keeping function names and value identifiers in separate "namespaces". Some
+   languages like Common Lisp take this route.
 
 2. If we permit :rkt:`FunDefC` itself to be a valid :rkt:`PicExprC` and which can
    be passed as an argument, we can extend our :rkt:`ApplyC` to accept such a function
@@ -156,8 +160,11 @@ list of function definitions.
                 (lookup-fundef name (rest fundefs)))))
 
 
-Given this, we need a procedure by which we can perform "β-reduction" on the function's
-definition expression, using the :rkt:`arg` part of the :rkt:`ApplyC` term.
+Given this, we need a procedure by which we can perform ":index:`β-reduction`"
+on the function's definition expression, using the :rkt:`arg` part of the
+:rkt:`ApplyC` term.
+
+.. index:: subst
 
 .. code-block:: racket
 
@@ -246,12 +253,13 @@ The identifier :rkt:`'p` appears twice in this. If we then apply this function t
     (OverlayC (RotateC 30 (SquareC 5.0))
               (TranslateC 4.0 (Opacity 0.5 (RotateC 30 (SquareC 5.0)))))
 
-Note the repeated occurrence of the :rkt:`(RotateC...)` sub-expression. So what we have
-here in our interpreter is a way of calculating that puts off the actual evaluation of
-the expression when it is actually required. Even there, it performs redundant calculation
-of the same picture. This "putting off until required" strategy is what is called 
-"lazy evaluation" -- though the expression if repeated in multiple slots is not repeatedly
-evaluated in lazy languages. 
+Note the repeated occurrence of the :rkt:`(RotateC...)` sub-expression. So what
+we have here in our interpreter is a way of calculating that puts off the
+actual evaluation of the expression when it is actually required. Even there,
+it performs redundant calculation of the same picture. This "putting off until
+required" strategy is what is called ":index:`lazy evaluation`" -- though the
+expression if repeated in multiple slots is not repeatedly evaluated in lazy
+languages. 
 
 .. admonition:: **Exercise**
 

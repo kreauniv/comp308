@@ -1,8 +1,10 @@
 Lambda - the everything
 =======================
 
-If Alonzo Church were asked "how far does the computational rabbit hole go?",
-he might have answered "It's :rkt:`lambda` all the way through.".
+If :index:`Alonzo Church` were asked "how far does the computational rabbit
+hole go?", he might have answered "It's :rkt:`lambda` all the way through.".
+
+.. index:: Church-Turing thesis
 
 Alonzo Church, in the 1930s (yes, that's getting to be a century ago!), and his
 students formulated what could be called the essence of anything computable.
@@ -38,8 +40,10 @@ to "desugaring".
 The point of lambdas is that lambdas are at the end of the entire stack of
 sugarings. The buck stops with them.
 
-So what's :rkt:`lambda`
------------------------
+So what's :rkt:`lambda`?
+------------------------
+
+.. index:: lambda
 
 In Scheme, a "lambda expression" is an expression of the general form
 shown below --
@@ -59,6 +63,8 @@ compute the result of what the lambda expression denotes -- which is :rkt:`(* 2
 There are two main rules you need to know when working with :rkt:`lambda`
 expressions (the abstract ones).
 
+.. index:: α-renaming
+
 **α-renaming**
     If :rkt:`(lambda (x) E[x])` is a lambda expression in one argument where :rkt:`E[x]`
     denotes some expression involving the variable :rkt:`x`, then you can change
@@ -66,6 +72,8 @@ expressions (the abstract ones).
     considered to be the same. i.e. You can rewrite it to :rkt:`(lambda (y) E[y])`
     (where we use the same :rkt:`E`) and it means the same thing ... as long as
     E doesn't already use :rkt:`y` as a free variable.
+
+.. index:: β-reduction
 
 **β-reduction**
     If you have an expression of the form :rkt:`((lambda (x) E1[x]) E2)` where :rkt:`E1[x]`
@@ -77,7 +85,7 @@ expressions (the abstract ones).
     It is important to note that when we say "is equivalent to", it means you
     can rewrite a sub-expression that looks like one side to the other form
     **anywhere**. We refer to the above left-to-right rewrite as "β-reduction"
-    and the corresponding right-to-left rewrite as "β-abstraction".
+    and the corresponding right-to-left rewrite as ":index:`β-abstraction`".
 
     Just as lambdas offer a conceptual basis of all of computation, all
     abstraction in computing can be seen through β-abstraction.
@@ -92,10 +100,11 @@ expressions (the abstract ones).
    :rkt:`(lambda (x) E1[x])` and loosely talk about that as the β-abstracted
    expression.
 
-.. warning:: When performing a β-reduction step in Scheme, you need to be careful
-   not to substitute symbols within a :rkt:`quote` sub-expression. For example,
-   :rkt:`((lambda (x) (quote (+ x x))) 3)` reduces to the list :rkt:`'(+ x x)`
-   whereas :rkt:`((lambda (x) (+ x x)) 3)` reduces to :rkt:`(+ 3 3) = 6`.
+.. warning:: When performing a :index:`β-reduction` step in Scheme, you need to
+   be careful not to substitute symbols within a :rkt:`quote` sub-expression.
+   For example, :rkt:`((lambda (x) (quote (+ x x))) 3)` reduces to the list
+   :rkt:`'(+ x x)` whereas :rkt:`((lambda (x) (+ x x)) 3)` reduces to :rkt:`(+
+   3 3) = 6`.
 
 Take the expression :rkt:`((lambda (x) (* x ((lambda (x) (- x 1)) x))) 10)` and
 try to apply the reduction rules. If you took the "β-reduction" rule in the
@@ -127,9 +136,9 @@ can build a whole computational edifice.
 Pairs
 ~~~~~
 
-Pairs are the simplest of data structures. Once you can make a pair of two
-things like :rkt:`(pair a b)` or the equivalent in a programming language, you can
-get lists using --
+:index:`Pairs` are the simplest of data structures. Once you can make a pair of
+two things like :rkt:`(pair a b)` or the equivalent in a programming language,
+you can get lists using --
 
 .. code-block:: racket
 
@@ -232,6 +241,8 @@ languages.
 Booleans
 ~~~~~~~~
 
+.. index:: Church booleans
+
 From this section on, it will be valuable for us to use the :rkt:`#lang lazy`
 language instead since we're going to be doing equational reasoning which will
 work only in a lazy scheme and not when using eager evaluation. The syntax and
@@ -284,10 +295,12 @@ of what they are, that's sufficient.
 Numbers
 ~~~~~~~
 
+.. index:: Church numerals
+
 Numbers are a big one to claim to be representable using :rkt:`lambda` alone!
 Numbers (i.e. basic arithmetic with whole numbers) hold a "threshold" place in
-mathematical logic too -- that every "formal system" [#fs]_ is representable
-using numbers.
+mathematical logic too -- that every ":index:`formal system`" [#fs]_ is
+representable using numbers.
 
 .. [#fs] A "formal system" is a collection of postulates -- i.e. "theorems" that
    are assumed to be true -- that serve as a starting point, and a collection
@@ -299,8 +312,9 @@ can we capture the idea of natural numbers using functions alone?
 
 Given a function, what can we do with it? We can apply it to some value. What
 kind of a value can we apply it to (at least within lambda calculus)? We can
-apply it to another function. So Alonzo Church came up with a representation
-for numbers as the idea of applying a function a certain number of times.
+apply it to another function. So :index:`Alonzo Church` came up with a
+representation for numbers as the idea of applying a function a certain number
+of times.
 
 If we consider applying a function :rkt:`f` to a value :rkt:`x` a number
 of times, we could write that sequence as --
@@ -468,11 +482,11 @@ that :rkt:`(ch-succ k) = n`. We also don't know how to compute the "inverse of
 a given function :rkt:`f`" in the general case, so we can apply the inverse
 after :rkt:`n` applications.
 
-This problem apparently stumped Church too. However, his student Stephen Kleene
-came up with a solution to it. His solution was to use pairs of Church numerals
-in a particular sequence - the first number in the sequence is :math:`(0,0)`
-and if an entry is :math:`(m,n)`, the next entry in the sequence is :math:`(n,n+1)`.
-This gives us the following sequence --
+This problem apparently stumped Church too. However, his student
+:index:`Stephen Kleene` came up with a solution to it. His solution was to use
+pairs of Church numerals in a particular sequence - the first number in the
+sequence is :math:`(0,0)` and if an entry is :math:`(m,n)`, the next entry in
+the sequence is :math:`(n,n+1)`. This gives us the following sequence --
 
 .. code-block::
 
@@ -517,27 +531,27 @@ predecessor of :rkt:`n`. So ...
 Interlude on β-abstraction
 --------------------------
 
-You've seen above how useful β-abstraction turns out to be when exploring
-representations that we do not initially fully understand. We were able to
-postpone specific choices of functions until we understood things better, we
-could transform expressions to extract common patterns, etc. As mentioned
-earlier, all abstractions boil down to β-abstractions at the end. This means
-you can use β-abstraction to great effect when when working with domains that
-you're just about beginning to understand. That's useful even if you are not
-using a functional programming language, because once you construct those
-abstractions, it is usually a mechanical matter to translate them into other
-languages that may not be functional. How can we be sure of that? That's what
-this whole section is about -- that :rkt:`lambda` is enough to represent all of
-computation, so any general purpose language (i.e. "Turing complete language")
-can be understood in terms of it.
+You've seen above how useful :index:`β-abstraction` turns out to be when
+exploring representations that we do not initially fully understand. We were
+able to postpone specific choices of functions until we understood things
+better, we could transform expressions to extract common patterns, etc. As
+mentioned earlier, all abstractions boil down to β-abstractions at the end.
+This means you can use β-abstraction to great effect when when working with
+domains that you're just about beginning to understand. That's useful even if
+you are not using a functional programming language, because once you construct
+those abstractions, it is usually a mechanical matter to translate them into
+other languages that may not be functional. How can we be sure of that? That's
+what this whole section is about -- that :rkt:`lambda` is enough to represent
+all of computation, so any general purpose language (i.e. "Turing complete
+language") can be understood in terms of it.
 
 The key to exploiting β-abstraction is practice.
 
 Recursion
 ---------
 
-Recursion underlies all repetition in Scheme -- in the sense that you can
-express any looping construct using recursion. However, we have a problem
+:index:`Recursion` underlies all repetition in Scheme -- in the sense that you
+can express any looping construct using recursion. However, we have a problem
 at this point. We typically define a recursive function such as :rkt:`sqrt/rec`
 using :rkt:`define` like this --
 
@@ -563,6 +577,8 @@ without such a naming+delayed-binding trick.
 
 So, for our purposes, we do not know what function to use to effect the recursive
 call within the body of the above :rkt:`sqrt/rec` definition. 
+
+.. index:: β-abstraction
 
 By now, you should've already guessed what we're going to do when we're faced
 with an unknown like this. Yup - we'll β-abstract over :rkt:`sqrt/rec`!
@@ -686,6 +702,8 @@ And we can now express our desired :rkt:`sqrt/rec` function as just --
 
 If we then β-abstract on :rkt:`good`, we get --
 
+.. index:: Y combinator
+
 .. code-block:: racket
 
     (define sqrt/rec ((λ (f) (f f)) good))
@@ -705,18 +723,18 @@ figured out above is called the "Y combinator".
 (We're using :rkt:`s` as the variable name to suggest "spec function" for
 :rkt:`cheat`.)
 
-A way the Y combinator is usually presented is with one β-reduction applied 
-which gives us a nice symmetric form --
+A way the :index:`Y combinator` is usually presented is with one
+:index:`β-reduction` applied which gives us a nice symmetric form --
 
 .. code-block:: racket
 
     (define Y (λ (s) ((λ (g) (s (g g))) (λ (g) (s (g g))))))
 
 And we have :rkt:`(Y cheat) = (cheat (Y cheat))`. This is why the Y combinator
-is said to be a "fixed point combinator" because it calculates the fixed point
-of the given function. So all you have to do now is to express your recursive
-function using an "unknown :rkt:`f`" and then have the Y-combinator figure out
-what :rkt:`f` to pass to it.
+is said to be a ":index:`fixed point combinator`" because it calculates the
+fixed point of the given function. So all you have to do now is to express your
+recursive function using an "unknown :rkt:`f`" and then have the Y-combinator
+figure out what :rkt:`f` to pass to it.
 
 Can we just solve for the combinator?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -745,6 +763,8 @@ technique/trick that we used to turn :rkt:`cheat` into a non-recursive function
 Now, let's look at the full expression for :rkt:`(G G)` with less judgemental
 variable names --
 
+.. index:: Turing combinator, Θ-combinator
+
 .. code-block:: racket
 
     (define F ((λ (f) (λ (s) (s ((f f) s)))) (λ (f) (λ (s) (s ((f f) s))))))
@@ -758,8 +778,8 @@ s) = s (Y s)`. The difference between the two is this -- since we only used
 β-abstraction to come up with :rkt:`F`, we can see how evaluating :rkt:`(F s)`
 simply β-reduces to :rkt:`(s (F s))`, whereas with the :rkt:`Y` combinator,
 :rkt:`(Y s)` and :rkt:`(s (Y s))` give us the same expression. :rkt:`F` is
-therefore a valid combinator in its own right and is called the "Turing
-combinator", usually denoted by :math:`\Theta`.
+therefore a valid combinator in its own right and is called the ":index:`Turing
+combinator`", usually denoted by :math:`\Theta`.
 
 Can we not be lazy please?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

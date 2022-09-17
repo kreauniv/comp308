@@ -1,8 +1,8 @@
 Stacks and scope
 ================
 
-We considered a minimally useful stack machine in the preceding quiz, which is
-reproduced below for reference -
+We considered a minimally useful :index:`stack machine` in the preceding quiz,
+which is reproduced below for reference -
 
 .. code-block:: racket
 
@@ -97,14 +97,14 @@ Consider the expression we would've written in Racket --
     ; Remove all the parentheses
     sqrt + * a a * b b
 
-This is just the stack machine program written from right to left order! For
-this reason, programs like the ones we wrote for the :rkt:`stack-machine` are
-said to be "postfix notation" while LiSP's notation is also called "prefix
-notation". LiSP's notation admits variadic functions (functions which can take
-any number of arguments such as :rkt:`+`) whereas with the postfix notation the
-"arity" of an operator, or "words" as operators are called in such languages,
-is in general fixed. "Arity" refers to the number of arguments to a function or
-procedure.
+This is just the :index:`stack machine` program written from right to left
+order! For this reason, programs like the ones we wrote for the
+:rkt:`stack-machine` are said to be "postfix notation" while LiSP's notation is
+also called "prefix notation". LiSP's notation admits variadic functions
+(functions which can take any number of arguments such as :rkt:`+`) whereas
+with the postfix notation the "arity" of an operator, or "words" as operators
+are called in such languages, is in general fixed. "Arity" refers to the number
+of arguments to a function or procedure.
 
 .. admonition:: **Aside**
 
@@ -129,10 +129,12 @@ procedure.
 Adding names to the stack-machine
 ---------------------------------
 
-So we'd like to be able to "bind" symbols to values picked from the stack so we
-can recall them whenever we need their values. For this, we need a kind of
-"dictionary" in which we can lookup values associated with symbols. There is a
-Scheme function :rkt:`assoc` that'll do this for us -
+So we'd like to be able to ":index:`bind`" symbols to values picked from the
+stack so we can recall them whenever we need their values. For this, we need a
+kind of "dictionary" in which we can lookup values associated with symbols.
+There is a Scheme function :rkt:`assoc` that'll do this for us -
+
+.. index:: Scheme assoc
 
 .. code-block:: racket
 
@@ -147,12 +149,12 @@ Scheme function :rkt:`assoc` that'll do this for us -
     ; Prints out #f to indicate "not found".
 
 
-So let's augment our stack machine with such a "dictionary" and interpret
-"symbols" we find in the instruction stream to mean "lookup this symbol in the
-dictionary and push the value you find on the top of the stack". We'll call
-this dictionary "bindings" because it is a list of symbols bound to values.
-We'll also add a new "compound instruction" for popping off a value from the
-stack and binding it to a symbol - as :rkt:`(def <symbol>)`.
+So let's augment our stack machine with such a ":index:`dictionary`" and
+interpret "symbols" we find in the instruction stream to mean "lookup this
+symbol in the dictionary and push the value you find on the top of the stack".
+We'll call this dictionary "bindings" because it is a list of symbols bound to
+values. We'll also add a new "compound instruction" for popping off a value
+from the stack and binding it to a symbol - as :rkt:`(def <symbol>)`.
 
 .. code-block:: racket
 
@@ -247,11 +249,11 @@ stack-machine programming language does not have the ability to reuse such
 calculations. For example, we'll have to repeat the whole distance calculation
 code whenever we need to do it. 
 
-We can invent another type of value -- the "block" -- which contains a list of
-instructions (a "program") that we can store bound to a symbol and "invoke"
-whenever we need. Surprisingly, this requires only a small change to our
-stack-machine. We'll also have to add a :rkt:`do` instruction that will
-pop a block off the top of the stack and run its program on the stack.
+We can invent another type of value -- the ":index:`block`" -- which contains a
+list of instructions (a "program") that we can store bound to a symbol and
+"invoke" whenever we need. Surprisingly, this requires only a small change to
+our stack-machine. We'll also have to add a :rkt:`do` instruction that will pop
+a block off the top of the stack and run its program on the stack.
 
 .. code-block:: racket
 
@@ -309,7 +311,7 @@ stack-machine language!
 
     (define program '( (block (def x) (def y) x x * y y * + sqrt)
                        (def distance)
-                       3 4 distance ))
+                       3 4 distance ) )
     (display-state (stack-machine program (State '() '())))
     ; Prints out (5) as the result stack.
 
@@ -341,8 +343,8 @@ We don't want all our variables to be "global" and interfere with each other.
 
 .. note:: Why is this required?  Think about it before reading on.
 
-Let's first fix the problem we noted above, assuming global variables are "a
-bad idea".
+Let's first fix the problem we noted above, assuming :index:`global variables`
+are "a bad idea".
 
 .. code-block:: racket
 
@@ -404,6 +406,8 @@ reference variables that are meaningless in certain ways.
 Dynamic scoping
 ---------------
 
+.. index:: Dynamic scoping
+
 Consider the program below --
 
 .. code-block:: racket
@@ -426,10 +430,10 @@ So, we want this program to also be treated as erroneous and fail rather than
 be given a spurious meaning. 
 
 Programming languages which give meaning to such programs are said to have
-"dynamic scoping". The word "dynamic" here refers to the fact that as the program
-is running, the symbol :rkt:`y` takes on different values and the meaning being
-attributed by the interpreter to the :rkt:`y` within the first block is 
-"whatever value :rkt:`y` happens to have **right now**".
+":index:`dynamic scoping`". The word "dynamic" here refers to the fact that as
+the program is running, the symbol :rkt:`y` takes on different values and the
+meaning being attributed by the interpreter to the :rkt:`y` within the first
+block is "whatever value :rkt:`y` happens to have **right now**".
 
 That global variables are a bad idea is quite easily argued -- two different
 parts of a large program accidentally using the same symbol to refer to
@@ -449,6 +453,8 @@ check how a function behaves in every context it is being invoked.
 Fixing dynamic scoping
 ----------------------
 
+.. index:: Lexical scoping
+
 To fix the "dynamic scoping bug", we need to clarify what exactly is the problem
 in the first place.
 
@@ -459,11 +465,14 @@ The set of bindings in effect when evaluating a particular instruction is
 called its "environment". For a block, we therefore need to distinguish between
 two such "environments". 
 
+.. index:: Definition Environment, Environment/Definition
 The bindings in effect at the point we're creating the "block value" (or "block
 object" if you want) is its "**definition environment**". This "block value"
 refers to the :rkt:`Block` type value we're placing on the stack and therefore
 the "definition environment" is the environment in effect when we're creating
 this :rkt:`Block` type value.
+
+.. index:: Evaluation environment, Environment/Evaluation
 
 The bindings in effect at the point we're invoking the block is called its
 "**evaluation environment**". This is the environment in effect when we
@@ -539,6 +548,12 @@ that we can refer to it later at evaluation time.
 
 
 With this, we've dealt the final blow to dynamic scoping in our interpreter.
+Our interpreter now properly implements ":index:`lexical scoping`" -- i.e. the
+meaning of a particular symbol used is taken to be available in the region of
+program text where it's used. That's an informal way of saying it though. We
+usually imply that there is some region of code (usually delimited by some form
+of brackets or pair of keywords like :rkt:`begin` and :rkt:`end`) which is the
+intended "region of program text".
 
 .. admonition:: **Exercise**
 
@@ -550,3 +565,4 @@ With this, we've dealt the final blow to dynamic scoping in our interpreter.
     Btw we've also gained another ability when we implemented proper lexical
     scoping in :rkt:`stack-machine`. Can you spot it? What possible ways to use
     blocks would you try to exhaust some of these possibilities?
+

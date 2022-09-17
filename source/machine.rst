@@ -12,11 +12,11 @@ our language into a programmable image synthesizer, we're going to have to do
 better than that and understand how we might actually implement the control
 flow implicit in the expressions we've been writing thus far.
 
-To dive in, we can restrict ourselves to simple loops (expressed as "tail
-recursion") and try to capture a mental model of our machine as a program in
-its own right. When we do that, we now get something concrete on our hands to
-work with and ask questions about. We can therefore use this approach to
-inquire into language construction and meaning.
+To dive in, we can restrict ourselves to simple loops (expressed as
+":index:`tail recursion`") and try to capture a mental model of our machine as
+a program in its own right. When we do that, we now get something concrete on
+our hands to work with and ask questions about. We can therefore use this
+approach to inquire into language construction and meaning.
 
 When we interpret an expression like :rkt:`(rotate 30 (translate 2 3 (disc 5.0)))`,
 the sequence of calculations being performed by the interpreter is actually
@@ -41,6 +41,8 @@ can think of -- something that does the following --
 The simplest construct for the "bucket" is the "stack", where we get access
 to the most recent results on the top and earlier results go below the more
 recent ones.
+
+.. index:: Stack machine
 
 Our "machine", therefore, is a function that accepts a list of instructions to
 perform and a stack containing data on which it should perform them and into

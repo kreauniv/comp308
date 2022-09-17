@@ -34,7 +34,7 @@
   <div class="section" id="functions-in-piclang">
 <h1>Functions in PicLang<a class="headerlink" href="#functions-in-piclang" title="Permalink to this headline">¶</a></h1>
 <p>Having seen how to implement proper lexical scoping in our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code>
-in the section <span class="xref std std-ref">Stacks and scope</span>, we’re now well placed to do that within
+in the section <a class="reference internal" href="stacks-and-scope.html"><span class="doc">Stacks and scope</span></a>, we’re now well placed to do that within
 our expression interpreter for PicLang.</p>
 <p>We’re going to need corresponding notions of “blocks” in this language
 and the notion of “do” as well. We’ll also have to have our interpreter
@@ -139,9 +139,8 @@ values given the standard library! The snake must eat its own tail!</p>
 </pre></div>
 </div>
 <p>There, in all its naïvette, is a fully self referential expression of what we
-actually want to produce. But we <span class="xref std std-ref">kind of know how</span>
-to deal with such self reference. Let’s rewrite the above self referential
-function.</p>
+actually want to produce. But we <a href="#id1"><span class="problematic" id="id2">`kind of know how &lt;Lambda&gt;_`_</span></a> to deal with
+such self reference. Let’s rewrite the above self referential function.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">make-standard-library</span> <span class="n">definitions</span> <span class="n">stdlib</span><span class="p">)</span>
     <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">definitions</span><span class="p">)</span>
         <span class="p">(</span><span class="n">make-empty-bindings</span><span class="p">)</span>
@@ -205,7 +204,7 @@ feature of the language (Racket, not PicLang) that we haven’t used so far?</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>An extension to the question in <span class="xref std std-ref">Stacks and scope</span> – we got an
+<p>An extension to the question in <a class="reference internal" href="stacks-and-scope.html"><span class="doc">Stacks and scope</span></a> – we got an
 additional super power appart from ordinary functions with the approach to
 <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">IdC</span></span></code> above. Can you recognize it?
 You’re so familiar with it by now it probably slipped past you without your

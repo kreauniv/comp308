@@ -2,7 +2,7 @@ Functions in PicLang
 ====================
 
 Having seen how to implement proper lexical scoping in our :rkt:`stack-machine`
-in the section :ref:`Stacks and scope`, we're now well placed to do that within
+in the section :doc:`stacks-and-scope`, we're now well placed to do that within
 our expression interpreter for PicLang.
 
 We're going to need corresponding notions of "blocks" in this language
@@ -124,9 +124,8 @@ values given the standard library! The snake must eat its own tail!
                     (make-standard-library (rest definitions))))))
             
 There, in all its naïvette, is a fully self referential expression of what we
-actually want to produce. But we :ref:`kind of know how<Lambda - the everything>`
-to deal with such self reference. Let's rewrite the above self referential
-function.
+actually want to produce. But we `kind of know how <Lambda>_`_ to deal with
+such self reference. Let's rewrite the above self referential function.
 
 .. code-block:: racket
 
@@ -201,7 +200,7 @@ simple one -
     feature of the language (Racket, not PicLang) that we haven't used so far?
 
 
-.. note:: An extension to the question in :ref:`Stacks and scope` -- we got an
+.. note:: An extension to the question in :doc:`stacks-and-scope` -- we got an
    additional super power appart from ordinary functions with the approach to
    :rkt:`FunC` and :rkt:`ApplyC` and :rkt:`IdC` above. Can you recognize it?
    You're so familiar with it by now it probably slipped past you without your

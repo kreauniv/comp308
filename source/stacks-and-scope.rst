@@ -540,4 +540,13 @@ that we can refer to it later at evaluation time.
 
 With this, we've dealt the final blow to dynamic scoping in our interpreter.
 
+.. admonition:: **Exercise**
 
+    While we've "fixed" dynamic scoping, think about whether we've lost any
+    useful ability along the way.
+
+.. admonition:: **Exercise**
+
+    Btw we've also gained another ability when we implemented proper lexical
+    scoping in :rkt:`stack-machine`. Can you spot it? What possible ways to use
+    blocks would you try to exhaust some of these possibilities?

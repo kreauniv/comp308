@@ -466,6 +466,7 @@ called its "environment". For a block, we therefore need to distinguish between
 two such "environments". 
 
 .. index:: Definition Environment, Environment/Definition
+
 The bindings in effect at the point we're creating the "block value" (or "block
 object" if you want) is its "**definition environment**". This "block value"
 refers to the :rkt:`Block` type value we're placing on the stack and therefore

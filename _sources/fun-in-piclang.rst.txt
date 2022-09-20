@@ -48,6 +48,36 @@ consisting of a set of "value terms" - denoted by the :rkt:`V` suffix.
     (struct PictureV (pic))
     (struct FunV (argname bindings expr))
 
+No more subst
+-------------
+
+.. index:: Abstract Syntax Tree, AST 
+
+Next comes a very important change to the interpreter. The substitution process
+walks the expression tree once and then our interpreter does it again. These
+two are also tied by the fact that they both use the same expression tree
+structure (i.e. the "abstract syntax tree"). 
+
+The only job of the :rkt:`subst` function was to replace the :rkt:`IdC` terms
+with their corresponding values. So if we're keeping track of "current
+bindings" as we're evaluating a (sub) expression, then we no longer need a
+separate :rkt:`subst` function. Our interpreter can do that job on its own,
+since it can lookup the value that is expected to go in the :rkt:`(IdC sym)`
+term's place and treat that as the result of "interpreting" that term. This
+would effectively perform a "substitution".
+
+
+Interpreter with bindings
+-------------------------
+
+What we've been loosely calling a "set of bindings" where "binding" refers to a
+name-value pair association has a name -- the "environment". We need some
+practice to translate "environment" in our minds to a data structure that
+associates some meaning (i.e. value) with a set of symbols. So we'll continue
+to use both until that settles. 
+
+.. note:: Personally, I find "environment" a little too broad though it is
+   a standard term used in this context within interpreters.
 
 Here is the modified interpreter ...
 
@@ -60,6 +90,8 @@ Here is the modified interpreter ...
             ; ...
             [(FunC argname expr)
              ; Store away the definition time bindings
+             ; along with the FunV value structure.
+             ;             v------ One more field compared to FunC
              (FunV argname bindings expr)]
             [(ApplyC funexpr valexpr)
              (let ([fun (interp funexpr bindings)]
@@ -74,7 +106,7 @@ Here is the modified interpreter ...
                                              "Function value for application"
                                              funexpr)]))]
             [(IdC id)
-             (lookup-bindings bindings id)]
+             (lookup-binding bindings id)]
             ; ...
             ))
 
@@ -85,7 +117,9 @@ actual choice of structure.
 .. admonition:: **Exercise**
 
     Write appropriate test expressions for this revised interpreter to check
-    whether the scoping behaviour is indeed lexical.
+    whether the scoping behaviour is indeed lexical. Use any simple representation
+    you want to for the "bindings" parameter by implementing the :rkt:`extend-bindings`,
+    :rkt:`lookup-binding` and :rkt:`make-empty-bindings` functions.
 
 A standard library
 ------------------
@@ -159,6 +193,10 @@ If we now rewrite the RHS --
     spec = (λ (stdlib) (make-standard-library definitions stdlib))
     stdlib = (spec stdlib)
 
+    ; Using the Turing combinator approach ...
+    (define (Θ spec) (spec (Θ spec)))
+    stdlib = (Θ spec)
+
 We can now apply our "function is called with itself to enable the function to
 call itself" trick to get -
 
@@ -167,17 +205,20 @@ call itself" trick to get -
 .. code-block:: racket
 
     (define G (λ (f) (λ (spec) (spec (λ (g) (((f f) spec) g))))))
-    (define F (G G))
-    (define stdlib (F spec)) 
+    (define Θ (G G))
+    (define stdlib (Θ spec)) 
 
-Note that we've modified the trick above so it would work with eager evaluation
-strategy instead of the original :rkt:`#lang lazy` choice. The expression
-:rkt:`(λ (g) (((f f) spec) g))` is logically equivalent to :rkt:`((f f) spec)`
-by ":index:`η-reduction`", but helps delay the evaluation of the recursive
-parts by enough so we don't get stuck in an infinite loop.
+We've used the :index:`Turing combinator` here to capture the process of
+computing such a "fixed point". Note that we've modified the trick above so it
+would work with eager evaluation strategy instead of the original :rkt:`#lang
+lazy` choice. The expression :rkt:`(λ (g) (((f f) spec) g))` is logically
+equivalent to :rkt:`((f f) spec)` by ":index:`η-reduction`", but helps delay
+the evaluation of the recursive parts by enough so we don't get stuck in an
+infinite loop.
 
 But this is still pending a specific representation for "bindings". Lets do a
-simple one -
+simple one -- where the idea is that we capture the meaning of "an environment
+can be used to lookup a value given a name" as a lambda function --
 
 .. code-block:: racket
 
@@ -210,9 +251,72 @@ simple one -
     feature of the language (Racket, not PicLang) that we haven't used so far?
 
 
-.. note:: An extension to the question in :doc:`stacks-and-scope` -- we got an
-   additional super power apart from ordinary functions with the approach to
-   :rkt:`FunC` and :rkt:`ApplyC` and :rkt:`IdC` above. Can you recognize it?
-   You're so familiar with it by now it probably slipped past you without your
-   notice.
+.. admonition:: **Question**
+
+    An extension to the question in :doc:`stacks-and-scope` -- we got an
+    additional super power apart from ordinary functions with the approach to
+    :rkt:`FunC` and :rkt:`ApplyC` and :rkt:`IdC` above. Can you recognize it?
+    You're so familiar with it by now it probably slipped past you without your
+    notice.
+
+
+A superpower
+------------
+
+.. index:: Closure
+
+When we interpret a :rkt:`(FunC argname fexpr)` term within the interpreter and
+produce a :rkt:`(FunV argname bindings fexpr)` value, we've also captured the
+current set of bindings that can give meaning to :rkt:`IdC` references within
+the :rkt:`fexpr` part of the :rkt:`FunC` term and stored it away for future
+reference -- for use when we're applying the function to a value in an
+:rkt:`ApplyC` term.
+
+This :rkt:`FunV` structure is called a "closure". In the Scheme/LiSP family, we
+usually don't make it a point to distinguish between "functions" and "closures"
+and freely interchange the two terms. There is no meaningful distinction in
+programs since where functions are acceptable, closures can be passed and vice
+versa. However, while this is true in the LiSP family languages, many languages
+like Objective-C and C++ do differentiate between the two, with the idea that
+the programmer can choose what they want according to the performance criteria
+they need to meet.
+
+For example, you already understand what the following Racket code is expected
+to do .. and what we've done is to model how we do it so our understanding of 
+the scope implications of making closures is now complete.
+
+.. code-block:: racket
+
+    (define adder (lambda (y)
+                        (lambda (x) (+ x y))))
+    (define three-more-than (adder 3))
+    (define ten-more-than (adder 10))
+    (display (three-more-than 8))      ; Prints 11
+    (display (ten-more-than 8))        ; Prints 18
+
+
+Closures are a powerful feature in any language that provides them. We've
+already seen this in the work we did with Church's lambda calculus -- that
+anything computable can be expressed using λ. Looking back, it is both a
+surprise and not a surprise that "mainstream" languages put off adopting
+closures for a long time under the perception that they're inefficient to
+implement, when the lisp family has had them from (pretty much) day one. There
+is some truth to the "inefficiency" myth in the early days, but on today's
+machines and with the heavy use of interpreted languages like Python and PHP,
+the inefficiency argument no longer holds ground. In particular, compilers for
+Common LiSP and Scheme have long implemented proper lexical closures resulting
+in programs more efficient than the interpreted ones.
+
+Where does this myth of inefficiency come from?
+
+A part of it you can see in the way we made the :rkt:`FunV` object. We just
+stored away the **entire** definition environment in the object, without any
+consideration for whether the function expression actually uses any values from
+it. One "optimization" here is to scan the function expression, collect the set
+of references that are bound in the definition environment, and make a new
+:rkt:`bindings` field that only keeps the used ones. Here, we're trading off
+the computational cost of constructing a closure against the memory cost of
+storing unnecessary bindings. Such optimizations are not essential for us to
+consider in this course as they don't (and indeed must not) change the meanings
+of our programs.
 

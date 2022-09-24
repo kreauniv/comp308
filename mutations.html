@@ -12,6 +12,7 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Functions in PicLang" href="fun-in-piclang.html" />
@@ -322,24 +323,37 @@ when you’re “parsing” a stream of symbols (i.e. text), a parser typically 
 what it sees by maintaining a history of states and deciding, upon encountering
 each symbol, what the next state should be. For example, consider a parser for
 decimal numbers of the form “123.4”, “0.4446” etc. We could describe a parser
-for such numbers in terms of 3 states as follows –</p>
-<ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[DIGIT-BEFORE-DECIMAL-PT]</span></code>  If the next character is a decimal digit, we
-add it to our accumulating string and return to the state
-<code class="docutils literal notranslate"><span class="pre">[DIGIT-BEFORE-DECIMAL-PT]</span></code>. If the next character is a period, we add the
-period to the accumulating string and go to state
-<code class="docutils literal notranslate"><span class="pre">[DIGIT-AFTER-DECIMAL-PT]</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[DIGIT-AFTER-DECIMAL-PT]</span></code> If the next character is a decimal digit, we
-add it to our accumulating string and return to the state
+for such numbers in terms of 6 states as follows –</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">[START-DECIMAL-NUMBER]</span></code></dt><dd><p>If the next character is not a decimal digit, we jump to state
+<code class="docutils literal notranslate"><span class="pre">[NOT-A-DECIMAL-NUMBER]</span></code>. If the next character is a decimal digit, we
+add two numbers <span class="math notranslate nohighlight">\(N\)</span> and <span class="math notranslate nohighlight">\(D\)</span> to our state and initialize them
+both to <span class="math notranslate nohighlight">\(0\)</span>, then move to state <code class="docutils literal notranslate"><span class="pre">[DIGIT-BEFORE-DECIMAL-PT]</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">[DIGIT-BEFORE-DECIMAL-PT]</span></code></dt><dd><p>If the next character is a decimal digit
+<span class="math notranslate nohighlight">\(d\)</span>, we update <span class="math notranslate nohighlight">\(N \leftarrow 10N+\text{value}(d)\)</span> and move to
+<code class="docutils literal notranslate"><span class="pre">[DIGIT-BEFORE-DECIMAL-PT]</span></code>. If the next character is a period instead,
+we jump to <code class="docutils literal notranslate"><span class="pre">[DECIMAL-PT]</span></code>. On encountering any other character, we jump
+to <code class="docutils literal notranslate"><span class="pre">[DECIMAL-NUMBER-COMPLETE]</span></code> after returning the character to the stream.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">[DECIMAL-PT]</span></code></dt><dd><p>We set <span class="math notranslate nohighlight">\(D \leftarrow 0\)</span> and move to <code class="docutils literal notranslate"><span class="pre">[DIGIT-AFTER-DECIMAL-PT]</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">[DIGIT-AFTER-DECIMAL-PT]</span></code></dt><dd><p>If the next character is a decimal digit
+<span class="math notranslate nohighlight">\(d\)</span>, we update <span class="math notranslate nohighlight">\(D \leftarrow D+1\)</span> and update <span class="math notranslate nohighlight">\(N \leftarrow
+N+\text{value}(d)\times 10^{-D}\)</span>, and move to state
 <code class="docutils literal notranslate"><span class="pre">[DIGIT-AFTER-DECIMAL-PT]</span></code>. If the next character is anything other than a
-decimal digit, we move to the <code class="docutils literal notranslate"><span class="pre">[DECIMAL-NUMBER-COMPLETE]</span></code> state.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[DECIMAL-NUMBER-COMPLETE]</span></code> We take whatever string we’ve accumulated so
-far and process it as a valid decimal number (whatever that means based on
-the task we’re parsing it for). We may then choose to jump to another state
-or stop.</p></li>
-</ol>
-<p>So we could write a state machine with three states numbered 0, 1, 2 which can
-handle parsing of such decimal numbers given one character at a time.</p>
+decimal digit, we return the character to the stream and move to the
+<code class="docutils literal notranslate"><span class="pre">[DECIMAL-NUMBER-COMPLETE]</span></code> state.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">[DECIMAL-NUMBER-COMPLETE]</span></code></dt><dd><p>We declare the result of the parse to be the
+number <span class="math notranslate nohighlight">\(N\)</span>. If our task is done, we can keep returning to this same
+state. Otherwise we can move to another state as required.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">[NOT-A-DECIMAL-NUMBER]</span></code></dt><dd><p>This is a terminal state since we can’t do anything else at this point.</p>
+</dd>
+</dl>
+<p>So we could write a state machine with three states numbered 0,1,2,3,4,5 which
+can handle parsing of such decimal numbers given one character at a time.</p>
 </div>
 </div>
 

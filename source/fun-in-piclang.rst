@@ -33,7 +33,7 @@ produce a picture. Just as the :rkt:`(block (def x) ...)` instruction produces
 a :rkt:`Block` object on the stack in our :rkt:`stack-machine`, we'll take a
 :rkt:`FunC` expression to produce a ... "function value".
 
-This means we need to expand the notion of what our PicLang :rkt`interpret`
+This means we need to expand the notion of what our PicLang :rkt:`interpret`
 function can return to include such function values. Incidentally, we've now
 expanded the scope of what :rkt:`ApplyC` can produce to include function values
 too. In other words, we've in two strokes admitted first class functions into

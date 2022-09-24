@@ -7,10 +7,9 @@ our expression interpreter for PicLang.
 
 We're going to need corresponding notions of "blocks" in this language
 and the notion of "do" as well. We'll also have to have our interpreter
-keep track of bindings as wel go along, so we can eliminate the whole
+keep track of bindings as we go along, so we can eliminate the whole
 substitution process and replace it with a single pass interpreter that
-does effectively the same (and correctly) without having to run through a 
-"substitution pass" before performing interpretation.
+does effectively the same (and correctly).
 
 We'll call the equivalent of a "block" a :rkt:`FunC` in PicLang, defined
 as below --
@@ -30,22 +29,22 @@ We'll call the equivalent of the :rkt:`do` instruction :rkt:`ApplyC` here.
 An important thing to note is that we're now considering :rkt:`FunC` and
 :rkt:`ApplyC` terms to be valid :rkt:`PicExprC` terms. While we can expect
 :rkt:`ApplyC` to produce pictures, evaluating :rkt:`FunC` clearly does not
-produce a picture. Just as the :rkt:`(block (def x) ...)` instruction produces a
-:rkt:`Block` object on the stack in our :rkt:`stack-machine`, a :rkt:`FunC`
-expression produces a ... "function value".
+produce a picture. Just as the :rkt:`(block (def x) ...)` instruction produces
+a :rkt:`Block` object on the stack in our :rkt:`stack-machine`, we'll take a
+:rkt:`FunC` expression to produce a ... "function value".
 
 This means we need to expand the notion of what our PicLang :rkt`interpret`
-function can return to include such function values. Incidentally, we've
-now expanded the scope of what :rkt:`ApplyC` can produce to include
-function values too. In other words, we've in two strokes admitted
-first class functions into our language!
+function can return to include such function values. Incidentally, we've now
+expanded the scope of what :rkt:`ApplyC` can produce to include function values
+too. In other words, we've in two strokes admitted first class functions into
+our language!
 
 We'll now formalize the return type of :rkt:`interp` using a type
 consisting of a set of "value terms" - denoted by the :rkt:`V` suffix.
 
 .. code-block:: racket
 
-    (struct PictureV (pic))
+    (struct PicV (pic))
     (struct FunV (argname bindings expr))
 
 No more subst
@@ -120,6 +119,16 @@ actual choice of structure.
     whether the scoping behaviour is indeed lexical. Use any simple representation
     you want to for the "bindings" parameter by implementing the :rkt:`extend-bindings`,
     :rkt:`lookup-binding` and :rkt:`make-empty-bindings` functions.
+
+.. admonition:: **Question**
+
+    Consider the way we're evaluating :rkt:`FunC` terms in the interpreter. We
+    store the current state of the :rkt:`bindings` argument in the resulting
+    :rkt:`FunV` structure .. which is one of the possible result values of our
+    interpreter. Do we need to store *all* the bindings in the :rkt:`FunV`
+    structure? What are the consequences of storing all the bindings? Can we
+    trim it down? If we can, how should we determine the set of bindings to
+    trim down to?
 
 A standard library
 ------------------

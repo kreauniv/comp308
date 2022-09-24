@@ -38,10 +38,9 @@ in the section <a class="reference internal" href="stacks-and-scope.html"><span 
 our expression interpreter for PicLang.</p>
 <p>We’re going to need corresponding notions of “blocks” in this language
 and the notion of “do” as well. We’ll also have to have our interpreter
-keep track of bindings as wel go along, so we can eliminate the whole
+keep track of bindings as we go along, so we can eliminate the whole
 substitution process and replace it with a single pass interpreter that
-does effectively the same (and correctly) without having to run through a
-“substitution pass” before performing interpretation.</p>
+does effectively the same (and correctly).</p>
 <p>We’ll call the equivalent of a “block” a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> in PicLang, defined
 as below –</p>
 <div class="highlight-racket notranslate" id="index-0"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">FunC</span> <span class="p">(</span><span class="n">argname</span> <span class="n">expr</span><span class="p">))</span>
@@ -54,17 +53,17 @@ as below –</p>
 <p>An important thing to note is that we’re now considering <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> and
 <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> terms to be valid <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> terms. While we can expect
 <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> to produce pictures, evaluating <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> clearly does not
-produce a picture. Just as the <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">block</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">def</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="keyword"><span class="pre">…</span></span><span class="punctuation"><span class="pre">)</span></span></code> instruction produces a
-<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Block</span></span></code> object on the stack in our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code>, a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code>
-expression produces a … “function value”.</p>
+produce a picture. Just as the <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">block</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">def</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="keyword"><span class="pre">…</span></span><span class="punctuation"><span class="pre">)</span></span></code> instruction produces
+a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Block</span></span></code> object on the stack in our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code>, we’ll take a
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> expression to produce a … “function value”.</p>
 <p>This means we need to expand the notion of what our PicLang :rkt`interpret`
-function can return to include such function values. Incidentally, we’ve
-now expanded the scope of what <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> can produce to include
-function values too. In other words, we’ve in two strokes admitted
-first class functions into our language!</p>
+function can return to include such function values. Incidentally, we’ve now
+expanded the scope of what <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> can produce to include function values
+too. In other words, we’ve in two strokes admitted first class functions into
+our language!</p>
 <p>We’ll now formalize the return type of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">interp</span></span></code> using a type
 consisting of a set of “value terms” - denoted by the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">V</span></span></code> suffix.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">PictureV</span> <span class="p">(</span><span class="n">pic</span><span class="p">))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">PicV</span> <span class="p">(</span><span class="n">pic</span><span class="p">))</span>
 <span class="p">(</span><span class="k">struct</span> <span class="n">FunV</span> <span class="p">(</span><span class="n">argname</span> <span class="n">bindings</span> <span class="n">expr</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -132,6 +131,16 @@ actual choice of structure.</p>
 whether the scoping behaviour is indeed lexical. Use any simple representation
 you want to for the “bindings” parameter by implementing the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">extend-bindings</span></span></code>,
 <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">lookup-binding</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">make-empty-bindings</span></span></code> functions.</p>
+</div>
+<div class="admonition-question admonition">
+<p class="admonition-title"><strong>Question</strong></p>
+<p>Consider the way we’re evaluating <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> terms in the interpreter. We
+store the current state of the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">bindings</span></span></code> argument in the resulting
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunV</span></span></code> structure .. which is one of the possible result values of our
+interpreter. Do we need to store <em>all</em> the bindings in the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunV</span></span></code>
+structure? What are the consequences of storing all the bindings? Can we
+trim it down? If we can, how should we determine the set of bindings to
+trim down to?</p>
 </div>
 </div>
 <div class="section" id="a-standard-library">

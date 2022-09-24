@@ -376,7 +376,7 @@ for such numbers in terms of 6 states as follows --
 ``[NOT-A-DECIMAL-NUMBER]``
     This is a terminal state since we can't do anything else at this point.
     
-So we could write a state machine with three states numbered 0,1,2,3,4,5 which
+So we could write a state machine with these states numbered 0,1,2,3,4,5 which
 can handle parsing of such decimal numbers given one character at a time.
 
 

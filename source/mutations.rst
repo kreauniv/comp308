@@ -341,26 +341,42 @@ when you're "parsing" a stream of symbols (i.e. text), a parser typically tracks
 what it sees by maintaining a history of states and deciding, upon encountering
 each symbol, what the next state should be. For example, consider a parser for
 decimal numbers of the form "123.4", "0.4446" etc. We could describe a parser
-for such numbers in terms of 3 states as follows --
-
-1. ``[DIGIT-BEFORE-DECIMAL-PT]``  If the next character is a decimal digit, we
-   add it to our accumulating string and return to the state
-   ``[DIGIT-BEFORE-DECIMAL-PT]``. If the next character is a period, we add the
-   period to the accumulating string and go to state
-   ``[DIGIT-AFTER-DECIMAL-PT]``.
-
-2. ``[DIGIT-AFTER-DECIMAL-PT]`` If the next character is a decimal digit, we
-   add it to our accumulating string and return to the state
-   ``[DIGIT-AFTER-DECIMAL-PT]``. If the next character is anything other than a
-   decimal digit, we move to the ``[DECIMAL-NUMBER-COMPLETE]`` state.
-
-3. ``[DECIMAL-NUMBER-COMPLETE]`` We take whatever string we've accumulated so
-   far and process it as a valid decimal number (whatever that means based on
-   the task we're parsing it for). We may then choose to jump to another state
-   or stop.
+for such numbers in terms of 6 states as follows --
 
 
-So we could write a state machine with three states numbered 0, 1, 2 which can
-handle parsing of such decimal numbers given one character at a time.
+``[START-DECIMAL-NUMBER]`` 
+    If the next character is not a decimal digit, we jump to state
+    ``[NOT-A-DECIMAL-NUMBER]``. If the next character is a decimal digit, we
+    add two numbers :math:`N` and :math:`D` to our state and initialize them
+    both to :math:`0`, then move to state ``[DIGIT-BEFORE-DECIMAL-PT]``.
+
+``[DIGIT-BEFORE-DECIMAL-PT]``  
+    If the next character is a decimal digit
+    :math:`d`, we update :math:`N \leftarrow 10N+\text{value}(d)` and move to
+    ``[DIGIT-BEFORE-DECIMAL-PT]``. If the next character is a period instead,
+    we jump to ``[DECIMAL-PT]``. On encountering any other character, we jump
+    to ``[DECIMAL-NUMBER-COMPLETE]`` after returning the character to the stream.
+
+``[DECIMAL-PT]``
+    We set :math:`D \leftarrow 0` and move to ``[DIGIT-AFTER-DECIMAL-PT]``.
+
+``[DIGIT-AFTER-DECIMAL-PT]``
+    If the next character is a decimal digit
+    :math:`d`, we update :math:`D \leftarrow D+1` and update :math:`N \leftarrow
+    N+\text{value}(d)\times 10^{-D}`, and move to state
+    ``[DIGIT-AFTER-DECIMAL-PT]``. If the next character is anything other than a
+    decimal digit, we return the character to the stream and move to the
+    ``[DECIMAL-NUMBER-COMPLETE]`` state.
+
+``[DECIMAL-NUMBER-COMPLETE]`` 
+    We declare the result of the parse to be the
+    number :math:`N`. If our task is done, we can keep returning to this same
+    state. Otherwise we can move to another state as required.
+
+``[NOT-A-DECIMAL-NUMBER]``
+    This is a terminal state since we can't do anything else at this point.
+    
+So we could write a state machine with three states numbered 0,1,2,3,4,5 which
+can handle parsing of such decimal numbers given one character at a time.
 
 

@@ -22,6 +22,7 @@ help:
 pages: html
 	cd build/html && tar zcvf /tmp/comp308-html.tar.gz . > /dev/null
 	tar zcvf /tmp/comp308-backup-`date "+%Y%m%d%H%M%S"`.tar.gz . > /dev/null
+	rm -rf build
 	git checkout gh-pages
 	git reset --hard 
 	git clean -f -d

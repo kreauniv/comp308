@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:dc="http://purl.org/dc/elements/1.1/" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" viewBox="192.5 106 543.4 515.948" width="543.4" height="515.948">
+  <defs>
+    <linearGradient x1="0" x2="1" id="Gradient" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#76bdff"/>
+      <stop offset="1" stop-color="#5070ff"/>
+    </linearGradient>
+    <linearGradient id="Obj_Gradient" xl:href="#Gradient" gradientTransform="translate(432.25 325.5) rotate(90) scale(83.5)"/>
+    <linearGradient id="Obj_Gradient_2" xl:href="#Gradient" gradientTransform="translate(374 130.5) rotate(90) scale(128.5)"/>
+    <linearGradient x1="0" x2="1" id="Gradient_2" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#86eefc"/>
+      <stop offset="1" stop-color="#22acfd"/>
+    </linearGradient>
+    <linearGradient id="Obj_Gradient_3" xl:href="#Gradient_2" gradientTransform="translate(587.25 130.5) rotate(90) scale(128.5)"/>
+    <linearGradient x1="0" x2="1" id="Gradient_3" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffdf7d"/>
+      <stop offset="1" stop-color="#ff7900"/>
+    </linearGradient>
+    <linearGradient id="Obj_Gradient_4" xl:href="#Gradient_3" gradientTransform="translate(434.25 475.5) rotate(90) scale(27.5)"/>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledArrow_Marker" stroke-linejoin="miter" stroke-miterlimit="10" viewBox="-1 -3 6 6" markerWidth="6" markerHeight="6" color="#54b1ff">
+      <g>
+        <path d="M 3.7333333 0 L 0 -1.4 L 0 1.4 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledArrow_Marker_2" stroke-linejoin="miter" stroke-miterlimit="10" viewBox="-1 -2 5 4" markerWidth="5" markerHeight="4" color="black">
+      <g>
+        <path d="M 2.5142857 0 L 0 -.9428571 L 0 .9428571 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledArrow_Marker_3" stroke-linejoin="miter" stroke-miterlimit="10" viewBox="-4 -2 5 4" markerWidth="5" markerHeight="4" color="black">
+      <g>
+        <path d="M -2.5142857 0 L 0 .9428571 L 0 -.9428571 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledArrow_Marker_4" stroke-linejoin="miter" stroke-miterlimit="10" viewBox="-1 -3 7 6" markerWidth="7" markerHeight="6" color="black">
+      <g>
+        <path d="M 4.8 0 L 0 -1.8 L 0 1.8 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledArrow_Marker_5" stroke-linejoin="miter" stroke-miterlimit="10" viewBox="-6 -3 7 6" markerWidth="7" markerHeight="6" color="black">
+      <g>
+        <path d="M -4.8 0 L 0 1.8 L 0 -1.8 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+    <linearGradient id="Obj_Gradient_5" xl:href="#Gradient_3" gradientTransform="translate(672.4 385.1) scale(39)"/>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledArrow_Marker_6" stroke-linejoin="miter" stroke-miterlimit="10" viewBox="-1 -3 7 6" markerWidth="7" markerHeight="6" color="#5c54ff">
+      <g>
+        <path d="M 4.8 0 L 0 -1.8 L 0 1.8 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledArrow_Marker_7" stroke-linejoin="miter" stroke-miterlimit="10" viewBox="-6 -3 7 6" markerWidth="7" markerHeight="6" color="#5c54ff">
+      <g>
+        <path d="M -4.8 0 L 0 1.8 L 0 -1.8 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+    <linearGradient id="Obj_Gradient_6" xl:href="#Gradient_2" gradientTransform="translate(673.75 130.5) rotate(90) scale(128.5)"/>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledArrow_Marker_8" stroke-linejoin="miter" stroke-miterlimit="10" viewBox="-5 -3 6 6" markerWidth="6" markerHeight="6" color="#54b1ff">
+      <g>
+        <path d="M -3.7333333 0 L 0 1.4 L 0 -1.4 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+  </defs>
+  <g id="Canvas_1" stroke-dasharray="none" fill-opacity="1" fill="none" stroke-opacity="1" stroke="none">
+    <title>Canvas 1</title>
+    <g id="Canvas_1_Layer_1">
+      <title>Layer 1</title>
+      <g id="Graphic_2">
+        <rect x="376" y="325.5" width="112.5" height="83.5" fill="url(#Obj_Gradient)"/>
+        <rect x="376" y="325.5" width="112.5" height="83.5" stroke="#506fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(381 353.93092)" fill="white">
+          <tspan font-family="Helvetica Neue" font-weight="bold" font-size="22" fill="white" x="27.611" y="21">CPU</tspan>
+        </text>
+      </g>
+      <g id="Graphic_11">
+        <rect x="217" y="130.5" width="314" height="128.5" fill="url(#Obj_Gradient_2)"/>
+        <rect x="217" y="130.5" width="314" height="128.5" stroke="#506fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(222 170.97)" fill="white">
+          <tspan font-family="Helvetica Neue" font-size="20" fill="white" x="94.59" y="19">Data storage</tspan>
+        </text>
+      </g>
+      <g id="Graphic_12">
+        <rect x="531" y="130.5" width="112.5" height="128.5" fill="url(#Obj_Gradient_3)"/>
+        <rect x="531" y="130.5" width="112.5" height="128.5" stroke="#506fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(536 176.302)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="16" fill="black" x="20.578" y="15">Program</tspan>
+          <tspan font-family="Helvetica Neue" font-size="16" fill="black" x="21.906" y="33.448">Memory</tspan>
+        </text>
+      </g>
+      <g id="Graphic_13">
+        <rect x="250.5" y="475.5" width="367.5" height="27.5" fill="url(#Obj_Gradient_4)"/>
+        <rect x="250.5" y="475.5" width="367.5" height="27.5" stroke="#506fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(255.5 480.026)" fill="white">
+          <tspan font-family="Helvetica Neue" font-size="16" fill="white" x="148.686" y="15">Network</tspan>
+        </text>
+      </g>
+      <g id="Line_14">
+        <path d="M 586.5103 259 L 585.2617 367.45312 L 504.39997 367.2871" marker-end="url(#FilledArrow_Marker)" stroke="#54b1ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+      </g>
+      <g id="Line_18">
+        <path d="M 274.0078 277.7453 L 274.0078 368.5 L 355.4502 368.85557" marker-end="url(#FilledArrow_Marker_2)" marker-start="url(#FilledArrow_Marker_3)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="7"/>
+      </g>
+      <g id="Line_19">
+        <line x1="434.55455" y1="421.89987" x2="434.3705" y2="462.60013" marker-end="url(#FilledArrow_Marker_4)" marker-start="url(#FilledArrow_Marker_5)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+      <g id="Line_23">
+        <line x1="434.25" y1="515.9" x2="434.25" y2="556.6" marker-end="url(#FilledArrow_Marker_4)" marker-start="url(#FilledArrow_Marker_5)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+      <g id="Graphic_24">
+        <rect x="672.4" y="319.6" width="39" height="131" fill="url(#Obj_Gradient_5)"/>
+        <rect x="672.4" y="319.6" width="39" height="131" stroke="#506fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(682.676 445.6) rotate(-90)" fill="white">
+          <tspan font-family="Helvetica Neue" font-size="16" fill="white" x="14.132" y="15">I/O DEVICES</tspan>
+        </text>
+      </g>
+      <g id="Line_25">
+        <line x1="501.07166" y1="386.19914" x2="659.5002" y2="385.2866" marker-end="url(#FilledArrow_Marker_6)" marker-start="url(#FilledArrow_Marker_7)" stroke="#5c54ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+      </g>
+      <g id="Graphic_26">
+        <text transform="translate(373.634 574.5)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="16" fill="black" x="0" y="15">Other computers</tspan>
+        </text>
+      </g>
+      <g id="Graphic_27">
+        <rect x="643.5" y="130.5" width="60.5" height="128.5" fill="url(#Obj_Gradient_6)"/>
+        <rect x="643.5" y="130.5" width="60.5" height="128.5" stroke="#506fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(648.5 185.526)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="16" fill="black" x="4.802" y="15">Stack</tspan>
+        </text>
+      </g>
+      <g id="Line_29">
+        <path d="M 659.6758 274.65898 L 643.5 366.5 L 504.1342 367.1767" marker-end="url(#FilledArrow_Marker)" marker-start="url(#FilledArrow_Marker_8)" stroke="#54b1ff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+      </g>
+    </g>
+  </g>
+</svg>

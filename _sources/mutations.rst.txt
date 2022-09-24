@@ -72,10 +72,295 @@ next, something has happened to the box. It is this "something" that we intend
 to model in our interpreter. We'll consider both models -- the expression
 evaluator we've called :rkt:`interp` as well as the :rkt:`stack-machine`.
 
+Working with "boxes" is done via three functions -
+
+1. :rkt:`(box <val>)` which creates a mutable box and returns a reference to
+   the box.
+
+2. :rkt:`(unbox b)` which looks into the given box and produces the value it
+   contains.
+
+3. :rkt:`(set-box! b <newval>)` which replaces the contents of the given box
+   with the new value. The result value of :rkt:`set-box!` is of no consequence
+   and can be anything we deem convenient to us. We might consider it
+   convenient for it to produce the box itself, for example. Racket makes this
+   irrelevance explicit by declaring :rkt:`set-box!` expressions to result in
+   :rkt:`void`.
+
+Sequencing
+----------
+
+The main aspect of using boxes that we need to pay attention to is that
+with operations like :rkt:`set-box!`, we now have to pay attention to the order
+in which expressions are evaluated, even at the same "level" in our expression
+language. Racket has a construct that makes this sequencing explicit --
+
+.. code-block:: racket
+
+    (begin
+        <expr1>
+        <expr2>
+        ...
+        <exprN>)
+
+The result of such a :rkt:`begin` expression is that of the last :rkt:`<exprN>`
+in the sequence. :rkt:`begin` guarantees that the expressions will be evaluated
+in the given order, so we can make assumptions about any mutating operations
+we've used there. 
+
+So if we're to add mutating operations to our :rkt:`PicLang`, we will need
+to add a notion of "boxes" as well as implement a notion of sequencing.
+
+Sequencing in the stack machine
+-------------------------------
+
+We've already seen sequencing of operations happening in our
+:rkt:`stack-machine` -- whose "program" consists of a sequence of instructions,
+each of which take in a "state" and produce a new state. In our case, "state"
+includes a "stack" as well as a "list of bindings" structure.
+
+The mechanism of passing this state from one instruction to another is
+worth revisiting since that is the same mechanism we'll need to bring about
+mutations in our :rkt:`PicLang`.
+
+.. code-block:: racket
+
+    (define (stack-machine program state)
+        (if (empty? program)
+            state
+            ;      v--- the next state                         v------- the current state
+            (let ([state2 (process-instruction (first program) state)])
+               ;                                  | Use the next state for the rest
+               ;                             v----/ of the program.
+               (stack-machine (rest program) state2))))
+
+We see how what we're calling "state" undergoes changes as each instruction is
+performed, resulting in the final state. The sequence of instruction evaluation
+very much matters with our stack machine, unlike the expression evaluation
+based interpreter we wrote, which relies on Racket's own stack mechanism.
+
+So let's now look at how to implement such sequencing in our PicLang.
+
+Terms for boxes
+---------------
+
+Corresponding to the functions that Racket provides for boxes, we'll need a
+few new terms --
+
+.. code-block:: racket
+
+    (struct BoxC (expr))    ; Makes a new box whose value is the result
+                            ; of evluating the given expression.
+
+    (struct UnboxC (var))   ; var is expected to be an identifier bound to
+                            ; box value in the current environment.
+
+    (struct SetBoxC (var valexpr)) ; For modifying the contents of the box
+                                      ; to hold a new value. The first field
+                                      ; is expected to be a identifier bound
+                                      ; to a box value in the current environment.
 
 
+We also saw that to implement mutating operations, we will need a notion of
+"sequencing" in our language. We'll add a term for that too, which corresponds
+to the Racket :rkt:`begin` expression.
+
+.. code-block:: racket
+
+    (struct SeqC (expr1 expr2))   ; We'll limit ourselves to two expressions
+                                  ; as we can compose more using a form like
+                                  ; (SeqC expr1 (SeqC expr2 (SeqC expr3 expr4)))
 
 
+Now let's look at how our interpreter will handle these terms. The result of
+our interpreter will now need to be a pair of values - the actual value
+and the new state of the "storage" that is woven through the sequencing
+operations.
 
+We'll also need a new possible value for our interpreter .. one we expect
+to get when we evaluate a :rkt:`BoxC` term. We'll call this :rkt:`BoxV`
+and have the structure store a "reference" that points into the storage.
+
+
+.. code-block:: racket
+
+    (struct Result (val storage))
+    (struct BoxV (ref))
+    (struct NewRef (ref storage)) ; Returned by make-reference
+
+    (define (interp expr bindings storage)
+        (match expr
+            ; ...
+            ; ... TASK: rewrite the ordinary expressions to return a Result structure.
+            ; ...
+            [(BoxC valexpr)
+             (let ([r (interp valexpr bindings storage)])
+                 (let ([b (make-reference (Result-storage r))])
+                    (Result (BoxV (NewRef-ref b)) (NewRef-storage b))))]
+            [(UnboxC var)
+             ; Notice that unboxing is not expected to modify the storage.
+             (Result (read-reference (lookup-binding var bindings) storage) storage)]
+            [(SetBoxC var valexpr)
+             (match (interp valexpr bindings storage)
+                [(Result val storage2)
+                 (let ([storage3 (write-reference var val storage2)])
+                    (Result val storage3))])]
+            [(SeqC expr1 expr2)
+             ;                                v--- Initial storage state
+             (let ([r1 (interp expr1 bindings storage)])
+                 ;                      v--- Storage state *after* expr1.                
+                 (interp expr2 bindings (Result-storage r1)))]
+            ; ...
+            ; ... TASK: ApplyC implementation also needs to change. Rewrite it.
+            ; ...
+            ))
+
+
+Variations
+----------
+
+We have some choices in how we define the :rkt:`UnboxC` and :rkt:`SetBoxC`
+terms. In the preceding formulation, we specified :rkt:`UnboxC` to hold an
+*identifier* to be looked up in the current environment for a box value. We
+could've instead defined it to take a box-expression -- i.e. an expression that
+will evaluate to a box value -- so we could in principle write :rkt:`(UnboxC
+(BoxC 42))` if we wanted to, though there is not much of a point to boxing a
+value only to immediately unbox it. Typically we'd want :rkt:`(UnboxC (IdC 'name))`
+and the above formulation meets that simple need.
+
+The same goes with :rkt:`SetBoxC` terms too. We could've defined it to be
+:rkt:`(SetBoxC boxexpr valexpr)`, but then we'd have had to sequence the
+evaluation of :rkt:`boxexpr` and :rkt:`valexpr` .. which means we'll be
+duplicating the functionality of :rkt:`SeqC`. Furthermore, we could treat this
+extended form as syntactic sugar too. For example, we could desugar
+:rkt:`(SetBoxS boxexpr valexpr)` to :rkt:`(ApplyC (FunC 'b (SetBoxC (IdC 'b)
+valexpr)) boxexpr)`, where we handle :rkt:`(SetBoxC (IdC sym) valexpr)` in the
+interpreter as though we expect only :rkt:`IdC` terms in the first slot.
+
+Super powers
+------------
+
+With any such feature addition to a language, it is always necessary to ask
+what kinds of, what we've been calling, "super powers" does it give us. So
+what new super power did we gain by having mutable storage in our language?
+
+.. note:: Think about this for a bit and see if you can come up with your
+   own answers before reading on.
+
+When introducing this feature, we also had to ensure that our other existing
+language terms work sensibly with this new one. For example, in implementing
+:rkt:`(ApplyC funexpr valexpr)`, we needed to sequence the evaluation of 
+the :rkt:`funexpr` term and the :rkt:`valexpr` term, because either term could
+contain subexpressions that change the state of the storage. It is as though
+:rkt:`ApplyC` is to behave like :rkt:`(ApplyC funexpr (SeqC funexpr valexpr))`
+in our older implementation of :rkt:`ApplyC` which did not propagate the storage
+changes to the evaluation of the :rkt:`valexpr` part. 
+
+Super powers we gain from a new language feature are usually from the
+consequences of ensuring sensible interoperability of the new feature with the
+existing features.
+
+In this case, we've gained the ability to have our functions produce different
+values each time they're applied. Here's how you'd express this possibility
+in Racket code --
+
+.. code-block:: racket
+
+    (define (count-up start) 
+        (let ([b (box start)])
+            (λ ()
+                (let ([v (unbox b)])
+                    (set-box! b (+ v 1))
+                    v))))
+
+    (define nats (count-up 0))
+    (writeln (nats)) ; prints 0
+    (writeln (nats)) ; prints 1
+    (writeln (nats)) ; prints 2
+    (writeln (nats)) ; prints 3
+
+ 
+.. admonition:: **Exercise**
+
+    Think of a case in PicLang where this could be useful. Code it up,
+    make some interesting pictures and share on the discussion board.
+
+.. index:: State machines
+
+"Function returning different values each time it is called" is a kind of silly
+way of stating the "super power" we've got. This is much bigger than what it
+looks like -- which perhaps deserves a response like "ok, so what?".
+
+To see why this is much bigger, think of what we can do with something even as
+simple as an counter like above. Imagine a general function of this form --
+
+.. code-block:: racket
+
+    (define machine (lambda (n arg)
+                        (match n
+                            [0 (list expr0 <next-n>)]
+                            [1 (list expr1 <next-n>)]
+                            [2 (list expr2 <next-n>)]
+                            ;...
+                            )))
+
+
+The way we can use this function is to start with passing :rkt:`n=0`
+and get the result, then take the :rkt:`next-n` part and call the function
+again with that :rkt:`next-n` value and repeat this process.
+
+.. note:: You've done this before earlier in this section. Twice! Can you
+   recognize this pattern?
+
+However, it is kind of cumbersome to pass the :rkt:`next-n` values like 
+that. Because we now have sequencing ability in our language, we can
+express it as a function that will keep changing what it calculates
+every time it is called without us doing any of that "threading" of
+:rkt:`next-n` values.
+
+.. code-block:: racket
+
+    (define machine (let ([b (box 0)])
+                        (lambda (arg)
+                            (match (unbox b)
+                                [0 (let ([v0 expr0]) (set-box! b <next-n>) v0)]
+                                [1 (let ([v1 expr1]) (set-box! b <next-n>) v1)]
+                                [2 (let ([v2 expr2]) (set-box! b <next-n>) v2)]
+                                ; ...
+                                ))))
+
+Now, the machine will keep jumping between these numbered "states" every time
+we call it with some argument. We call such functions "state machines" ...
+which is closely related to the architecture of the :rkt:`stack-machine` we've
+worked with so far. State machines are a great way to organize certain kinds of
+computations.
+
+We won't get into the details of state machines right now as we'll have plenty
+of opportunity soon enough. However, here is an example that might be relatable --
+when you're "parsing" a stream of symbols (i.e. text), a parser typically tracks
+what it sees by maintaining a history of states and deciding, upon encountering
+each symbol, what the next state should be. For example, consider a parser for
+decimal numbers of the form "123.4", "0.4446" etc. We could describe a parser
+for such numbers in terms of 3 states as follows --
+
+1. ``[DIGIT-BEFORE-DECIMAL-PT]``  If the next character is a decimal digit, we
+   add it to our accumulating string and return to the state
+   ``[DIGIT-BEFORE-DECIMAL-PT]``. If the next character is a period, we add the
+   period to the accumulating string and go to state
+   ``[DIGIT-AFTER-DECIMAL-PT]``.
+
+2. ``[DIGIT-AFTER-DECIMAL-PT]`` If the next character is a decimal digit, we
+   add it to our accumulating string and return to the state
+   ``[DIGIT-AFTER-DECIMAL-PT]``. If the next character is anything other than a
+   decimal digit, we move to the ``[DECIMAL-NUMBER-COMPLETE]`` state.
+
+3. ``[DECIMAL-NUMBER-COMPLETE]`` We take whatever string we've accumulated so
+   far and process it as a valid decimal number (whatever that means based on
+   the task we're parsing it for). We may then choose to jump to another state
+   or stop.
+
+
+So we could write a state machine with three states numbered 0, 1, 2 which can
+handle parsing of such decimal numbers given one character at a time.
 
 

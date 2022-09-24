@@ -14,6 +14,7 @@
     <script src="_static/doctools.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Functions in PicLang" href="fun-in-piclang.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -41,7 +42,7 @@ look deeper to see why such a sequencing even deserves a mention there.</p>
 <p>Let’s look at a typical computer architecture –</p>
 <div class="figure align-center" id="id1">
 <img alt="A diagram of components of a modern computer. Features a CPU, data storage, program memory, I/O devices and the network." src="_images/computer.png" />
-<p class="caption"><span class="caption-text">Core components of a modern “computer”.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-number">Fig. 4 </span><span class="caption-text">Core components of a modern “computer”.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </div>
 <p>Such a computer features a CPU at the heart, which pull a sequence of instructions
 from the “program memory” and “executes” them one by one. Some of these instructions
@@ -88,6 +89,257 @@ As seen in the example above, between the first <code class="code highlight rack
 next, something has happened to the box. It is this “something” that we intend
 to model in our interpreter. We’ll consider both models – the expression
 evaluator we’ve called <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">interp</span></span></code> as well as the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code>.</p>
+<p>Working with “boxes” is done via three functions -</p>
+<ol class="arabic simple">
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">box</span></span> <span class="name"><span class="pre">&lt;val&gt;</span></span><span class="punctuation"><span class="pre">)</span></span></code> which creates a mutable box and returns a reference to
+the box.</p></li>
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">unbox</span></span> <span class="name"><span class="pre">b</span></span><span class="punctuation"><span class="pre">)</span></span></code> which looks into the given box and produces the value it
+contains.</p></li>
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">set-box!</span></span> <span class="name"><span class="pre">b</span></span> <span class="name"><span class="pre">&lt;newval&gt;</span></span><span class="punctuation"><span class="pre">)</span></span></code> which replaces the contents of the given box
+with the new value. The result value of <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">set-box!</span></span></code> is of no consequence
+and can be anything we deem convenient to us. We might consider it
+convenient for it to produce the box itself, for example. Racket makes this
+irrelevance explicit by declaring <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">set-box!</span></span></code> expressions to result in
+<code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">void</span></span></code>.</p></li>
+</ol>
+</div>
+<div class="section" id="sequencing">
+<h2>Sequencing<a class="headerlink" href="#sequencing" title="Permalink to this headline">¶</a></h2>
+<p>The main aspect of using boxes that we need to pay attention to is that
+with operations like <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">set-box!</span></span></code>, we now have to pay attention to the order
+in which expressions are evaluated, even at the same “level” in our expression
+language. Racket has a construct that makes this sequencing explicit –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">begin</span>
+    <span class="n">&lt;expr1&gt;</span>
+    <span class="n">&lt;expr2&gt;</span>
+    <span class="k">...</span>
+    <span class="n">&lt;exprN&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The result of such a <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">begin</span></span></code> expression is that of the last <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">&lt;exprN&gt;</span></span></code>
+in the sequence. <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">begin</span></span></code> guarantees that the expressions will be evaluated
+in the given order, so we can make assumptions about any mutating operations
+we’ve used there.</p>
+<p>So if we’re to add mutating operations to our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicLang</span></span></code>, we will need
+to add a notion of “boxes” as well as implement a notion of sequencing.</p>
+</div>
+<div class="section" id="sequencing-in-the-stack-machine">
+<h2>Sequencing in the stack machine<a class="headerlink" href="#sequencing-in-the-stack-machine" title="Permalink to this headline">¶</a></h2>
+<p>We’ve already seen sequencing of operations happening in our
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code> – whose “program” consists of a sequence of instructions,
+each of which take in a “state” and produce a new state. In our case, “state”
+includes a “stack” as well as a “list of bindings” structure.</p>
+<p>The mechanism of passing this state from one instruction to another is
+worth revisiting since that is the same mechanism we’ll need to bring about
+mutations in our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicLang</span></span></code>.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">stack-machine</span> <span class="n">program</span> <span class="n">state</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">program</span><span class="p">)</span>
+        <span class="n">state</span>
+        <span class="c1">;      v--- the next state                         v------- the current state</span>
+        <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">state2</span> <span class="p">(</span><span class="n">process-instruction</span> <span class="p">(</span><span class="nb">first</span> <span class="n">program</span><span class="p">)</span> <span class="n">state</span><span class="p">)])</span>
+           <span class="c1">;                                  | Use the next state for the rest</span>
+           <span class="c1">;                             v----/ of the program.</span>
+           <span class="p">(</span><span class="n">stack-machine</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">program</span><span class="p">)</span> <span class="n">state2</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>We see how what we’re calling “state” undergoes changes as each instruction is
+performed, resulting in the final state. The sequence of instruction evaluation
+very much matters with our stack machine, unlike the expression evaluation
+based interpreter we wrote, which relies on Racket’s own stack mechanism.</p>
+<p>So let’s now look at how to implement such sequencing in our PicLang.</p>
+</div>
+<div class="section" id="terms-for-boxes">
+<h2>Terms for boxes<a class="headerlink" href="#terms-for-boxes" title="Permalink to this headline">¶</a></h2>
+<p>Corresponding to the functions that Racket provides for boxes, we’ll need a
+few new terms –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">BoxC</span> <span class="p">(</span><span class="n">expr</span><span class="p">))</span>    <span class="c1">; Makes a new box whose value is the result</span>
+                        <span class="c1">; of evluating the given expression.</span>
+
+<span class="p">(</span><span class="k">struct</span> <span class="n">UnboxC</span> <span class="p">(</span><span class="n">var</span><span class="p">))</span>   <span class="c1">; var is expected to be an identifier bound to</span>
+                        <span class="c1">; box value in the current environment.</span>
+
+<span class="p">(</span><span class="k">struct</span> <span class="n">SetBoxC</span> <span class="p">(</span><span class="n">var</span> <span class="n">valexpr</span><span class="p">))</span> <span class="c1">; For modifying the contents of the box</span>
+                                  <span class="c1">; to hold a new value. The first field</span>
+                                  <span class="c1">; is expected to be a identifier bound</span>
+                                  <span class="c1">; to a box value in the current environment.</span>
+</pre></div>
+</div>
+<p>We also saw that to implement mutating operations, we will need a notion of
+“sequencing” in our language. We’ll add a term for that too, which corresponds
+to the Racket <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">begin</span></span></code> expression.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">SeqC</span> <span class="p">(</span><span class="n">expr1</span> <span class="n">expr2</span><span class="p">))</span>   <span class="c1">; We&#39;ll limit ourselves to two expressions</span>
+                              <span class="c1">; as we can compose more using a form like</span>
+                              <span class="c1">; (SeqC expr1 (SeqC expr2 (SeqC expr3 expr4)))</span>
+</pre></div>
+</div>
+<p>Now let’s look at how our interpreter will handle these terms. The result of
+our interpreter will now need to be a pair of values - the actual value
+and the new state of the “storage” that is woven through the sequencing
+operations.</p>
+<p>We’ll also need a new possible value for our interpreter .. one we expect
+to get when we evaluate a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">BoxC</span></span></code> term. We’ll call this <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">BoxV</span></span></code>
+and have the structure store a “reference” that points into the storage.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">Result</span> <span class="p">(</span><span class="n">val</span> <span class="n">storage</span><span class="p">))</span>
+<span class="p">(</span><span class="k">struct</span> <span class="n">BoxV</span> <span class="p">(</span><span class="n">ref</span><span class="p">))</span>
+<span class="p">(</span><span class="k">struct</span> <span class="n">NewRef</span> <span class="p">(</span><span class="n">ref</span> <span class="n">storage</span><span class="p">))</span> <span class="c1">; Returned by make-reference</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">interp</span> <span class="n">expr</span> <span class="n">bindings</span> <span class="n">storage</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">match</span> <span class="n">expr</span>
+        <span class="c1">; ...</span>
+        <span class="c1">; ... TASK: rewrite the ordinary expressions to return a Result structure.</span>
+        <span class="c1">; ...</span>
+        <span class="p">[(</span><span class="n">BoxC</span> <span class="n">valexpr</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">r</span> <span class="p">(</span><span class="n">interp</span> <span class="n">valexpr</span> <span class="n">bindings</span> <span class="n">storage</span><span class="p">)])</span>
+             <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b</span> <span class="p">(</span><span class="n">make-reference</span> <span class="p">(</span><span class="n">Result-storage</span> <span class="n">r</span><span class="p">))])</span>
+                <span class="p">(</span><span class="n">Result</span> <span class="p">(</span><span class="n">BoxV</span> <span class="p">(</span><span class="n">NewRef-ref</span> <span class="n">b</span><span class="p">))</span> <span class="p">(</span><span class="n">NewRef-storage</span> <span class="n">b</span><span class="p">))))]</span>
+        <span class="p">[(</span><span class="n">UnboxC</span> <span class="n">var</span><span class="p">)</span>
+         <span class="c1">; Notice that unboxing is not expected to modify the storage.</span>
+         <span class="p">(</span><span class="n">Result</span> <span class="p">(</span><span class="n">read-reference</span> <span class="p">(</span><span class="n">lookup-binding</span> <span class="n">var</span> <span class="n">bindings</span><span class="p">)</span> <span class="n">storage</span><span class="p">)</span> <span class="n">storage</span><span class="p">)]</span>
+        <span class="p">[(</span><span class="n">SetBoxC</span> <span class="n">var</span> <span class="n">valexpr</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">match</span> <span class="p">(</span><span class="n">interp</span> <span class="n">valexpr</span> <span class="n">bindings</span> <span class="n">storage</span><span class="p">)</span>
+            <span class="p">[(</span><span class="n">Result</span> <span class="n">val</span> <span class="n">storage2</span><span class="p">)</span>
+             <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">storage3</span> <span class="p">(</span><span class="n">write-reference</span> <span class="n">var</span> <span class="n">val</span> <span class="n">storage2</span><span class="p">)])</span>
+                <span class="p">(</span><span class="n">Result</span> <span class="n">val</span> <span class="n">storage3</span><span class="p">))])]</span>
+        <span class="p">[(</span><span class="n">SeqC</span> <span class="n">expr1</span> <span class="n">expr2</span><span class="p">)</span>
+         <span class="c1">;                                v--- Initial storage state</span>
+         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">r1</span> <span class="p">(</span><span class="n">interp</span> <span class="n">expr1</span> <span class="n">bindings</span> <span class="n">storage</span><span class="p">)])</span>
+             <span class="c1">;                      v--- Storage state *after* expr1.</span>
+             <span class="p">(</span><span class="n">interp</span> <span class="n">expr2</span> <span class="n">bindings</span> <span class="p">(</span><span class="n">Result-storage</span> <span class="n">r1</span><span class="p">)))]</span>
+        <span class="c1">; ...</span>
+        <span class="c1">; ... TASK: ApplyC implementation also needs to change. Rewrite it.</span>
+        <span class="c1">; ...</span>
+        <span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="variations">
+<h2>Variations<a class="headerlink" href="#variations" title="Permalink to this headline">¶</a></h2>
+<p>We have some choices in how we define the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">UnboxC</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">SetBoxC</span></span></code>
+terms. In the preceding formulation, we specified <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">UnboxC</span></span></code> to hold an
+<em>identifier</em> to be looked up in the current environment for a box value. We
+could’ve instead defined it to take a box-expression – i.e. an expression that
+will evaluate to a box value – so we could in principle write <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">UnboxC</span></span>
+<span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">BoxC</span></span> <span class="literal number integer"><span class="pre">42</span></span><span class="punctuation"><span class="pre">))</span></span></code> if we wanted to, though there is not much of a point to boxing a
+value only to immediately unbox it. Typically we’d want <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">UnboxC</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">IdC</span></span> <span class="operator"><span class="pre">‘</span></span><span class="literal string symbol"><span class="pre">name</span></span><span class="punctuation"><span class="pre">))</span></span></code>
+and the above formulation meets that simple need.</p>
+<p>The same goes with <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">SetBoxC</span></span></code> terms too. We could’ve defined it to be
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">SetBoxC</span></span> <span class="name"><span class="pre">boxexpr</span></span> <span class="name"><span class="pre">valexpr</span></span><span class="punctuation"><span class="pre">)</span></span></code>, but then we’d have had to sequence the
+evaluation of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">boxexpr</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">valexpr</span></span></code> .. which means we’ll be
+duplicating the functionality of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">SeqC</span></span></code>. Furthermore, we could treat this
+extended form as syntactic sugar too. For example, we could desugar
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">SetBoxS</span></span> <span class="name"><span class="pre">boxexpr</span></span> <span class="name"><span class="pre">valexpr</span></span><span class="punctuation"><span class="pre">)</span></span></code> to <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">ApplyC</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">FunC</span></span> <span class="operator"><span class="pre">‘</span></span><span class="literal string symbol"><span class="pre">b</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">SetBoxC</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">IdC</span></span> <span class="operator"><span class="pre">‘</span></span><span class="literal string symbol"><span class="pre">b</span></span><span class="punctuation"><span class="pre">)</span></span>
+<span class="name"><span class="pre">valexpr</span></span><span class="punctuation"><span class="pre">))</span></span> <span class="name"><span class="pre">boxexpr</span></span><span class="punctuation"><span class="pre">)</span></span></code>, where we handle <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">SetBoxC</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">IdC</span></span> <span class="name"><span class="pre">sym</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">valexpr</span></span><span class="punctuation"><span class="pre">)</span></span></code> in the
+interpreter as though we expect only <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">IdC</span></span></code> terms in the first slot.</p>
+</div>
+<div class="section" id="super-powers">
+<h2>Super powers<a class="headerlink" href="#super-powers" title="Permalink to this headline">¶</a></h2>
+<p>With any such feature addition to a language, it is always necessary to ask
+what kinds of, what we’ve been calling, “super powers” does it give us. So
+what new super power did we gain by having mutable storage in our language?</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Think about this for a bit and see if you can come up with your
+own answers before reading on.</p>
+</div>
+<p>When introducing this feature, we also had to ensure that our other existing
+language terms work sensibly with this new one. For example, in implementing
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">ApplyC</span></span> <span class="name"><span class="pre">funexpr</span></span> <span class="name"><span class="pre">valexpr</span></span><span class="punctuation"><span class="pre">)</span></span></code>, we needed to sequence the evaluation of
+the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">funexpr</span></span></code> term and the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">valexpr</span></span></code> term, because either term could
+contain subexpressions that change the state of the storage. It is as though
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> is to behave like <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">ApplyC</span></span> <span class="name"><span class="pre">funexpr</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">SeqC</span></span> <span class="name"><span class="pre">funexpr</span></span> <span class="name"><span class="pre">valexpr</span></span><span class="punctuation"><span class="pre">))</span></span></code>
+in our older implementation of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> which did not propagate the storage
+changes to the evaluation of the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">valexpr</span></span></code> part.</p>
+<p>Super powers we gain from a new language feature are usually from the
+consequences of ensuring sensible interoperability of the new feature with the
+existing features.</p>
+<p>In this case, we’ve gained the ability to have our functions produce different
+values each time they’re applied. Here’s how you’d express this possibility
+in Racket code –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">count-up</span> <span class="n">start</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b</span> <span class="p">(</span><span class="nb">box</span> <span class="n">start</span><span class="p">)])</span>
+        <span class="p">(</span><span class="k">λ</span> <span class="p">()</span>
+            <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">v</span> <span class="p">(</span><span class="nb">unbox</span> <span class="n">b</span><span class="p">)])</span>
+                <span class="p">(</span><span class="nb">set-box!</span> <span class="n">b</span> <span class="p">(</span><span class="nb">+</span> <span class="n">v</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">v</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="n">nats</span> <span class="p">(</span><span class="n">count-up</span> <span class="mi">0</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">writeln</span> <span class="p">(</span><span class="n">nats</span><span class="p">))</span> <span class="c1">; prints 0</span>
+<span class="p">(</span><span class="nb">writeln</span> <span class="p">(</span><span class="n">nats</span><span class="p">))</span> <span class="c1">; prints 1</span>
+<span class="p">(</span><span class="nb">writeln</span> <span class="p">(</span><span class="n">nats</span><span class="p">))</span> <span class="c1">; prints 2</span>
+<span class="p">(</span><span class="nb">writeln</span> <span class="p">(</span><span class="n">nats</span><span class="p">))</span> <span class="c1">; prints 3</span>
+</pre></div>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Think of a case in PicLang where this could be useful. Code it up,
+make some interesting pictures and share on the discussion board.</p>
+</div>
+<p id="index-0">“Function returning different values each time it is called” is a kind of silly
+way of stating the “super power” we’ve got. This is much bigger than what it
+looks like – which perhaps deserves a response like “ok, so what?”.</p>
+<p>To see why this is much bigger, think of what we can do with something even as
+simple as an counter like above. Imagine a general function of this form –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">machine</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">n</span> <span class="n">arg</span><span class="p">)</span>
+                    <span class="p">(</span><span class="k">match</span> <span class="n">n</span>
+                        <span class="p">[</span><span class="mi">0</span> <span class="p">(</span><span class="nb">list</span> <span class="n">expr0</span> <span class="n">&lt;next-n&gt;</span><span class="p">)]</span>
+                        <span class="p">[</span><span class="mi">1</span> <span class="p">(</span><span class="nb">list</span> <span class="n">expr1</span> <span class="n">&lt;next-n&gt;</span><span class="p">)]</span>
+                        <span class="p">[</span><span class="mi">2</span> <span class="p">(</span><span class="nb">list</span> <span class="n">expr2</span> <span class="n">&lt;next-n&gt;</span><span class="p">)]</span>
+                        <span class="c1">;...</span>
+                        <span class="p">)))</span>
+</pre></div>
+</div>
+<p>The way we can use this function is to start with passing <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">n=0</span></span></code>
+and get the result, then take the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">next-n</span></span></code> part and call the function
+again with that <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">next-n</span></span></code> value and repeat this process.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You’ve done this before earlier in this section. Twice! Can you
+recognize this pattern?</p>
+</div>
+<p>However, it is kind of cumbersome to pass the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">next-n</span></span></code> values like
+that. Because we now have sequencing ability in our language, we can
+express it as a function that will keep changing what it calculates
+every time it is called without us doing any of that “threading” of
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">next-n</span></span></code> values.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">machine</span> <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b</span> <span class="p">(</span><span class="nb">box</span> <span class="mi">0</span><span class="p">)])</span>
+                    <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+                        <span class="p">(</span><span class="k">match</span> <span class="p">(</span><span class="nb">unbox</span> <span class="n">b</span><span class="p">)</span>
+                            <span class="p">[</span><span class="mi">0</span> <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">v0</span> <span class="n">expr0</span><span class="p">])</span> <span class="p">(</span><span class="nb">set-box!</span> <span class="n">b</span> <span class="n">&lt;next-n&gt;</span><span class="p">)</span> <span class="n">v0</span><span class="p">)]</span>
+                            <span class="p">[</span><span class="mi">1</span> <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">v1</span> <span class="n">expr1</span><span class="p">])</span> <span class="p">(</span><span class="nb">set-box!</span> <span class="n">b</span> <span class="n">&lt;next-n&gt;</span><span class="p">)</span> <span class="n">v1</span><span class="p">)]</span>
+                            <span class="p">[</span><span class="mi">2</span> <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">v2</span> <span class="n">expr2</span><span class="p">])</span> <span class="p">(</span><span class="nb">set-box!</span> <span class="n">b</span> <span class="n">&lt;next-n&gt;</span><span class="p">)</span> <span class="n">v2</span><span class="p">)]</span>
+                            <span class="c1">; ...</span>
+                            <span class="p">))))</span>
+</pre></div>
+</div>
+<p>Now, the machine will keep jumping between these numbered “states” every time
+we call it with some argument. We call such functions “state machines” …
+which is closely related to the architecture of the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code> we’ve
+worked with so far. State machines are a great way to organize certain kinds of
+computations.</p>
+<p>We won’t get into the details of state machines right now as we’ll have plenty
+of opportunity soon enough. However, here is an example that might be relatable –
+when you’re “parsing” a stream of symbols (i.e. text), a parser typically tracks
+what it sees by maintaining a history of states and deciding, upon encountering
+each symbol, what the next state should be. For example, consider a parser for
+decimal numbers of the form “123.4”, “0.4446” etc. We could describe a parser
+for such numbers in terms of 3 states as follows –</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[DIGIT-BEFORE-DECIMAL-PT]</span></code>  If the next character is a decimal digit, we
+add it to our accumulating string and return to the state
+<code class="docutils literal notranslate"><span class="pre">[DIGIT-BEFORE-DECIMAL-PT]</span></code>. If the next character is a period, we add the
+period to the accumulating string and go to state
+<code class="docutils literal notranslate"><span class="pre">[DIGIT-AFTER-DECIMAL-PT]</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[DIGIT-AFTER-DECIMAL-PT]</span></code> If the next character is a decimal digit, we
+add it to our accumulating string and return to the state
+<code class="docutils literal notranslate"><span class="pre">[DIGIT-AFTER-DECIMAL-PT]</span></code>. If the next character is anything other than a
+decimal digit, we move to the <code class="docutils literal notranslate"><span class="pre">[DECIMAL-NUMBER-COMPLETE]</span></code> state.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[DECIMAL-NUMBER-COMPLETE]</span></code> We take whatever string we’ve accumulated so
+far and process it as a valid decimal number (whatever that means based on
+the task we’re parsing it for). We may then choose to jump to another state
+or stop.</p></li>
+</ol>
+<p>So we could write a state machine with three states numbered 0, 1, 2 which can
+handle parsing of such decimal numbers given one character at a time.</p>
 </div>
 </div>
 
@@ -109,7 +361,7 @@ evaluator we’ve called <code class="code highlight racket docutils literal not
 
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
 <li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
@@ -118,12 +370,22 @@ evaluator we’ve called <code class="code highlight racket docutils literal not
 <li class="toctree-l1"><a class="reference internal" href="fun.html">Functions and scope</a></li>
 <li class="toctree-l1"><a class="reference internal" href="stacks-and-scope.html">Stacks and scope</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fun-in-piclang.html">Functions in PicLang</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Mutations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-racket-box">The Racket “box”</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sequencing">Sequencing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sequencing-in-the-stack-machine">Sequencing in the stack machine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#terms-for-boxes">Terms for boxes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#variations">Variations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#super-powers">Super powers</a></li>
+</ul>
+</li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="fun-in-piclang.html" title="previous chapter">Functions in PicLang</a></li>
   </ul></li>
 </ul>
 </div>

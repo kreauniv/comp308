@@ -20,11 +20,11 @@ help:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 pages: html
-	cd build/html && tar zcvf /tmp/comp308-html.tar.gz .
-	tar zcvf /tmp/comp308-backup-`date "+%Y%m%d%H%M%S"`.tar.gz .
+	cd build/html && tar zcvf /tmp/comp308-html.tar.gz . > /dev/null
+	tar zcvf /tmp/comp308-backup-`date "+%Y%m%d%H%M%S"`.tar.gz . > /dev/null
 	git checkout gh-pages
 	git reset --hard 
-	tar zxvf /tmp/comp308-html.tar.gz 
+	tar zxvf /tmp/comp308-html.tar.gz > /dev/null
 	git add *
 	git add -u *
 	git commit -m "Updated gh-pages"

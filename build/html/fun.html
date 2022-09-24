@@ -1,0 +1,397 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Functions and scope &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Stacks and scope" href="stacks-and-scope.html" />
+    <link rel="prev" title="Growing the language" href="growing.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="functions-and-scope">
+<h1>Functions and scope<a class="headerlink" href="#functions-and-scope" title="Permalink to this headline">¶</a></h1>
+<p>Thus far, we can construct expressions (type <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code>) in our “PicLang”
+and run them through our interpreter (we’ll indulge a bit and also refer to it
+as a “picture synthesizer”) to produce a “picture” which we can “render” to a
+P3 format PPM file for viewing.</p>
+<p>When producing pictures using our synthesizer, as our compositions grow in
+complexity, we’re bound to come across repeated patterns that we will wish we
+didn’t have to repeat ourselves about. Functions are about that, and adding
+functions to our language will vastly increase the breadth of what we can
+accomplish within it.</p>
+<div class="section" id="defining-functions">
+<h2>Defining functions<a class="headerlink" href="#defining-functions" title="Permalink to this headline">¶</a></h2>
+<p>Towards this, we’ll consider a function definition structure that captures
+the essence of a general enough function within our language.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">FunDefC</span> <span class="p">([</span><span class="n">name</span> <span class="n">:</span> <span class="n">Symbol</span><span class="p">]</span>
+                 <span class="p">[</span><span class="n">arg</span> <span class="n">:</span> <span class="n">Symbol</span><span class="p">]</span>
+                 <span class="p">[</span><span class="n">expr</span> <span class="n">:</span> <span class="n">PicExprC</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>The above is in <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">typed/racket</span></span></code>, but we can write it simpler
+in normal <code class="code highlight racket docutils literal notranslate"><span class="keyword namespace"><span class="pre">#lang</span> </span><span class="name namespace"><span class="pre">racket</span></span></code> like this -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">FunDefC</span> <span class="p">(</span><span class="n">name</span> <span class="n">arg</span> <span class="n">expr</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This structure captures what we need to specify a function. We’ll identify a
+function by its name, we’ll identify its argument (a.k.a. “<span class="target" id="index-0"></span>formal
+parameter”) using a symbol and we’ll give a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> expression as the
+body of the function. In other words, we’re interested in functions that
+compute pictures (via the interpreter).</p>
+<p>When we call such a function, what kind of value should we pass for the
+argument? We have a couple of choices given our picture language terms. We
+could make functions of type <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Number</span></span> <span class="keyword"><span class="pre">-&gt;</span></span> <span class="name"><span class="pre">Picture</span></span></code> or <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Picture</span></span> <span class="keyword"><span class="pre">-&gt;</span></span>
+<span class="name"><span class="pre">Picture</span></span></code>. <a class="footnote-reference brackets" href="#nuance" id="id1">1</a></p>
+<dl class="footnote brackets">
+<dt class="label" id="nuance"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>We’re thinking of our function as producing a “picture”
+here and not a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> for simplicity because the job of
+taking a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> and computing a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Picture</span></span></code> is known
+and is what is done by our interpreter.</p>
+</dd>
+</dl>
+<p>In our language so far, only the picture parts of our expressions can be
+other expressions. The numbers are all expected to be constants – for
+example: <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">RotateS</span></span> <span class="literal number float"><span class="pre">30.0</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">TranslateS</span></span> <span class="literal number integer"><span class="pre">3</span></span> <span class="literal number integer"><span class="pre">4</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">SquareS</span></span> <span class="literal number float"><span class="pre">15.0</span></span><span class="punctuation"><span class="pre">)))</span></span></code>. We don’t
+have the means to provide expressions in place of numbers so far. So we’ll
+limit our discussion to functions which take a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Picture</span></span></code> as an argument
+and produce a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Picture</span></span></code> as a result.</p>
+<p id="index-1">Let’s look at an example function definition for a function that encapsulates
+the “translate and colourize” operation. To keep the discussion simple, we’ll
+assume that all terms are part of our core language. You should be able to
+determine which ones are better expressed using a “surface syntax” versus
+“core” split and apply <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">desugar</span></span></code> in the appropriate places to complete the
+picture.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">FunDefC</span> <span class="o">&#39;</span><span class="ss">trans-and-colorize</span> <span class="o">&#39;</span><span class="ss">p</span> <span class="p">(</span><span class="n">ColorizeC</span> <span class="n">red</span> <span class="p">(</span><span class="n">TranslateC</span> <span class="mf">2.0</span> <span class="mf">3.0</span> <span class="n">&lt;a-reference-to-p&gt;</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>We have a gap in our language here. We need to be able to express the idea of
+“use whatever value this <strong>identifier</strong> called <code class="code highlight racket docutils literal notranslate"><span class="operator"><span class="pre">‘</span></span><span class="literal string symbol"><span class="pre">p</span></span></code> stands for in this
+slot” in order to be able to write function definitions in the first place.
+Towards this, we’ll add a new term to our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> type with the
+following structure –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">IdC</span> <span class="p">([</span><span class="n">id</span> <span class="n">:</span> <span class="n">Symbol</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>Now we can express the above function definition as –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">FunDefC</span> <span class="o">&#39;</span><span class="ss">trans-and-colorize</span> <span class="o">&#39;</span><span class="ss">p</span> <span class="p">(</span><span class="n">ColorizeC</span> <span class="n">red</span> <span class="p">(</span><span class="n">TranslateC</span> <span class="mf">2.0</span> <span class="mf">3.0</span> <span class="p">(</span><span class="n">IdC</span> <span class="o">&#39;</span><span class="ss">p</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>Whenever we’re repeating ourselves, we need to be careful and examine what would
+happen if we made some errors. For example, what if we’d written the above
+function definition like this instead? –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">FunDefC</span> <span class="o">&#39;</span><span class="ss">trans-and-colorize</span> <span class="o">&#39;</span><span class="ss">p</span> <span class="p">(</span><span class="n">ColorizeC</span> <span class="n">red</span> <span class="p">(</span><span class="n">TranslateC</span> <span class="mf">2.0</span> <span class="mf">3.0</span> <span class="p">(</span><span class="n">IdC</span> <span class="o">&#39;</span><span class="ss">q</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>This definition has no meaning for us, since the identifier <code class="code highlight racket docutils literal notranslate"><span class="operator"><span class="pre">‘</span></span><span class="literal string symbol"><span class="pre">q</span></span></code> has no definition
+within any evaluation context. Such a variable that is not “declared” as a formal
+parameter in the function definition and still finds mention in the function definition’s
+body is called a “free variable”. In our language so far, we do not ascribe any meaning
+to such “free variables” and therefore consider such an expression to be an error.</p>
+</div>
+<div class="section" id="applying-functions-substitution-a-k-a-reduction">
+<h2>Applying functions: substitution a.k.a. β-reduction<a class="headerlink" href="#applying-functions-substitution-a-k-a-reduction" title="Permalink to this headline">¶</a></h2>
+<p id="index-2">Ok, we have a function definition now. How do we then use it to make pictures? We
+need a way to “apply” the function to a concrete picture expression value to compute
+the required result. We therefore need yet another addition to our language to
+express this concept of “function application”.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">ApplyC</span> <span class="p">([</span><span class="n">fn</span> <span class="n">:</span> <span class="n">Symbol</span><span class="p">]</span> <span class="p">[</span><span class="n">arg</span> <span class="n">:</span> <span class="n">PicExprC</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>Given that we’re identifying functions by name, we can express an application
+by giving the function name we wish to use and provide a value to be use as
+argument. Note that there is a design choice we can make here since we’re using
+names to denote functions as well as placeholder slots in expressions that need
+to be filled with values –</p>
+<ol class="arabic simple">
+<li><p>We can permit a “<span class="target" id="index-3"></span>formal parameter” name to be the same that of
+another function since we’re not permitting <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">IdC</span></span></code> references to be used
+for the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">fn</span></span></code> part of our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> structure. So here, we’re
+keeping function names and value identifiers in separate “namespaces”. Some
+languages like Common Lisp take this route.</p></li>
+<li><p>If we permit <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunDefC</span></span></code> itself to be a valid <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> and which can
+be passed as an argument, we can extend our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> to accept such a function
+specification in its <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">fn</span></span></code> slot. This way, we have “first class functions”
+in our language, which makes a language expressive.</p></li>
+</ol>
+<p>We’ll start with (1) to keep the discussion simple before we take a stab at (2).</p>
+<p>So what should our interpreter do when it encounters an <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> term?</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">interp</span> <span class="n">picexprC</span> <span class="n">fundefs</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">match</span> <span class="n">picexprC</span>
+        <span class="c1">; ...</span>
+        <span class="p">[(</span><span class="n">ApplyC</span> <span class="n">fn</span> <span class="n">arg</span><span class="p">)</span>
+         <span class="c1">; ... what should go here? ...</span>
+        <span class="p">]</span>
+        <span class="c1">; ...))</span>
+</pre></div>
+</div>
+<p>First off, we need a function to lookup the named function in the supplied
+list of function definitions.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">lookup-fundef</span> <span class="n">name</span> <span class="n">fundefs</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">fundefs</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">lookup-fundef</span>
+                              <span class="p">(</span><span class="nb">string-append</span> <span class="s2">&quot;Definition for function named &quot;</span> <span class="n">name</span><span class="p">)</span>
+                              <span class="n">name</span><span class="p">)</span>
+
+        <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">equal?</span> <span class="n">name</span> <span class="p">(</span><span class="n">FunDefC-name</span> <span class="p">(</span><span class="nb">first</span> <span class="n">fundefs</span><span class="p">)))</span>
+            <span class="p">(</span><span class="nb">first</span> <span class="n">fundefs</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">lookup-fundef</span> <span class="n">name</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">fundefs</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>Given this, we need a procedure by which we can perform “<span class="target" id="index-4"></span>β-reduction”
+on the function’s definition expression, using the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">arg</span></span></code> part of the
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> term.</p>
+<div class="highlight-racket notranslate" id="index-5"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">subst</span> <span class="n">value</span> <span class="n">for-identifier</span> <span class="n">in-picexpr</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">match</span> <span class="n">in-picexpr</span>
+        <span class="c1">; examine each possible term and determine</span>
+        <span class="c1">; how to substitute the value for the</span>
+        <span class="c1">; identifier slots used in the expression.))</span>
+</pre></div>
+</div>
+<p>For one thing, we <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">subst</span></span></code> needs to deal with the new <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">IdC</span></span></code> term. So
+we need a <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">match</span></span></code> arm like this -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">[(</span><span class="n">IdC</span> <span class="n">id</span><span class="p">)</span> <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">equal?</span> <span class="n">for-identifier</span> <span class="n">id</span><span class="p">)</span>
+              <span class="n">value</span>
+              <span class="p">(</span><span class="nb">error</span> <span class="s2">&quot;Unknown identifier&quot;</span><span class="p">))]</span>
+</pre></div>
+</div>
+<p>What about something like <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">TranslateC</span></span></code>? For a term like <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">TranslateC</span></span></code>,
+the expectation is that <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">subst</span></span></code> will produce the same <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">TranslateC</span></span></code>
+as the result but with any identifiers in the expression part of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">TranslateC</span></span></code>
+substituted with the given value.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">[(</span><span class="n">TranslateC</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">picexprC</span><span class="p">)</span>
+ <span class="p">(</span><span class="n">TranslateC</span> <span class="n">dx</span> <span class="n">dy</span> <span class="p">(</span><span class="n">subst</span> <span class="n">value</span> <span class="n">for-identifier</span> <span class="n">picexprC</span><span class="p">))]</span>
+<span class="p">[(</span><span class="n">OverlayC</span> <span class="n">pic1</span> <span class="n">pic2</span><span class="p">)</span>
+ <span class="p">(</span><span class="n">OverlayC</span> <span class="p">(</span><span class="n">subst</span> <span class="n">value</span> <span class="n">for-identifier</span> <span class="n">pic1</span><span class="p">)</span>
+           <span class="p">(</span><span class="n">subst</span> <span class="n">value</span> <span class="n">for-identifier</span> <span class="n">pic2</span><span class="p">))]</span>
+<span class="c1">; .. and so on</span>
+</pre></div>
+</div>
+<p>Even <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> follows the same structure within <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">subst</span></span></code> –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">[(</span><span class="n">ApplyC</span> <span class="n">fname</span> <span class="n">picexprC</span><span class="p">)</span>
+ <span class="p">(</span><span class="n">ApplyC</span> <span class="n">fname</span> <span class="p">(</span><span class="n">subst</span> <span class="n">value</span> <span class="n">for-identifier</span> <span class="n">picexprC</span><span class="p">))]</span>
+</pre></div>
+</div>
+<p>Within our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">interp</span></span></code> though, we will make use of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">subst</span></span></code> to
+perform a “β-reduction”.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">interp</span> <span class="n">picexprC</span> <span class="n">fndefs</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">match</span> <span class="n">picexprC</span>
+        <span class="c1">;...</span>
+        <span class="p">[(</span><span class="n">ApplyC</span> <span class="n">fname</span> <span class="n">valexprC</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">def</span> <span class="p">(</span><span class="n">lookup-fundef</span> <span class="n">fname</span> <span class="n">fundefs</span><span class="p">)])</span>
+            <span class="p">(</span><span class="n">subst</span> <span class="n">valexprC</span> <span class="p">(</span><span class="n">FunDefC-arg</span> <span class="n">def</span><span class="p">)</span> <span class="p">(</span><span class="n">FunDefC-expr</span> <span class="n">def</span><span class="p">)))]</span>
+        <span class="c1">;...</span>
+        <span class="p">))</span>
+</pre></div>
+</div>
+<p>… but that’s actually of the <strong>wrong</strong> type since <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">subst</span></span></code> produces a
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> as its result but <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">interp</span></span></code> is of type <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span> <span class="keyword"><span class="pre">-&gt;</span></span>
+<span class="name"><span class="pre">Picture</span></span></code>. So we need to run the interpreter on the expression produced by
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">subst</span></span></code> like this –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">interp</span> <span class="n">picexprC</span> <span class="n">fndefs</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">match</span> <span class="n">picexprC</span>
+        <span class="c1">;...</span>
+        <span class="p">[(</span><span class="n">ApplyC</span> <span class="n">fname</span> <span class="n">valexprC</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">def</span> <span class="p">(</span><span class="n">lookup-fundef</span> <span class="n">fname</span> <span class="n">fundefs</span><span class="p">)])</span>
+            <span class="p">(</span><span class="n">interp</span> <span class="p">(</span><span class="n">subst</span> <span class="n">valexprC</span> <span class="p">(</span><span class="n">FunDefC-arg</span> <span class="n">def</span><span class="p">)</span> <span class="p">(</span><span class="n">FunDefC-expr</span> <span class="n">def</span><span class="p">))))]</span>
+        <span class="c1">;...</span>
+        <span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="two-evaluation-modes">
+<h2>Two evaluation modes<a class="headerlink" href="#two-evaluation-modes" title="Permalink to this headline">¶</a></h2>
+<p>Consider the function definition below –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">FunDefC</span> <span class="o">&#39;</span><span class="ss">ghost</span> <span class="o">&#39;</span><span class="ss">p</span> <span class="p">(</span><span class="n">OverlayC</span> <span class="p">(</span><span class="n">IdC</span> <span class="o">&#39;</span><span class="ss">p</span><span class="o">&#39;</span><span class="p">)</span> <span class="p">(</span><span class="n">TranslateC</span> <span class="mf">4.0</span> <span class="p">(</span><span class="n">OpacityC</span> <span class="mf">0.5</span> <span class="p">(</span><span class="n">IdC</span> <span class="o">&#39;</span><span class="ss">p</span><span class="o">&#39;</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>The identifier <code class="code highlight racket docutils literal notranslate"><span class="operator"><span class="pre">‘</span></span><span class="literal string symbol"><span class="pre">p</span></span></code> appears twice in this. If we then apply this function to
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">RotateC</span></span> <span class="literal number integer"><span class="pre">30</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">SquareC</span></span> <span class="literal number float"><span class="pre">5.0</span></span><span class="punctuation"><span class="pre">))</span></span></code>, we will get this as the result –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">OverlayC</span> <span class="p">(</span><span class="n">RotateC</span> <span class="mi">30</span> <span class="p">(</span><span class="n">SquareC</span> <span class="mf">5.0</span><span class="p">))</span>
+          <span class="p">(</span><span class="n">TranslateC</span> <span class="mf">4.0</span> <span class="p">(</span><span class="n">Opacity</span> <span class="mf">0.5</span> <span class="p">(</span><span class="n">RotateC</span> <span class="mi">30</span> <span class="p">(</span><span class="n">SquareC</span> <span class="mf">5.0</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>Note the repeated occurrence of the <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">RotateC…</span></span><span class="punctuation"><span class="pre">)</span></span></code> sub-expression. So what
+we have here in our interpreter is a way of calculating that puts off the
+actual evaluation of the expression when it is actually required. Even there,
+it performs redundant calculation of the same picture. This “putting off until
+required” strategy is what is called “<span class="target" id="index-6"></span>lazy evaluation” – though the
+expression if repeated in multiple slots is not repeatedly evaluated in lazy
+languages.</p>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Modify the interpreter so that it still performs lazy evaluation, but does
+not perform redundant calculations when the expression is substituted in
+multiple places inside the function body.</p>
+</div>
+<p>In contrast, we can choose to first evaluate the picture-expression given in the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code>
+term <strong>before</strong> we pass it on to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">subst</span></span></code> to perform substitution. i.e. we have –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">interp</span> <span class="n">picexprC</span> <span class="n">fndefs</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">match</span> <span class="n">picexprC</span>
+        <span class="c1">;...</span>
+        <span class="p">[(</span><span class="n">ApplyC</span> <span class="n">fname</span> <span class="n">valexprC</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">def</span> <span class="p">(</span><span class="n">lookup-fundef</span> <span class="n">fname</span> <span class="n">fundefs</span><span class="p">)])</span>
+            <span class="p">(</span><span class="n">interp</span> <span class="p">(</span><span class="n">subst</span> <span class="p">(</span><span class="n">interp</span> <span class="n">valexprC</span><span class="p">)</span> <span class="p">(</span><span class="n">FunDefC-arg</span> <span class="n">def</span><span class="p">)</span> <span class="p">(</span><span class="n">FunDefC-expr</span> <span class="n">def</span><span class="p">))))]</span>
+        <span class="c1">;...</span>
+        <span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There is a problem with this. Can you spot it before you read on?</p>
+</div>
+<p>The problem is that our language does not yet admit any way to specify an “already computed picture”
+– i.e. a “literal picture”. You can see this by looking at the result type of <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">interp</span></span> <span class="name"><span class="pre">valexprC</span></span><span class="punctuation"><span class="pre">)</span></span></code>
+which should be a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Picture</span></span></code>, but <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">subst</span></span></code> internally returns this <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Picture</span></span></code> value
+in this case instead of a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> as we wanted.</p>
+<p>The solution is to add a term to our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> type that wraps or “tags” such a value.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">PictureC</span> <span class="p">([</span><span class="n">pic</span> <span class="n">:</span> <span class="n">Picture</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>Now, we can write the “eager interpreter” as –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">interp</span> <span class="n">picexprC</span> <span class="n">fndefs</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">match</span> <span class="n">picexprC</span>
+        <span class="c1">;...</span>
+        <span class="p">[(</span><span class="n">PictureC</span> <span class="n">pic</span><span class="p">)</span> <span class="n">pic</span><span class="p">]</span>
+        <span class="p">[(</span><span class="n">ApplyC</span> <span class="n">fname</span> <span class="n">valexprC</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">def</span> <span class="p">(</span><span class="n">lookup-fundef</span> <span class="n">fname</span> <span class="n">fundefs</span><span class="p">)])</span>
+            <span class="p">(</span><span class="n">interp</span> <span class="p">(</span><span class="n">subst</span> <span class="p">(</span><span class="n">PictureC</span> <span class="p">(</span><span class="n">interp</span> <span class="n">valexprC</span><span class="p">))</span> <span class="p">(</span><span class="n">FunDefC-arg</span> <span class="n">def</span><span class="p">)</span> <span class="p">(</span><span class="n">FunDefC-expr</span> <span class="n">def</span><span class="p">))))]</span>
+        <span class="c1">;...</span>
+        <span class="p">))</span>
+</pre></div>
+</div>
+<p>It is cheap for our interpreter to “evaluate” a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PictureC</span></span></code> term since there is nothing
+that it really needs to do beyond return the provided value, as seen above.</p>
+</div>
+<div class="section" id="scope">
+<h2>Scope<a class="headerlink" href="#scope" title="Permalink to this headline">¶</a></h2>
+<p>So far, we’ve only seen only one condition that indicates we have a problematic
+function definition at hand – whenever we find a “free variable” in the
+expression of a function definition, such an expression cannot be interpreted.</p>
+<p>To see why it cannot be interpreted, look at what the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">IdC</span></span></code> arm of our interpreter’s
+<code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">match</span></span></code> expression should do –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">interp</span> <span class="n">picexprC</span> <span class="n">fndefs</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">match</span> <span class="n">picexprC</span>
+        <span class="c1">;...</span>
+        <span class="p">[(</span><span class="n">IdC</span> <span class="n">id</span><span class="p">)</span> <span class="n">&lt;what-to-do-here?&gt;</span><span class="p">]</span>
+        <span class="c1">;...</span>
+        <span class="p">))</span>
+</pre></div>
+</div>
+<p>Since the job of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">subst</span></span></code> is to get rid of all occurrences of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">IdC</span></span></code> terms
+in its result, the interpreter should never see an <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">IdC</span></span></code> term! So the only
+response it can have to this is to raise an error – using
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">raise-argument-error</span></span> <span class="operator"><span class="pre">‘</span></span><span class="literal string symbol"><span class="pre">interp</span></span> <span class="literal string double"><span class="pre">“No</span> <span class="pre">free</span> <span class="pre">variables”</span></span> <span class="name"><span class="pre">picexprC</span></span><span class="punctuation"><span class="pre">)</span></span></code>.</p>
+<p>However, intuitively, we expect the interpreter to “lookup” the meaning of the
+identifier somewhere to determine what it is and use what it finds. This is the
+next notion we’ll discuss - that of “environments and scope”.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Comp308: Principles of Programming Languages</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Functions and scope</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#defining-functions">Defining functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#applying-functions-substitution-a-k-a-reduction">Applying functions: substitution a.k.a. β-reduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#two-evaluation-modes">Two evaluation modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scope">Scope</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="stacks-and-scope.html">Stacks and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun-in-piclang.html">Functions in PicLang</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="growing.html" title="previous chapter">Growing the language</a></li>
+      <li>Next: <a href="stacks-and-scope.html" title="next chapter">Stacks and scope</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Srikumar K. S..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/fun.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

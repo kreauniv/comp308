@@ -24,6 +24,7 @@ pages: html
 	tar zcvf /tmp/comp308-backup-`date "+%Y%m%d%H%M%S"`.tar.gz . > /dev/null
 	git checkout gh-pages
 	git reset --hard 
+	git clean -f -d
 	tar zxvf /tmp/comp308-html.tar.gz > /dev/null
 	git add *
 	git add -u *

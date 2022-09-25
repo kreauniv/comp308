@@ -275,6 +275,9 @@ in Racket code –</p>
 <p>Think of a case in PicLang where this could be useful. Code it up,
 make some interesting pictures and share on the discussion board.</p>
 </div>
+</div>
+<div class="section" id="state-machines">
+<h2>State machines<a class="headerlink" href="#state-machines" title="Permalink to this headline">¶</a></h2>
 <p id="index-0">“Function returning different values each time it is called” is a kind of silly
 way of stating the “super power” we’ve got. This is much bigger than what it
 looks like – which perhaps deserves a response like “ok, so what?”.</p>
@@ -297,6 +300,14 @@ again with that <code class="code highlight racket docutils literal notranslate"
 <p>You’ve done this before earlier in this section. Twice! Can you
 recognize this pattern?</p>
 </div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Can you write such a “machine” function that produces the cumulative
+sum of the sequence of numbers passed in as <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">arg</span></span></code>? That is,
+if you repeatedly call the machine function (passing the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">&lt;next-n&gt;</span></span></code>
+correctly, and pass in <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">arg</span></span></code> values of <code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">1</span></span><span class="operator"><span class="pre">,</span></span><span class="literal number integer"><span class="pre">5</span></span><span class="operator"><span class="pre">,</span></span><span class="literal number integer"><span class="pre">3</span></span><span class="operator"><span class="pre">,</span></span><span class="literal number integer"><span class="pre">8</span></span></code> one by one,
+the result part of the returned values will be <code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">1</span></span><span class="operator"><span class="pre">,</span></span><span class="literal number integer"><span class="pre">6</span></span><span class="operator"><span class="pre">,</span></span><span class="literal number integer"><span class="pre">9</span></span><span class="operator"><span class="pre">,</span></span><span class="literal number integer"><span class="pre">17</span></span></code>.</p>
+</div>
 <p>However, it is kind of cumbersome to pass the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">next-n</span></span></code> values like
 that. Because we now have sequencing ability in our language, we can
 express it as a function that will keep changing what it calculates
@@ -315,8 +326,13 @@ every time it is called without us doing any of that “threading” of
 <p>Now, the machine will keep jumping between these numbered “states” every time
 we call it with some argument. We call such functions “state machines” …
 which is closely related to the architecture of the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code> we’ve
-worked with so far. State machines are a great way to organize certain kinds of
-computations.</p>
+worked with so far. Explicit state machines are a great way to organize certain
+kinds of computations. At some level, every program is trivially a state machine
+too.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Do you see why that is the case?</p>
+</div>
 <p>We won’t get into the details of state machines right now as we’ll have plenty
 of opportunity soon enough. However, here is an example that might be relatable –
 when you’re “parsing” a stream of symbols (i.e. text), a parser typically tracks
@@ -391,6 +407,7 @@ can handle parsing of such decimal numbers given one character at a time.</p>
 <li class="toctree-l2"><a class="reference internal" href="#terms-for-boxes">Terms for boxes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#variations">Variations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#super-powers">Super powers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#state-machines">State machines</a></li>
 </ul>
 </li>
 </ul>

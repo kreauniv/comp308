@@ -285,6 +285,9 @@ in Racket code --
     Think of a case in PicLang where this could be useful. Code it up,
     make some interesting pictures and share on the discussion board.
 
+State machines
+--------------
+
 .. index:: State machines
 
 "Function returning different values each time it is called" is a kind of silly
@@ -312,6 +315,14 @@ again with that :rkt:`next-n` value and repeat this process.
 .. note:: You've done this before earlier in this section. Twice! Can you
    recognize this pattern?
 
+.. admonition:: **Exercise**
+
+    Can you write such a "machine" function that produces the cumulative
+    sum of the sequence of numbers passed in as :rkt:`arg`? That is,
+    if you repeatedly call the machine function (passing the :rkt:`<next-n>`
+    correctly, and pass in :rkt:`arg` values of :rkt:`1,5,3,8` one by one,
+    the result part of the returned values will be :rkt:`1,6,9,17`.
+
 However, it is kind of cumbersome to pass the :rkt:`next-n` values like 
 that. Because we now have sequencing ability in our language, we can
 express it as a function that will keep changing what it calculates
@@ -332,8 +343,11 @@ every time it is called without us doing any of that "threading" of
 Now, the machine will keep jumping between these numbered "states" every time
 we call it with some argument. We call such functions "state machines" ...
 which is closely related to the architecture of the :rkt:`stack-machine` we've
-worked with so far. State machines are a great way to organize certain kinds of
-computations.
+worked with so far. Explicit state machines are a great way to organize certain
+kinds of computations. At some level, every program is trivially a state machine 
+too.
+
+.. note:: Do you see why that is the case?
 
 We won't get into the details of state machines right now as we'll have plenty
 of opportunity soon enough. However, here is an example that might be relatable --

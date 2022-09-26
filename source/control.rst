@@ -1,6 +1,8 @@
 Control
 -------
 
+(THIS MATERIAL IS NOT FINAL.)
+
 In programs, the word "control" is used to denote a number of things related to
 jumping from one part of the program to another. While in many languages, forms
 such as "if" and "while" are referred to as "control structures", we'll focus

@@ -1,5 +1,5 @@
 Control
--------
+=======
 
 (THIS MATERIAL IS NOT FINAL.)
 
@@ -298,7 +298,7 @@ But what are they good for?
 ----------------------------------
 
 Consider the very first β-abstraction step we did above, ignoring the
-:rkt:`return` for this section's purpose.
+:rkt:`return` for this special section's purpose.
 
 .. code-block:: racket
 
@@ -313,19 +313,18 @@ we do that to our expression above.
 
    ((λ (k) (k (square dx))) (λ (dx2) (sqrt (+ dx2 (square dy)))))
 
-While previously we were writing down the lambdas only to have
-them be applied immediately, the lambda we wrote down in this
-case is now visible as a value to the inside of the first term
-:rkt:`(λ (k) (k (square dx)))` as the variable :rkt:`k`. If
-our language gave us the :rkt:`k` to use as we please, we can
-see that we can now call it multiple times to calculate the
-"rest of the computation" within this **limited** context. [#noret]_
+While previously we were writing down the lambdas only to have them be applied
+immediately, the lambda we wrote down in this case is now visible as a value to
+the inside of the first term :rkt:`(λ (k) (k (square dx)))` as the variable
+:rkt:`k`. If our language gave us the :rkt:`k` to use as we please, we can see
+that we can now call it multiple times to calculate the "rest of the
+computation" within this **limited** context. [#noret]_
 
 .. [#noret] This is why we considered it without the :rkt:`return`.
 
 .. index:: delimited continuations
 
-The :rkt:`racket/control` module provides constructs that can give us these
+The :rkt:`racket/control` module provides syntax that can give us these
 reusable "delimited continuations" via the :rkt:`prompt` and :rkt:`control`
 constructs (a.k.a. :rkt:`reset` and :rkt:`shift` respectively). We could've
 written our expression as --
@@ -344,7 +343,9 @@ Note that we can express :rkt:`prompt` and :rkt:`control` as "desugaring"
 operations in our expression language ... with the constraint that the
 :rkt:`control` construct can only occur inside a :rkt:`prompt` construct.
 
-.. note:: Try to see if you can implement prompt/control in PicLang.
+.. note:: Try to see if you can implement prompt/control in PicLang. This is a
+   somewhat advanced challenge. You will have to pay attention to testing your
+   implementation.
 
 Adding continuations to the stack language
 ------------------------------------------
@@ -365,25 +366,28 @@ instruction condition to handle this.
         (match state
             [(State stack bindings)
              (cond instr
-                [(equal? instr 'call)
-                 (let ([b (top stack)])
-                    (if (not (Block? b))
-                        (raise-argument-error 'process-instruction/ret
-                                              "Block on stack"
-                                              (top stack))
-                        (stack-machine (Block-program b) 
-                                                    v----- [RET] Notice what we're pushing on the stack.
-                                       (State (push (λ (s) (return (State (State-stack s) bindings)))
-                                                    (pop stack))
-                                              (Block-bindings b)))))]
-                [(equal? instr 'goto)
-                 (if (procedure? (top stack))
-                     ((top stack) (State (pop stack) bindings))
-                     (raise-argument-error 'process-instruction/ret
-                                           "Continuation on the stack"
-                                           (top stack)))]
-                ;...
-                )]
+                 [(equal? instr 'call)
+                  (match (top stack)
+                      [(Block deftime-bindings program)
+                       (stack-machine/ret program
+                              (State (push (λ (s) (return (State (State-stack s) 
+                                                                 bindings
+                                                                 (State-storage s))))
+                                           (pop stack))
+                                     deftime-bindings
+                                     storage)
+                              return)]
+                      [_ (raise-argument-error 'call
+                                   "Block on top of stack"
+                                   (top stack))])]
+                 [(equal? instr 'goto)
+                  (if (procedure? (top stack))
+                      ((top stack) (State (pop stack) bindings storage))
+                    (raise-argument-error 'goto
+                                  "Continuation on top of stack"
+                                  (top stack)))]
+                 ;...
+                 )]
             [_ (raise-argument-error ...)]))
 
 What we've done here is that if we encounter the instruction :rkt:`call`,
@@ -462,26 +466,77 @@ it wants with it, including return to it using :rkt:`goto`.
         (block (def nextc) nextc next setbox back unbox goto) (def yield)
         (block (def backc) backc back setbox next unbox goto) (def resume)
 
-        (block (def ret)
+        (block (def ret yield end n)
                ret back setbox
-               1 + dup print
+               n 1 +
                yield call
-               10 + dup print
+               10 +
                yield call
-               100 + dup print
+               100 +
                yield call
-               1000 + dup print
+               1000 +
                yield call
-               10000 + dup print
+               10000 +
+               yield call
+               end goto
                )
+        (def gen)
+
+        (block (def endc)
+            0 endc yield gen call
+            resume call dup print
+            resume call dup print
+            resume call dup print
+            resume call dup print
+            resume call dup print
+            resume call dup print
+            )
         call
-        resume call
-        resume call
-        resume call
 
     What do you think the above program does? Now, does it actually do what you
-    think it does? Why not try it out and see for yourself? Note that you'll
-    have to implement the storage passing mechanism in the interpreter and
-    support for mutable boxes before you can try the above code.
+    think it does? Why not try it out and see for yourself? 
+
+If the previous exercise looks like "generator" code in Python, that is no
+coincidence. It is somewhat equivalent to the following python generator code.
+
+.. code-block:: python
+
+    def gen(n):
+        n = n + 1
+        print(n)
+        yield n
+        n = 10 + n
+        print(n)
+        yield n
+        n = 100 + n
+        print(n)
+        yield n
+        n = 1000 + n
+        print(n)
+        yield n
+        n = 10000 + n
+        print(n)
+        yield n
+
+    g = gen(0)
+    g.next()
+    g.next()
+    g.next()
+    g.next()
+    g.next()
+
+
+It looks like we had quite a few more definition lines than the python version.
+However, we can very well imagine that given a block that takes the appropriate
+number of arguments (i.e. takes a continuation as first argument, a yield block
+as the second and an end continuation as the third), we can automatically
+rewrite the block with the appropriate structures to work as a generator. So a
+"proper" generator would merely be syntactic sugar in our stack language.
+
+This shows that the notion of thinking about control flow as reified
+continuations is powerful enough to model "advanced" language features like
+generators.
+
+
 
 

@@ -210,7 +210,7 @@ Take the core expression below -
 
 .. code-block:: racket
 
-    (return (sqrt (+ (square dx) (square dy)))))
+    (return (sqrt (+ (square dx) (square dy))))
 
 β-abstract on the first calculation (square dx). We get
 

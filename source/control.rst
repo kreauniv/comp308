@@ -506,6 +506,9 @@ it wants with it, including return to it using :rkt:`goto`.
         1 + dup print
         mark unbox goto
 
+    What do you think it does on sight? Does it actually do it?
+    Run it and see what happens step by step.
+
 .. admonition:: **Exercise**
 
     Consider the following program for our :rkt:`stack-machine` --
@@ -545,7 +548,8 @@ it wants with it, including return to it using :rkt:`goto`.
         call
 
     What do you think the above program does? Now, does it actually do what you
-    think it does? Why not try it out and see for yourself? 
+    think it does? Why not try it out and see for yourself? Pay close attention
+    to the operations being done by the :rkt:`yield` and :rkt:`resume` blocks.
 
 If the previous exercise looks like "generator" code in Python, that is no
 coincidence. It is somewhat equivalent to the following python generator code.

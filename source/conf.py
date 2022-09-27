@@ -77,3 +77,6 @@ rst_prolog = """
 """
 
 numfig = True
+
+exclude_patterns = ['excluded/*']
+

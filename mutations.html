@@ -15,6 +15,7 @@
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Control" href="control.html" />
     <link rel="prev" title="Functions in PicLang" href="fun-in-piclang.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -275,6 +276,27 @@ in Racket code –</p>
 <p>Think of a case in PicLang where this could be useful. Code it up,
 make some interesting pictures and share on the discussion board.</p>
 </div>
+<p>When we dealt with recursion using lambda calculus, we worked through
+the Y and <span class="math notranslate nohighlight">\(\Theta\)</span> combinators that can generate the recursion
+without having support for recursive mention of functions at definition
+time. If we have mutation at hand, we can do the following “trick”,
+even without a recursion-capable <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">define</span></span></code>.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">factorial</span>
+    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">fn</span> <span class="p">(</span><span class="nb">box</span> <span class="no">#f</span><span class="p">)])</span>
+        <span class="p">(</span><span class="nb">set-box!</span> <span class="n">fn</span>
+                  <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">n</span><span class="p">)</span>
+                     <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">equal?</span> <span class="n">n</span> <span class="mi">0</span><span class="p">)</span>
+                         <span class="mi">1</span>
+                         <span class="p">(</span><span class="nb">*</span> <span class="n">n</span> <span class="p">((</span><span class="nb">unbox</span> <span class="n">fn</span><span class="p">)</span> <span class="p">(</span><span class="nb">-</span> <span class="n">n</span> <span class="mi">1</span><span class="p">))))))</span>
+        <span class="p">(</span><span class="nb">unbox</span> <span class="n">fn</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>No combinators! The λ expression closes over the box value bound to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">fn</span></span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">letrec</span></span></code> form in Racket/Scheme does this kind of a trick,
+but (roughly speaking) by using Scheme identifiers as variables.</p>
+</div>
 </div>
 <div class="section" id="state-machines">
 <h2>State machines<a class="headerlink" href="#state-machines" title="Permalink to this headline">¶</a></h2>
@@ -410,6 +432,7 @@ can handle parsing of such decimal numbers given one character at a time.</p>
 <li class="toctree-l2"><a class="reference internal" href="#state-machines">State machines</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="control.html">Control</a></li>
 </ul>
 
 <div class="relations">
@@ -417,6 +440,7 @@ can handle parsing of such decimal numbers given one character at a time.</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="fun-in-piclang.html" title="previous chapter">Functions in PicLang</a></li>
+      <li>Next: <a href="control.html" title="next chapter">Control</a></li>
   </ul></li>
 </ul>
 </div>

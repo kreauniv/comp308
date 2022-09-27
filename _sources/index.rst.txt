@@ -19,6 +19,7 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    stacks-and-scope
    fun-in-piclang
    mutations
+   control
 
 
 Indices and tables

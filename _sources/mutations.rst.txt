@@ -285,6 +285,28 @@ in Racket code --
     Think of a case in PicLang where this could be useful. Code it up,
     make some interesting pictures and share on the discussion board.
 
+When we dealt with recursion using lambda calculus, we worked through
+the Y and :math:`\Theta` combinators that can generate the recursion
+without having support for recursive mention of functions at definition
+time. If we have mutation at hand, we can do the following "trick",
+even without a recursion-capable :rkt:`define`.
+
+.. code-block:: racket
+
+    (define factorial
+        (let ([fn (box #f)])
+            (set-box! fn 
+                      (λ (n)
+                         (if (equal? n 0)
+                             1
+                             (* n ((unbox fn) (- n 1))))))
+            (unbox fn)))
+
+No combinators! The λ expression closes over the box value bound to :rkt:`fn`.
+
+.. note:: The :rkt:`letrec` form in Racket/Scheme does this kind of a trick,
+   but (roughly speaking) by using Scheme identifiers as variables.
+
 State machines
 --------------
 

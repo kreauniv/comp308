@@ -1,0 +1,530 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Control &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="control">
+<h1>Control<a class="headerlink" href="#control" title="Permalink to this headline">¶</a></h1>
+<p>In programs, the word “control” is used to denote a number of things related to
+jumping from one part of the program to another. While in many languages, forms
+such as “if” and “while” are referred to as “control structures”, we’ll focus
+on transfer of control that is dynamic and non-local. A familiar example of
+such a dynamic and non-local control transfer is exceptions – where you may
+“throw” or “raise” an exception in one part of your program and “catch” it in
+another part which dynamically encloses the part of the program raising the
+exception. Another kind of non-local control transfer that you may be familiar
+with is the idea of “generators” or “co-routines” in programming languages
+like Python, Julia and Kotlin.</p>
+<div class="admonition-question admonition">
+<p class="admonition-title"><strong>Question</strong></p>
+<p>What kind of non-local control transfer have we been relying on for the
+meaning of our programs thus far in the course?</p>
+</div>
+<p>Think through the above question based on the following simple code snippet -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">distance</span> <span class="n">dx</span> <span class="n">dy</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">)</span> <span class="p">(</span><span class="n">square</span> <span class="n">dy</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">*</span> <span class="n">dx</span> <span class="n">dx</span><span class="p">))</span>
+
+<span class="p">(</span><span class="n">distance</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Think of how when we’re interpreting the code of <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="name"><span class="pre">dx</span></span><span class="punctuation"><span class="pre">)</span></span></code>, we’re
+inside the function and examining <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">*</span></span> <span class="name"><span class="pre">dx</span></span> <span class="name"><span class="pre">dx</span></span><span class="punctuation"><span class="pre">)</span></span></code> with <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">dx</span></span></code> bound to
+<code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">3</span></span></code>. Once we calculate <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">*</span></span> <span class="literal number integer"><span class="pre">3</span></span> <span class="literal number integer"><span class="pre">3</span></span><span class="punctuation"><span class="pre">)</span></span></code>, we somehow assume that the interpreter
+knows to go “I’m done, aha, I now have to resume with <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="name"><span class="pre">dy</span></span><span class="punctuation"><span class="pre">)</span></span></code> and
+moves control to that point. Then it descends into <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">square</span></span></code> again. It then
+caculates <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">*</span></span> <span class="literal number integer"><span class="pre">4</span></span> <span class="literal number integer"><span class="pre">4</span></span><span class="punctuation"><span class="pre">)</span></span></code> and then goes “I’m done, aha, now I have to resume with
+<code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">+</span></span></code>.” .. and so on.</p>
+<p>In the above program therefore, control of the process of interpretation keeps
+jumping between the inner square and outer distance functions, finally jumping
+back to the original <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">distance</span></span> <span class="literal number integer"><span class="pre">3</span></span> <span class="literal number integer"><span class="pre">4</span></span><span class="punctuation"><span class="pre">)</span></span></code> expression and finishing off by
+printing the result.</p>
+<p>Consider our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code> program –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">stack-machine</span> <span class="n">program</span> <span class="n">state</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">program</span><span class="p">)</span>
+      <span class="n">state</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">instr</span> <span class="p">(</span><span class="nb">first</span> <span class="n">program</span><span class="p">)])</span>
+        <span class="p">(</span><span class="n">stack-machine</span>
+         <span class="p">(</span><span class="nb">rest</span> <span class="n">program</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">process-instruction</span> <span class="n">instr</span> <span class="n">state</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">process-instruction</span> <span class="n">instr</span> <span class="n">state</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">match</span> <span class="n">state</span>
+    <span class="p">[(</span><span class="n">State</span> <span class="n">stack</span> <span class="n">bindings</span><span class="p">)</span>
+     <span class="p">(</span><span class="k">cond</span>
+       <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="k">...</span><span class="p">)</span>
+        <span class="k">...</span><span class="p">])]))</span>
+</pre></div>
+</div>
+<p>This is a more complicated program than our distance calculator, but
+let’s make the “return control to where we left off” operation explicit
+in these two functions.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">stack-machine</span> <span class="n">program</span> <span class="n">state</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">program</span><span class="p">)</span>
+      <span class="p">(</span><span class="n">return</span> <span class="n">state</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">instr</span> <span class="p">(</span><span class="nb">first</span> <span class="n">program</span><span class="p">)])</span>
+        <span class="p">(</span><span class="n">return</span> <span class="p">(</span><span class="n">stack-machine</span>
+                    <span class="p">(</span><span class="nb">rest</span> <span class="n">program</span><span class="p">)</span>
+                    <span class="p">(</span><span class="n">process-instruction</span> <span class="n">instr</span> <span class="n">state</span><span class="p">))))))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">process-instruction</span> <span class="n">instr</span> <span class="n">state</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">match</span> <span class="n">state</span>
+    <span class="p">[(</span><span class="n">State</span> <span class="n">stack</span> <span class="n">bindings</span><span class="p">)</span>
+     <span class="p">(</span><span class="k">cond</span>
+       <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="k">...</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">return</span> <span class="k">...</span><span class="p">)])]))</span>
+</pre></div>
+</div>
+<p>Notice the introduction of the explicit <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">return</span></span> <span class="name"><span class="pre">state</span></span><span class="punctuation"><span class="pre">)</span></span></code> and such
+expressions at points where we’re done with the calculation and want to jump
+back and continue from wherever we entered the function.</p>
+<p>If we treat this <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">return</span></span></code> as an actual function, it looks like it has a
+lot of magic behind it. If you imagine that this return function is itself
+defined somewhere as in <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">define</span></span> <span class="name"><span class="pre">return</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">val</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="keyword"><span class="pre">…</span></span><span class="punctuation"><span class="pre">))</span></span></code>, it is
+somehow supposed to know where to “return” to when used in a particular
+function’s source code … no matter what that function is! Such a return
+cannot therefore be implemented inside our language. It must be provided by the
+maker of the language … and as you all know by now, we don’t like that
+power difference!</p>
+<p>Characteristics of such a “return” if we treat it as a function.</p>
+<ol class="arabic simple">
+<li><p>We <em>can</em> treat it as a function - though not necessarily a pure one.</p></li>
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">return</span></span></code> itself doesn’t return to do the next instruction that appears
+in the source code following the return form. For example <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">begin</span></span>
+<span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">return</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">+</span></span> <span class="name"><span class="pre">x</span></span> <span class="name"><span class="pre">y</span></span><span class="punctuation"><span class="pre">))</span></span></code> is not expected to calculate <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">+</span></span> <span class="name"><span class="pre">x</span></span> <span class="name"><span class="pre">y</span></span><span class="punctuation"><span class="pre">)</span></span></code>.</p></li>
+<li><p>In an expression like <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">sqrt</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">+</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="name"><span class="pre">y</span></span><span class="punctuation"><span class="pre">)))</span></span></code>, return for
+the first <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">square</span></span></code> is different from the return for the second square,
+since the pending computations are different in both cases.</p></li>
+</ol>
+<p>Since we see that return is doing different things inside different functions
+depending on the usage context, one way to make it clear is to … believe it
+or not .. β-abstract over <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">return</span></span></code> so that we faithfully capture our
+lack of knowledge about what exactly the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">return</span></span></code> function should do
+in any given dynamic situation.</p>
+<p>So let’s rewrite the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">process-instruction</span></span></code>
+functions by β-abstracting over <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">return</span></span></code>. We’ll name these rewritten
+functions with a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">/ret</span></span></code> at the end which we read as “with return”.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">stack-machine/ret</span> <span class="n">program</span> <span class="n">state</span> <span class="n">return</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">program</span><span class="p">)</span>
+      <span class="p">(</span><span class="n">return</span> <span class="n">state</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">instr</span> <span class="p">(</span><span class="nb">first</span> <span class="n">program</span><span class="p">)])</span>
+        <span class="p">(</span><span class="n">process-instruction/ret</span> <span class="n">instr</span> <span class="n">state</span>
+            <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">state2</span><span class="p">)</span>
+                <span class="p">(</span><span class="n">stack-machine/ret</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">program</span><span class="p">)</span> <span class="n">state2</span> <span class="n">return</span><span class="p">))))))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We’ve been conservative in choosing which functions we consider such
+an explicit return argument. At this point, you may want to pause and think
+about what it would mean to do this for <strong>every</strong> function called in our
+code above. In particular, what would it mean to implement <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">if</span></span></code> this
+way?</p>
+</div>
+<p>Examine the λ that we’re passing as a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">return</span></span></code> argument to
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">process-instruction</span></span></code>. The idea it captures – which in this case reads
+well too – is “run the rest of the program”.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Really. Go back and read the program and see if you can convince
+yourself that the λ we pass to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">process-instruction/ret</span></span></code> is indeed
+“perform the remaining computations”.</p>
+</div>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">process-instruction/ret</span> <span class="n">instr</span> <span class="n">state</span> <span class="n">return</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">match</span> <span class="n">state</span>
+    <span class="p">[(</span><span class="n">State</span> <span class="n">stack</span> <span class="n">bindings</span><span class="p">)</span>
+     <span class="p">(</span><span class="k">cond</span>
+       <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">do</span><span class="p">)</span>
+        <span class="p">(</span><span class="k">match</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span>
+          <span class="p">[(</span><span class="n">Block</span> <span class="n">program</span><span class="p">)</span>
+           <span class="p">(</span><span class="n">stack-machine/ret</span> <span class="n">program</span>
+                              <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)</span>
+                              <span class="n">return</span><span class="p">)]</span>
+          <span class="p">[</span><span class="k">_</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction</span>
+                                   <span class="s2">&quot;Block must be on top of stack for &#39;do instruction&quot;</span>
+                                   <span class="n">stack</span><span class="p">)])]</span>
+       <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">+</span><span class="p">)</span>
+        <span class="c1">; Here we&#39;re relying on Scheme&#39;s implementation of &quot;+&quot;.</span>
+        <span class="p">(</span><span class="n">return</span> <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="n">top</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span> <span class="p">(</span><span class="n">pop</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)))</span>
+                       <span class="n">bindings</span><span class="p">))]</span>
+       <span class="c1">; ...</span>
+       <span class="p">)]))</span>
+</pre></div>
+</div>
+<p>Let’s take the distance function again.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">distance</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">dx</span> <span class="n">dy</span><span class="p">)</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">)</span> <span class="p">(</span><span class="n">square</span> <span class="n">dy</span><span class="p">)))))</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">square</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">*</span> <span class="n">x</span> <span class="n">x</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Rewrite these two functions in the “with explicit return” form.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">*/ret</span> <span class="n">x</span> <span class="n">y</span> <span class="n">return</span><span class="p">)</span> <span class="p">(</span><span class="n">return</span> <span class="p">(</span><span class="nb">*</span> <span class="n">x</span> <span class="n">y</span><span class="p">)))</span> <span class="c1">; Primitive / atomic</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">+/ret</span> <span class="n">x</span> <span class="n">y</span> <span class="n">return</span><span class="p">)</span> <span class="p">(</span><span class="n">return</span> <span class="p">(</span><span class="nb">+</span> <span class="n">x</span> <span class="n">y</span><span class="p">)))</span> <span class="c1">; Primitive / atomic</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">square/ret</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span> <span class="n">return</span><span class="p">)</span> <span class="p">(</span><span class="n">*/ret</span> <span class="n">x</span> <span class="n">x</span> <span class="n">return</span><span class="p">)))</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">distance/ret</span>
+    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">dx</span> <span class="n">dy</span> <span class="n">return</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">square/ret</span> <span class="n">dx</span>
+            <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">dx2</span><span class="p">)</span>
+                <span class="p">(</span><span class="n">square/ret</span> <span class="n">dy</span>
+                    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">dy2</span><span class="p">)</span>
+                        <span class="p">(</span><span class="n">+/ret</span> <span class="n">dx2</span> <span class="n">dy2</span>
+                            <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">pv</span><span class="p">)</span>
+                                <span class="p">(</span><span class="n">sqrt/ret</span> <span class="n">pv</span>
+                                    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                                        <span class="p">(</span><span class="n">return</span> <span class="n">s</span><span class="p">)))))))))))</span>
+</pre></div>
+</div>
+<p>Ok this is a convoluted way of saying the same thing, but it does tell us
+something about the sequence of operations by which the whole computation is
+effected – we first calculate <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="name"><span class="pre">dx</span></span><span class="punctuation"><span class="pre">)</span></span></code>, then we calculate
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="name"><span class="pre">dy</span></span><span class="punctuation"><span class="pre">)</span></span></code> taking care to remember the result of <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="name"><span class="pre">dx</span></span><span class="punctuation"><span class="pre">)</span></span></code>,
+then we calculate <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">+</span></span> <span class="name"><span class="pre">dx1</span></span> <span class="name"><span class="pre">dy2</span></span><span class="punctuation"><span class="pre">)</span></span></code> taking care to remember both the previous
+results, then we calculate <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">sqrt</span></span></code> on the final value. This should look
+pretty darn familiar - the stack program <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">dx</span></span> <span class="name"><span class="pre">dx</span></span> <span class="name builtin"><span class="pre">*</span></span> <span class="name"><span class="pre">dy</span></span> <span class="name"><span class="pre">dy</span></span> <span class="name builtin"><span class="pre">*</span></span> <span class="name builtin"><span class="pre">+</span></span> <span class="name builtin"><span class="pre">sqrt</span></span></code>.</p>
+<p>If you read it a bit more closely, it tells us something more interesting too.
+The penultimate nested λ term <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">pv</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">sqrt/ret</span></span> <span class="name"><span class="pre">pv</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">return</span></span> <span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">))))</span></span></code>
+makes no reference to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">dx2</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">dy2</span></span></code>. This means that while we need
+to remember them to calculate <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">+</span></span> <span class="name"><span class="pre">dx2</span></span> <span class="name"><span class="pre">dy2</span></span><span class="punctuation"><span class="pre">)</span></span></code>, we don’t need them
+afterwards. The way our stack progresses also reflects that same insight.</p>
+<p>Let’s now look at it another way using our favourite tool - β-abstraction.
+Take the core expression below -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span>(return (sqrt (+ (square dx) (square dy)))))
+</pre></div>
+</div>
+<p>β-abstract on the first calculation (square dx). We get</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">dx2</span><span class="p">)</span> <span class="p">(</span><span class="n">return</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="n">dx2</span> <span class="p">(</span><span class="n">square</span> <span class="n">dy</span><span class="p">)))))</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Now β-abstract the inside of the lambda on the next calculation (square dy)</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">dx2</span><span class="p">)</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">dy2</span><span class="p">)</span> <span class="p">(</span><span class="n">return</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="n">dx2</span> <span class="n">dy2</span><span class="p">))))</span> <span class="p">(</span><span class="n">square</span> <span class="n">dy</span><span class="p">)))</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Now we β-abstract again on (+ dx2 dy2)</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">dx2</span><span class="p">)</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">dy2</span><span class="p">)</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="p">(</span><span class="n">return</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="n">p</span><span class="p">)))</span> <span class="p">(</span><span class="nb">+</span> <span class="n">dx2</span> <span class="n">dy2</span><span class="p">)))</span> <span class="p">(</span><span class="n">square</span> <span class="n">dy</span><span class="p">)))</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Then we β-abstract on (sqrt p) -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">dx2</span><span class="p">)</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">dy2</span><span class="p">)</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">(</span><span class="n">return</span> <span class="n">s</span><span class="p">))</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="n">p</span><span class="p">)))</span> <span class="p">(</span><span class="nb">+</span> <span class="n">dx2</span> <span class="n">dy2</span><span class="p">)))</span> <span class="p">(</span><span class="n">square</span> <span class="n">dy</span><span class="p">)))</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>If we read this final expression right to left, it also captures the sequence
+in which we wanted to evaluate the expression - (square dx), (square dy), +,
+sqrt. In this case, it is not a surprise because that’s the sequence in which
+we performed the β-abstraction in the first place. However, if we constrain this
+process of successive β-abstraction to only pull out single operations, the
+sequence in which we performed this is unique.</p>
+<div class="admonition-question admonition">
+<p class="admonition-title"><strong>Question</strong></p>
+<p>Is the sequence <strong>really</strong> unique? We could’ve done <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="name"><span class="pre">dy</span></span><span class="punctuation"><span class="pre">)</span></span></code>
+first and then <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="name"><span class="pre">dx</span></span><span class="punctuation"><span class="pre">)</span></span></code>. Does that change our understanding?</p>
+</div>
+<p>But what are all these lambdas to the left of each calculation? What do they
+represent? .. i.e. what do each of these lambda’s stand for?</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Try to answer that on your own before proceeding.</p>
+</div>
+<p>Let’s take the innermost lambda, for example – <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">return</span></span> <span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">))</span></span></code>.
+Do you see it in the large “/ret” form we wrote? Likewise, take the next
+innermost lambda – <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">p</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">lambda</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">return</span></span> <span class="name"><span class="pre">s</span></span><span class="punctuation"><span class="pre">))</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">sqrt</span></span> <span class="name"><span class="pre">p</span></span><span class="punctuation"><span class="pre">)))</span></span></code>. Do
+you see something similar in the second-last lambda in the /ret form?</p>
+<p id="index-0">The various lambdas we wrote that we then applied to a small part of the whole
+composite computation all represent “what remains to be done” at each point we
+evaluate using beta-reduction. There is a word for this “what remains to be
+done” – it is called a “continuation” and is simply a function that takes the
+result of some prior step and calculates whatever remains to be done.</p>
+<p>The way we rewrote the expression calculation using /ret variants of the
+corresponding functions is called “continuation passing style” or CPS for
+short. If you find it hard to recall that, you can also think of “CPS” as
+expanding to “callback passing style”, for in each of the /ret variants,
+the last argument is a non-returning callback that is intended to be called
+with the result.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>At some level within our interpreter, we need to assume the existence
+of “primitive” operations which compute their results atomically and won’t
+have to go off and do something complicated on, say, some other machine. For
+instance, we can assume that Racket/Scheme won’t go off to a server to
+calculate <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">+</span></span> <span class="literal number integer"><span class="pre">3</span></span> <span class="literal number integer"><span class="pre">4</span></span><span class="punctuation"><span class="pre">)</span></span></code> and therefore we don’t need to rewrite that in CPS
+form.</p>
+</div>
+<p id="index-1">These “continuations” could also be thought of as the state of the stack at any
+point, made real as a value in our program. A word often used in CS for “made
+real” which means “made into a value” is “reified”. So what we have here are
+“reified continuations”. While continuations exist as an idea in every program
+language whether you use them or not, very few languages expose this idea as a
+function value to the programs written in these languages. Scheme is one of the
+exceptions that provides “reified continuations”.</p>
+<p>But what are they good for?</p>
+</div>
+<div class="section" id="optional-yet-another-perspective">
+<h1>(Optional) Yet another perspective<a class="headerlink" href="#optional-yet-another-perspective" title="Permalink to this headline">¶</a></h1>
+<p>Consider the very first β-abstraction step we did above, ignoring the
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">return</span></span></code> for this section’s purpose.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">dx2</span><span class="p">)</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="n">dx2</span> <span class="p">(</span><span class="n">square</span> <span class="n">dy</span><span class="p">))))</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>If we have an expression of the form <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span></code>, we can always
+rewrite it to <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">g</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">g</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">))</span></span> <span class="name"><span class="pre">f</span></span><span class="punctuation"><span class="pre">)</span></span></code>. In doing so, we’ve
+reversed the order of the two terms. Let’s see what we get if
+we do that to our expression above.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="p">(</span><span class="n">k</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">)))</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">dx2</span><span class="p">)</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="n">dx2</span> <span class="p">(</span><span class="n">square</span> <span class="n">dy</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>While previously we were writing down the lambdas only to have
+them be applied immediately, the lambda we wrote down in this
+case is now visible as a value to the inside of the first term
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">k</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">k</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">square</span></span> <span class="name"><span class="pre">dx</span></span><span class="punctuation"><span class="pre">)))</span></span></code> as the variable <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">k</span></span></code>. If
+our language gave us the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">k</span></span></code> to use as we please, we can
+see that we can now call it multiple times to calculate the
+“rest of the computation” within this <strong>limited</strong> context. <a class="footnote-reference brackets" href="#noret" id="id1">1</a></p>
+<dl class="footnote brackets">
+<dt class="label" id="noret"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>This is why we considered it without the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">return</span></span></code>.</p>
+</dd>
+</dl>
+<p id="index-2">The <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">racket/control</span></span></code> module provides constructs that can give us these
+reusable “delimited continuations” via the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">prompt</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">control</span></span></code>
+constructs (a.k.a. <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">reset</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">shift</span></span></code> respectively). We could’ve
+written our expression as –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">prompt</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="n">control</span> <span class="n">k</span> <span class="p">(</span><span class="n">k</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">)))</span> <span class="p">(</span><span class="n">square</span> <span class="n">dy</span><span class="p">))))</span>
+<span class="c1">; also written as</span>
+<span class="p">(</span><span class="n">reset</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="p">(</span><span class="n">shift</span> <span class="n">k</span> <span class="p">(</span><span class="n">k</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">)))</span> <span class="p">(</span><span class="n">square</span> <span class="n">dy</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>– to get access to the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">k</span></span></code> inside. Of course, in this case, we’re not
+doing anything interesting with the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">k</span></span></code> function we got. If time permits,
+we’ll visit this later as this is a pretty general control structure.</p>
+<p>Note that we can express <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">prompt</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">control</span></span></code> as “desugaring”
+operations in our expression language … with the constraint that the
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">control</span></span></code> construct can only occur inside a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">prompt</span></span></code> construct.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Try to see if you can implement prompt/control in PicLang.</p>
+</div>
+</div>
+<div class="section" id="adding-continuations-to-the-stack-language">
+<h1>Adding continuations to the stack language<a class="headerlink" href="#adding-continuations-to-the-stack-language" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>WARNING</strong> Iffy section!</p>
+</div>
+<p>When we rewrote our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code> in the previous section as
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine/ret</span></span></code>, we got explicit access to the “rest of the
+computations” as a function value. What powers do we gain if we make
+this function available to the stack language itself?</p>
+<p>First off, <em>how</em> do we make it available? We’ll need to add an
+instruction condition to handle this.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">process-instruction/ret</span> <span class="n">instr</span> <span class="n">state</span> <span class="n">return</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">match</span> <span class="n">state</span>
+        <span class="p">[(</span><span class="n">State</span> <span class="n">stack</span> <span class="n">bindings</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">cond</span> <span class="n">instr</span>
+            <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">call</span><span class="p">)</span>
+             <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)])</span>
+                <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">Block?</span> <span class="n">b</span><span class="p">))</span>
+                    <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction/ret</span>
+                                          <span class="s2">&quot;Block on stack&quot;</span>
+                                          <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">))</span>
+                    <span class="p">(</span><span class="n">stack-machine</span> <span class="p">(</span><span class="n">Block-program</span> <span class="n">b</span><span class="p">)</span>
+                                   <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">push</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="p">(</span><span class="n">return</span> <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">State-stack</span> <span class="n">s</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)))</span>
+                                                <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">))</span>
+                                          <span class="p">(</span><span class="n">Block-bindings</span> <span class="n">b</span><span class="p">)))))]</span>
+            <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">goto</span><span class="p">)</span>
+             <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">procedure?</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">))</span>
+                 <span class="p">((</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">))</span>
+                 <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction/ret</span>
+                                       <span class="s2">&quot;Continuation on the stack&quot;</span>
+                                       <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)))]</span>
+            <span class="c1">;...</span>
+            <span class="p">)]</span>
+        <span class="p">[</span><span class="k">_</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="k">...</span><span class="p">)]))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">process-instruction/ret</span> <span class="n">instr</span> <span class="n">state</span> <span class="n">return</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">match</span> <span class="n">state</span>
+        <span class="p">[(</span><span class="n">State</span> <span class="n">stack</span> <span class="n">bindings</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">cond</span> <span class="n">instr</span>
+            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="nb">list?</span> <span class="n">instr</span><span class="p">)</span>
+                  <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">instr</span><span class="p">))</span>
+                  <span class="p">(</span><span class="nb">equal?</span> <span class="p">(</span><span class="nb">first</span> <span class="n">instr</span><span class="p">)</span> <span class="o">&#39;</span><span class="ss">label</span><span class="p">)</span>
+                  <span class="p">(</span><span class="nb">symbol?</span> <span class="p">(</span><span class="nb">second</span> <span class="n">instr</span><span class="p">)))</span>
+             <span class="p">(</span><span class="k">letrec</span> <span class="p">([</span><span class="n">newbindings</span> <span class="p">(</span><span class="n">extend-bindings</span> <span class="p">(</span><span class="nb">second</span> <span class="n">instr</span><span class="p">)</span>
+                                        <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="c1">; &lt;-- NOTE THIS BINDING</span>
+                                           <span class="p">(</span><span class="n">return</span> <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">State-stack</span> <span class="n">s</span><span class="p">)</span> <span class="n">newbindings</span><span class="p">)))</span>
+                                        <span class="n">bindings</span><span class="p">)])</span>
+                <span class="p">(</span><span class="n">return</span> <span class="p">(</span><span class="n">State</span> <span class="n">stack</span> <span class="n">newbindings</span><span class="p">)))]</span>
+            <span class="p">[(</span><span class="nb">equal?</span> <span class="n">instr</span> <span class="o">&#39;</span><span class="ss">goto</span><span class="p">)</span>
+             <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">procedure?</span> <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">))</span>
+                 <span class="p">((</span><span class="n">top</span> <span class="n">stack</span><span class="p">)</span> <span class="p">(</span><span class="n">State</span> <span class="p">(</span><span class="n">pop</span> <span class="n">stack</span><span class="p">)</span> <span class="n">bindings</span><span class="p">))</span>
+                 <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">process-instruction/ret</span>
+                                       <span class="s2">&quot;Continuation must be present on the stack&quot;</span>
+                                       <span class="p">(</span><span class="n">top</span> <span class="n">stack</span><span class="p">)))]</span>
+            <span class="c1">;...</span>
+            <span class="p">)]</span>
+        <span class="p">[</span><span class="k">_</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="k">...</span><span class="p">)]))</span>
+</pre></div>
+</div>
+<p>What we’ve done here is that if we encounter the instruction <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">label</span></span> <span class="name"><span class="pre">k</span></span><span class="punctuation"><span class="pre">)</span></span></code>,
+we add a binding to the identifier <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">k</span></span></code> that will then hold the <strong>current</strong>
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">return</span></span></code> procedure. The program is then free to push it on to the stack
+and call it using <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">k</span></span> <span class="name"><span class="pre">goto</span></span></code>. It is not a coincidence that we gave these names
+to these two new operations – <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">label</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">goto</span></span></code>.</p>
+<div class="admonition-achtung admonition">
+<p class="admonition-title"><strong>Achtung!</strong></p>
+<p>We’ve done something here that needs more careful attention. We’ve vastly
+increased the scope of what kinds of values can be placed on the stack of
+our language to include pretty much everything that Scheme has to offer.
+This is not to be done lightly when you’re playing language designer
+because you will want to work carefully between “too little power” and “too
+much power” in the core language. Since our purpose here is to understand
+programming language features, we’ll take this liberty.</p>
+</div>
+<div class="admonition-question admonition">
+<p class="admonition-title"><strong>Question</strong></p>
+<p>While we’ve named these two new instructions as <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">label</span></span></code> and
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">goto</span></span></code>, what do they exactly stand for? Do they only stand for “jump
+to this other instruction and continue executing the program from there”?
+To answer this, consider how this new “feature” of our stack language
+interacts with the concept of “blocks”.</p>
+</div>
+<div class="admonition-question-s admonition">
+<p class="admonition-title"><strong>Question(s)</strong></p>
+<p>When handling <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">label</span></span> <span class="name"><span class="pre">k</span></span><span class="punctuation"><span class="pre">)</span></span></code>, we bound the identifier <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">k</span></span></code> to the
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">return</span></span></code> procedure directly. That’s where you see “NOTE THIS BINDING”
+in the code above. When this function is resumed later on with a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">k</span></span>
+<span class="name"><span class="pre">goto</span></span></code>, it will receive a new state. What are the language consequences of
+this decision? What if we instead bound it to just <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">return</span></span></code>?</p>
+<p>Also, given that we’ve done mutations using a store, we should really be
+considering the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">storage</span></span></code> as part of our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">State</span></span></code> structure too.
+So now there are more choices on what we can close over. What are the
+language consequences of these various choices? Start off by listing the
+choices we have. <strong>Hint:</strong> This is similar to our earlier discussion on
+“dynamic scoping” where we made a distinction between “definition
+environment” and “application environment” to resolve the problem.</p>
+<p>Which of the available choices would you prefer and why? How would you
+modify what we bind the “label” identifier to?</p>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Now go back and read the CPS code we wrote earlier to see if you can
+understand that in terms of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">label</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">goto</span></span></code>.</p>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Consider the following program for our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code> –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">block</span> <span class="p">(</span><span class="n">def</span> <span class="n">somewhere</span> <span class="n">n</span><span class="p">)</span> <span class="n">n</span> <span class="mi">1</span> <span class="nb">+</span> <span class="n">dup</span> <span class="nb">print</span> <span class="n">somewhere</span> <span class="n">goto</span><span class="p">)</span>
+<span class="p">(</span><span class="n">def</span> <span class="n">inc-loop</span><span class="p">)</span>
+<span class="mi">1</span>
+<span class="p">(</span><span class="n">label</span> <span class="n">square-one</span><span class="p">)</span>
+<span class="s2">&quot;Loopity loop&quot;</span> <span class="nb">print</span>
+<span class="n">square-one</span> <span class="n">inc-loop</span> <span class="k">do</span>
+</pre></div>
+</div>
+<p>Implement enough of the machine to enable this program to run
+and study what it does by running it step by step.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Comp308: Principles of Programming Languages</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun.html">Functions and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stacks-and-scope.html">Stacks and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun-in-piclang.html">Functions in PicLang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mutations.html">Mutations</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Srikumar K. S..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/control-with-label-and-goto.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -449,16 +449,25 @@ it wants with it, including return to it using :rkt:`goto`.
 
 .. admonition:: **Question(s)**
 
-    Go back and revisit the point marked :rkt:`[RET]` in the code above.
-    What are our options about what to push on the stack there? There
-    are three pieces of information potentially provided by the party
-    invoking the continuation -- the stack, bindings and storage. 
-    Which of these should we keep and for which should we use the
-    values available at the time we're capturing the continuation?
-    What are the language consequences of other choices for these?
-    **Hint:** This is similar to our earlier discussion on
+    Go back and revisit the point marked :rkt:`[RET]` in the code above. What
+    are our options about what to push on the stack there? There are three
+    pieces of information potentially provided by the party invoking the
+    continuation -- the stack, bindings and storage. Which of these should we
+    keep and for which should we use the values available at the time we're
+    capturing the continuation? What are the language consequences of other
+    choices for these? **Hint:** This is similar to our earlier discussion on
     "dynamic scoping" where we made a distinction between "definition
     environment" and "application environment" to resolve the problem.
+
+    There is also one subtle point there. When returning, the body of code
+    performing the return (or "continuation jump") could've modified the stack
+    with some content. This makes the stack state at the point of the jump
+    potentially different from the stack state when the continuation was
+    captured. However, we do usually want to pass some value back when we're
+    resuming the continuation. The code above assumes that you only want to
+    pass on the top value of the stack that's immediately below the
+    continuation itself when you're calling on :rkt:`goto`. What are other
+    options and what consequences do they have on program behaviour?
 
 .. admonition:: **Exercise**
 

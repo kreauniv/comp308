@@ -380,7 +380,9 @@ Note that we can express :rkt:`prompt` and :rkt:`control` as "desugaring"
 operations in our expression language ... with the constraint that the
 :rkt:`control` construct can only occur inside a :rkt:`prompt` construct.
 
-.. note:: Try to see if you can implement prompt/control in PicLang. This is a
+.. admonition:: **Advanced exercise**
+
+   Try to see if you can implement prompt/control in PicLang. This is a
    somewhat advanced challenge. You will have to pay attention to testing your
    implementation.
 

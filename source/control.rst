@@ -389,7 +389,7 @@ operations in our expression language ... with the constraint that the
 Adding continuations to the stack language
 ------------------------------------------
 
-.. note:: **WARNING** Iffy section!
+.. warning:: Iffy section!
 
 When we rewrote our :rkt:`stack-machine` in the previous section as
 :rkt:`stack-machine/ret`, we got explicit access to the "rest of the

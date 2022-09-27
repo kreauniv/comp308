@@ -407,6 +407,7 @@ instruction condition to handle this.
                   (match (top stack)
                       [(Block deftime-bindings program)
                        (stack-machine/ret program
+                              ;            v---- [RET] What are our choices here?
                               (State (push (λ (s) (return (State (State-stack s) 
                                                                  bindings
                                                                  (State-storage s))))

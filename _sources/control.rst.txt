@@ -231,32 +231,51 @@ Take the core expression below -
 
 .. code-block:: racket
 
-    ((λ (dx2) (return (sqrt (+ dx2 (square dy))))) (square dx))
+    ((λ (dx2) 
+        (return (sqrt (+ dx2 (square dy))))) 
+     (square dx))
 
 Now β-abstract the inside of the lambda on the next calculation (square dy)
 
 .. code-block:: racket
 
-    ((λ (dx2) ((λ (dy2) (return (sqrt (+ dx2 dy2)))) (square dy))) (square dx))
+    ((λ (dx2) 
+        ((λ (dy2) (return (sqrt (+ dx2 dy2))))
+         (square dy))) 
+     (square dx))
 
 Now we β-abstract again on (+ dx2 dy2)
 
 .. code-block:: racket
 
-    ((λ (dx2) ((λ (dy2) ((λ (p) (return (sqrt p))) (+ dx2 dy2))) (square dy))) (square dx))
+    ((λ (dx2) 
+        ((λ (dy2) 
+            ((λ (p) (return (sqrt p))) 
+             (+ dx2 dy2)))
+         (square dy))) 
+     (square dx))
 
 Then we β-abstract on (sqrt p) -
 
 .. code-block:: racket
 
-    ((λ (dx2) ((λ (dy2) ((λ (p) ((λ (s) (return s)) (sqrt p))) (+ dx2 dy2))) (square dy))) (square dx))
+    ((λ (dx2) 
+        ((λ (dy2) 
+            ((λ (p) 
+                ((λ (s) 
+                    (return s))
+                 (sqrt p)))
+             (+ dx2 dy2)))
+         (square dy)))
+     (square dx))
 
-If we read this final expression right to left, it also captures the sequence
-in which we wanted to evaluate the expression - (square dx), (square dy), +,
-sqrt. In this case, it is not a surprise because that's the sequence in which
-we performed the β-abstraction in the first place. However, if we constrain this
-process of successive β-abstraction to only pull out single operations, the
-sequence in which we performed this is unique.
+If we read this final expression bottom to top, it also captures the sequence
+in which we wanted to evaluate the expression - :rkt:`(square dx)`,
+:rkt:`(square dy)`, :rkt:`+`, :rkt:`sqrt`. In this case, it is not a surprise
+because that's the sequence in which we performed the β-abstraction in the
+first place. However, if we constrain this process of successive β-abstraction
+to only pull out single operations, the sequence in which we performed this is
+unique, assuming no knowledge of the commutativity of :rkt:`+`.
 
 .. admonition:: **Question**
 

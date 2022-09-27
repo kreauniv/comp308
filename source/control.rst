@@ -410,10 +410,11 @@ instruction condition to handle this.
                       [(Block deftime-bindings program)
                        (stack-machine/ret program
                               ;            v---- [RET] What are our choices here?
-                              (State (push (λ (s) (return (State (push (top (State-stack s))
-                                                                       (pop stack))
-                                                                 bindings
-                                                                 (State-storage s))))
+                              (State (push (λ (s) 
+                                              (return (State (push (top (State-stack s))
+                                                                   (pop stack))
+                                                             bindings
+                                                             (State-storage s))))
                                            (pop stack))
                                      deftime-bindings
                                      storage)

@@ -322,9 +322,12 @@ exceptions that provides “reified continuations”.</p>
 </pre></div>
 </div>
 <p>If we have an expression of the form <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span></code>, we can always
-rewrite it to <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">g</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">g</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">))</span></span> <span class="name"><span class="pre">f</span></span><span class="punctuation"><span class="pre">)</span></span></code>. In doing so, we’ve
-reversed the order of the two terms. Let’s see what we get if
-we do that to our expression above.</p>
+rewrite it to  –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="p">(</span><span class="n">g</span> <span class="n">x</span><span class="p">))</span> <span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In doing so, we’ve reversed the order of the two terms. Let’s see what we get
+if we do that to our expression above.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="p">(</span><span class="n">k</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">)))</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">dx2</span><span class="p">)</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="n">dx2</span> <span class="p">(</span><span class="n">square</span> <span class="n">dy</span><span class="p">)))))</span>
 </pre></div>
 </div>

@@ -1,6 +1,19 @@
 Control
 =======
 
+Motivating control
+------------------
+
+The `PLAI second edition`_ presents an excellent case that motivates discussion
+about program control -- `the web <plaiwebcontrol_>`_. Do go through that
+material.
+
+.. _PLAI second edition: https://cs.brown.edu/courses/cs173/2012/book/index.html
+.. _plaiwebcontrol: https://cs.brown.edu/courses/cs173/2012/book/Control_Operations.html#%28part._.Control_on_the_.Web%29
+
+Working up from simple examples
+-------------------------------
+
 (THIS MATERIAL IS NOT FINAL.)
 
 In programs, the word "control" is used to denote a number of things related to

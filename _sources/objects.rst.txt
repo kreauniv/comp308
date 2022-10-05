@@ -533,7 +533,7 @@ compilation techniques that later on when into the Java programming language.
 Self_, for example, does not have the notions of classes or metaclasses, only
 objects and delegation!
 
-.. _Self:: https://en.wikipedia.org/wiki/Self_(programming_language)
+.. _Self: https://en.wikipedia.org/wiki/Self_(programming_language)
 
 **Delegation** is the term used in prototype based languages to refer to how
 one object leverages another object to get functionality. Whenever an object

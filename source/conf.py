@@ -66,6 +66,7 @@ pygments_style = 'xcode'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
+latex_engine = 'xelatex'
 latex_extensions = {
         'papersize': 'a4paper'
         }

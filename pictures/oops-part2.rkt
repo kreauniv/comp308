@@ -36,9 +36,12 @@ Object = Dispatcher
 
 -----
 
+TODO:
 anObject -- instance of --> aClass
-aClass -- superclass --> anotherClass
 aClass -- instance of --> Class
+aClass -- superclass --> anotherClass
+
+DONE:
 Class -- instance of --> Object
 Object -- instance of --> Class
 Class -- superclass --> Class

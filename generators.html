@@ -292,7 +292,10 @@ takes an extra parameter as its first argument, called <code class="code highlig
 </pre></div>
 </div>
 <p>Now, we can easily write the above python code like this –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">g</span> <span class="p">(</span><span class="n">make-generator</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">yield</span><span class="p">)</span> <span class="p">(</span><span class="nb">map</span> <span class="n">yield</span> <span class="o">&#39;</span><span class="p">(</span><span class="s2">&quot;one&quot;</span> <span class="s2">&quot;two&quot;</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)))))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">g</span> <span class="p">(</span><span class="n">generator</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">yield</span><span class="p">)</span> <span class="p">(</span><span class="nb">map</span> <span class="n">yield</span> <span class="o">&#39;</span><span class="p">(</span><span class="s2">&quot;one&quot;</span> <span class="s2">&quot;two&quot;</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)))))</span>
+<span class="c1">; Note that we can&#39;t map the yield function like this in Python</span>
+<span class="c1">; because in Python yield is not a function or a value that works</span>
+<span class="c1">; as one.</span>
 <span class="p">(</span><span class="n">next</span> <span class="n">g</span> <span class="no">#f</span><span class="p">)</span>
 <span class="p">(</span><span class="n">next</span> <span class="n">g</span> <span class="no">#f</span><span class="p">)</span>
 <span class="p">(</span><span class="n">next</span> <span class="n">g</span> <span class="no">#f</span><span class="p">)</span>

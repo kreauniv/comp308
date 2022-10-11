@@ -578,11 +578,11 @@ coincidence. It is somewhat equivalent to the following python generator code.
         yield n
 
     g = gen(0)
-    g.next()
-    g.next()
-    g.next()
-    g.next()
-    g.next()
+    next(g)
+    next(g)
+    next(g)
+    next(g)
+    next(g)
 
 
 It looks like we had quite a few more definition lines than the python version.

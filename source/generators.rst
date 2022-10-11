@@ -303,7 +303,10 @@ Now, we can easily write the above python code like this --
 
 .. code-block:: racket
 
-    (define g (make-generator (λ (yield) (map yield '("one" "two" 3 4)))))
+    (define g (generator (λ (yield) (map yield '("one" "two" 3 4)))))
+    ; Note that we can't map the yield function like this in Python
+    ; because in Python yield is not a function or a value that works
+    ; as one.
     (next g #f)
     (next g #f)
     (next g #f)

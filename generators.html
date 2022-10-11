@@ -302,6 +302,33 @@ takes an extra parameter as its first argument, called <code class="code highlig
 <span class="p">(</span><span class="n">next</span> <span class="n">g</span> <span class="no">#f</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>You can also make <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">generator</span></span></code> a bit more convenient to use by
+uncurrying the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">args</span></span></code>.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">generator</span> <span class="n">genfn</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">lambda</span> <span class="n">args</span>
+        <span class="p">(</span><span class="k">let/cc</span> <span class="n">return</span>
+            <span class="p">(</span><span class="k">define</span> <span class="n">yield-box</span> <span class="p">(</span><span class="nb">box</span> <span class="n">return</span><span class="p">))</span>
+            <span class="p">(</span><span class="k">define</span> <span class="n">resume-box</span> <span class="p">(</span><span class="nb">box</span> <span class="no">#f</span><span class="p">))</span>
+            <span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">yield</span> <span class="n">val</span><span class="p">)</span>
+                <span class="p">(</span><span class="k">let/cc</span> <span class="n">resume</span>
+                    <span class="p">(</span><span class="nb">set-box!</span> <span class="n">resume-box</span> <span class="n">resume</span><span class="p">)</span>
+                    <span class="p">((</span><span class="nb">unbox</span> <span class="n">yield-box</span><span class="p">)</span> <span class="n">val</span><span class="p">)))</span>
+            <span class="c1">; Pass the generator state to the caller for use by &quot;next&quot;.</span>
+            <span class="p">(</span><span class="n">yield</span> <span class="p">(</span><span class="nb">list</span> <span class="n">yield-box</span> <span class="n">resume-box</span><span class="p">))</span>
+            <span class="c1">; Call the generator function with our newly minted &quot;yield&quot; function</span>
+            <span class="c1">; as the first argument.</span>
+            <span class="p">(</span><span class="nb">apply</span> <span class="n">genfn</span> <span class="p">(</span><span class="nb">cons</span> <span class="n">yield</span> <span class="n">args</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="n">gen</span> <span class="p">(</span><span class="n">generator</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">yield</span> <span class="o">.</span> <span class="n">args</span><span class="p">)</span> <span class="p">(</span><span class="nb">for-each</span> <span class="n">yield</span> <span class="o">&#39;</span><span class="p">(</span><span class="s2">&quot;one&quot;</span> <span class="s2">&quot;two&quot;</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)))))</span>
+<span class="c1">; With this form, the function `generator` works like a word that</span>
+<span class="c1">; declares the given lambda function to be a generator. You can then call</span>
+<span class="c1">; the produced functions to make make independently evolving generator instances.</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="n">g</span> <span class="p">(</span><span class="n">gen</span><span class="p">))</span>
+<span class="p">(</span><span class="n">next</span> <span class="n">g</span> <span class="no">#f</span><span class="p">)</span>
+<span class="c1">;...</span>
+</pre></div>
+</div>
 <p>Enjoy … and the journey always continues on!</p>
 <div class="admonition-exercise admonition">
 <p class="admonition-title"><strong>Exercise</strong></p>

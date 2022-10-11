@@ -312,7 +312,36 @@ Now, we can easily write the above python code like this --
     (next g #f)
     (next g #f)
 
+You can also make :rkt:`generator` a bit more convenient to use by
+uncurrying the :rkt:`args`.
 
+.. code-block:: racket
+
+    (define (generator genfn)
+        (lambda args
+            (let/cc return
+                (define yield-box (box return))
+                (define resume-box (box #f))
+                (define (yield val)
+                    (let/cc resume
+                        (set-box! resume-box resume)
+                        ((unbox yield-box) val)))
+                ; Pass the generator state to the caller for use by "next".
+                (yield (list yield-box resume-box))
+                ; Call the generator function with our newly minted "yield" function
+                ; as the first argument.
+                (apply genfn (cons yield args)))))
+
+    (define gen (generator (λ (yield . args) (for-each yield '("one" "two" 3 4)))))
+    ; With this form, the function `generator` works like a word that
+    ; declares the given lambda function to be a generator. You can then call
+    ; the produced functions to make make independently evolving generator instances.
+
+    (define g (gen))
+    (next g #f)
+    ;...
+
+    
 Enjoy ... and the journey always continues on!
 
 .. admonition:: **Exercise**

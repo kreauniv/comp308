@@ -355,3 +355,135 @@ Enjoy ... and the journey always continues on!
     to signal the end?
 
 
+Search as a language feature
+----------------------------
+
+Many popular languages today have a language feature usually going by the name
+"set comprehension", "list comprehension", "array comprehension" or "dictionary
+comprehension". The essence of these constructs is nested for-loop iteration
+where values are produced based on the for loop iterations which meet some
+criteria expressed as a boolean constraint on the values being enumerated.
+
+Generators are closely linked with comprehensions and languages like Julia even
+make generators use the same syntax as comprehensions. So it is not unreasonable
+to expect that the ideas we developed above can serve to explore a space of
+variable values that need to meet some constraints. For example, let's consider
+a toy problem of finding pythagorean triplets.
+
+.. code-block:: python
+
+    def pytriplets(m, n):
+        for x in range(m, n):
+            for y in range(m, n):
+                for z in range(m, n):
+                    if x*x+y*y == z*z:
+                        yield (x,y,z)
+
+How can we model this kind of searching using our scheme of things. First off,
+we need to realize that the inner-most for loop gets to run fully for each of
+the outer for loops -- i.e. the search is **depth first**. This kind of a
+search can be modeled using a stack, where the top state of the stack captures
+the state of the inner loop. Similar to what we did above, we will need
+:rkt:`yield` to be modeled as "try to find one more case".  One other point to
+note here is that there is a role played by the "else" part of the if -- it
+tries the next possible set of values for x,y,z. We'll model that instead of
+yield directly, because with search, we're interested in finding one solution
+(at least for starters).
+
+And what we'll use here is a stack of continuations!
+
+.. code-block:: racket
+
+    (define stack (box empty))
+    (define (push val)
+        (set-box! stack (cons val (unbox stack))))
+    (define (pop)
+        (let ([top (first (unbox stack))])
+            (set-box! stack (rest (unbox stack)))
+            top))
+
+    (define (try-again)
+        ((pop)))
+
+    (define (ensure bool)
+        (when (not bool)
+            (try-again)))
+
+    ; range produces one value at a time. If you don't
+    ; like it, you can call (try-again) to get another.
+    (define (range m n)
+        (let/cc return
+            (let/cc trynext
+                (push trynext)
+                (return m))
+            (if (< m n)
+                (range (+ m 1) n)
+                (try-again))))
+
+    (define (pytriplets m n)
+        (let ([x (range m n)]
+              [y (range m n)]
+              [z (range m n)])
+            (ensure (equal? (* z z) (+ (* x x) (* y y))))
+            (list x y z)))
+
+
+Now, if you call, say, :rkt:`(pytriplets 10 50)`, it will return a list
+of three numbers that form a triplet. If you're not happy and want another,
+you can invoke :rkt:`(try-again)` to get the next one.
+
+.. code-block::
+
+    > (pytriplets 10 50)
+    '(10 24 26)
+    > (try-again)
+    '(12 16 20)
+    > (try-again)
+    '(12 35 37)
+    > (try-again)
+    '(14 48 50)
+    > (try-again)
+    '(15 20 25)
+    > (try-again)
+    '(15 36 39)
+    > 
+
+That was fun, wasn't it?
+
+.. admonition:: **Question**
+
+    Notice that the next result isn't being returned from the :rkt:`(try-again)`.
+    Why is that? Do you want to change that behaviour? If so, how would you?
+    Also, why is the result being printed out even though we aren't writing it
+    out explicitly and are simply returning a list from :rkt:`pytriplets`?
+
+.. admonition:: **Terminology**
+
+    This kind of behaviour is referred to as "non-determinism" in a language.
+    We know that the program is quite deterministic alright, but the reason the
+    term is used is that at the point where the :rkt:`(range m n)` function
+    call returns, the result could be any value in the range that meets
+    criteria that's going to be specified **later** in the program. So at that
+    point, we don't truly know what value it is going to produce.
+
+.. admonition:: **Exercise**
+
+    Write an :rkt:`options` function similar to :rkt:`range` that behaves like
+    this -- It takes any number of arguments and, just as range runs over integers
+    from the first arg to the second arg, steps through the arguments one by one.
+    In other words, :rkt:`options` can return any one of its arguments, and the
+    value it returns can be decided by any constraints on the value that may appear
+    in the code after the :rkt:`options` call.
+
+    .. code-block:; racket
+
+        (define (pytriplets)
+            (let ([x (options 2 3 4 5 6 7 8 9)]
+                  [y (options 2 3 4 5 6 7 8 9)]
+                  [z (options 2 3 4 5 6 7 8 9)])
+                (ensure (equal? (* z z) (+ (* x x) (* y y))))
+                (list x y z)))
+
+    The above code should behave the same way as though :rkt:`(range 2 9)` was
+    used instead of :rkt:`(options 2 3 4 5 6 7 8 9)`. Except that in the case
+    of :rkt:`options`, the values can be of any type.

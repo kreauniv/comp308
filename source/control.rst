@@ -336,6 +336,8 @@ Consider the very first β-abstraction step we did above, ignoring the
 
     ((λ (dx2) (sqrt (+ dx2 (square dy)))) (square dx))
 
+.. index:: β-abstraction
+
 If we have an expression of the form :rkt:`(f x)`, we can always
 rewrite it to  --
 
@@ -343,8 +345,10 @@ rewrite it to  --
 
     ((λ (g) (g x)) f)
 
-In doing so, we've reversed the order of the two terms. Let's see what we get
-if we do that to our expression above.
+In doing so, we've reversed the order of the two terms. This is not some
+special transformation. We're just .... you guessed it ... β-abstracting over
+:rkt:`f` in :rkt:`(f x)`. Let's see what we get if we do that to our expression
+above.
 
 .. code-block:: racket
 

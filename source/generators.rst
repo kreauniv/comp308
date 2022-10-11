@@ -436,8 +436,8 @@ That was fun, wasn't it?
 
 .. admonition:: **Question**
 
-    Notice that the next result isn't being returned from the :rkt:`(try-aghain)`.
-    Why is that? Do you want to change that behaviour? If so, how wouold you?
+    Notice that the next result isn't being returned from the :rkt:`(try-again)`.
+    Why is that? Do you want to change that behaviour? If so, how would you?
 
 .. admonition:: **Terminology**
 

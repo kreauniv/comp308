@@ -355,3 +355,99 @@ Enjoy ... and the journey always continues on!
     to signal the end?
 
 
+Search as a language feature
+----------------------------
+
+Many popular languages today have a language feature usually going by the name
+"set comprehension", "list comprehension", "array comprehension" or "dictionary
+comprehension". The essence of these constructs is nested for-loop iteration
+where values are produced based on the for loop iterations which meet some
+criteria expressed as a boolean constraint on the values being enumerated.
+
+Generators are closely linked with comprehensions and languages like Julia even
+make generators use the same syntax as comprehensions. So it is not unreasonable
+to expect that the ideas we developed above can serve to explore a space of
+variable values that need to meet some constraints. For example, let's consider
+a toy problem of finding pythagorean triplets.
+
+.. code-block:: python
+
+    def pytriplets(xfrom, xto, yfrom, yto, zfrom, zto):
+        for x in range(xfrom, xto):
+            for y in range(yfrom, yto):
+                for z in range(zfrom, zto):
+                    if x*x+y*y == z*z:
+                        yield (x,y,z)
+
+How can we model this kind of searching using our scheme of things. First off,
+we need to realize that the inner-most for loop gets to run fully for each of
+the outer for loops -- i.e. the search is **depth first**. This kind of a
+search can be modeled using a stack, where the top state of the stack captures
+the state of the inner loop. Similar to what we did above, we will need
+:rkt:`yield` to be modeled as "try to find one more case".  One other point to
+note here is that there is a role played by the "else" part of the if -- it
+tries the next possible set of values for x,y,z. We'll model that instead of
+yield directly, because with search, we're interested in finding one solution
+(at least for starters).
+
+And what we'll use here is a stack of continuations!
+
+.. code-block:: racket
+
+    (define stack (box empty))
+    (define (push val)
+        (set-box! stack (cons val (unbox stack))))
+    (define (pop)
+        (let ([top (first (unbox stack))])
+            (set-box! stack (rest (unbox stack)))
+            top))
+
+    (define (try-again)
+        ((pop)))
+
+    (define (ensure bool)
+        (when (not bool)
+            (try-again)))
+
+    ; range produces one value at a time. If you don't
+    ; like it, you can call (try-again) to get another.
+    (define (range m n)
+        (let/cc return
+            (let/cc trynext
+                (push trynext)
+                (return m))
+            (if (< m n)
+                (range (+ m 1) n)
+                (try-again))))
+
+    (define (pytriplets m n)
+        (let ([x (range m n)]
+              [y (range m n)]
+              [z (range m n)])
+            (ensure (equal? (* z z) (+ (* x x) (* y y))))
+            (list x y z)))
+
+
+Now, if you call, say, :rkt:`(pytriplets 10 50)`, it will return a list
+of three numbers that form a triplet. If you're not happy and want another,
+you can invoke :rkt:`(try-again)` to get the next one.
+
+That was fun, wasn't it?
+
+.. admonition:: **Question**
+
+    Notice that the next result isn't being returned from the :rkt:`(try-aghain)`.
+    Why is that? Do you want to change that behaviour? If so, how wouold you?
+
+.. admonition:: **Terminology**
+
+    This kind of behaviour is referred to as "non-determinism" in a language.
+    We know that the program is quite deterministic alright, but the reason the
+    term is used is that at the point where the :rkt:`(range m n)` function
+    call returns, the result could be any value in the range that meets
+    criteria that's going to be specified **later** in the program. So at that
+    point, we don't truly know what value it is going to produce.
+
+
+
+        

@@ -372,10 +372,10 @@ a toy problem of finding pythagorean triplets.
 
 .. code-block:: python
 
-    def pytriplets(xfrom, xto, yfrom, yto, zfrom, zto):
-        for x in range(xfrom, xto):
-            for y in range(yfrom, yto):
-                for z in range(zfrom, zto):
+    def pytriplets(m, n):
+        for x in range(m, n):
+            for y in range(m, n):
+                for z in range(m, n):
                     if x*x+y*y == z*z:
                         yield (x,y,z)
 

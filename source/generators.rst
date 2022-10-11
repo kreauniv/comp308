@@ -432,12 +432,30 @@ Now, if you call, say, :rkt:`(pytriplets 10 50)`, it will return a list
 of three numbers that form a triplet. If you're not happy and want another,
 you can invoke :rkt:`(try-again)` to get the next one.
 
+.. code-block::
+
+    > (pytriplets 10 50)
+    '(10 24 26)
+    > (try-again)
+    '(12 16 20)
+    > (try-again)
+    '(12 35 37)
+    > (try-again)
+    '(14 48 50)
+    > (try-again)
+    '(15 20 25)
+    > (try-again)
+    '(15 36 39)
+    > 
+
 That was fun, wasn't it?
 
 .. admonition:: **Question**
 
     Notice that the next result isn't being returned from the :rkt:`(try-again)`.
     Why is that? Do you want to change that behaviour? If so, how would you?
+    Also, why is the result being printed out even though we aren't writing it
+    out explicitly and are simply returning a list from :rkt:`pytriplets`?
 
 .. admonition:: **Terminology**
 
@@ -448,6 +466,3 @@ That was fun, wasn't it?
     criteria that's going to be specified **later** in the program. So at that
     point, we don't truly know what value it is going to produce.
 
-
-
-        

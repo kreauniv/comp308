@@ -322,13 +322,15 @@ exceptions that provides “reified continuations”.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">dx2</span><span class="p">)</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="n">dx2</span> <span class="p">(</span><span class="n">square</span> <span class="n">dy</span><span class="p">))))</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>If we have an expression of the form <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span></code>, we can always
+<p id="index-2">If we have an expression of the form <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span></code>, we can always
 rewrite it to  –</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="p">(</span><span class="n">g</span> <span class="n">x</span><span class="p">))</span> <span class="n">f</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>In doing so, we’ve reversed the order of the two terms. Let’s see what we get
-if we do that to our expression above.</p>
+<p>In doing so, we’ve reversed the order of the two terms. This is not some
+special transformation. We’re just …. you guessed it … β-abstracting over
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">f</span></span></code> in <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span></code>. Let’s see what we get if we do that to our expression
+above.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span> <span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="p">(</span><span class="n">k</span> <span class="p">(</span><span class="n">square</span> <span class="n">dx</span><span class="p">)))</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">dx2</span><span class="p">)</span> <span class="p">(</span><span class="nb">sqrt</span> <span class="p">(</span><span class="nb">+</span> <span class="n">dx2</span> <span class="p">(</span><span class="n">square</span> <span class="n">dy</span><span class="p">)))))</span>
 </pre></div>
 </div>
@@ -343,7 +345,7 @@ computation” within this <strong>limited</strong> context. <a class="footnote-
 <dd><p>This is why we considered it without the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">return</span></span></code>.</p>
 </dd>
 </dl>
-<p id="index-2">The <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">racket/control</span></span></code> module provides syntax that can give us these
+<p id="index-3">The <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">racket/control</span></span></code> module provides syntax that can give us these
 reusable “delimited continuations” via the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">prompt</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">control</span></span></code>
 constructs (a.k.a. <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">reset</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">shift</span></span></code> respectively). We could’ve
 written our expression as –</p>

@@ -321,4 +321,8 @@ Enjoy ... and the journey always continues on!
     How can you arrange for the generator to finish its calculations
     gracefully?
 
+    **Hint**: Attend to where the result expression of the genfn is returning
+    its value to. Where should it return to? .. and what can it possibly return
+    to signal the end?
+
 

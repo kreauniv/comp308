@@ -466,3 +466,24 @@ That was fun, wasn't it?
     criteria that's going to be specified **later** in the program. So at that
     point, we don't truly know what value it is going to produce.
 
+.. admonition:: **Exercise**
+
+    Write an :rkt:`options` function similar to :rkt:`range` that behaves like
+    this -- It takes any number of arguments and, just as range runs over integers
+    from the first arg to the second arg, steps through the arguments one by one.
+    In other words, :rkt:`options` can return any one of its arguments, and the
+    value it returns can be decided by any constraints on the value that may appear
+    in the code after the :rkt:`options` call.
+
+    .. code-block:; racket
+
+        (define (pytriplets)
+            (let ([x (options 2 3 4 5 6 7 8 9)]
+                  [y (options 2 3 4 5 6 7 8 9)]
+                  [z (options 2 3 4 5 6 7 8 9)])
+                (ensure (equal? (* z z) (+ (* x x) (* y y))))
+                (list x y z)))
+
+    The above code should behave the same way as though :rkt:`(range 2 9)` was
+    used instead of :rkt:`(options 2 3 4 5 6 7 8 9)`. Except that in the case
+    of :rkt:`options`, the values can be of any type.

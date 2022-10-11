@@ -1,0 +1,172 @@
+Pure objects (optional)
+=======================
+
+In this section, we'll work through a somewhat complete implementation of an interpreter
+for a minimalistic "pure" object oriented language.
+
+1. We'll rely on message passing for all activity coordination. 
+
+2. We'll bank on Racket's support for symbols to express "programs" using this
+   language.
+
+In contrast to our earlier approach where we made every term type explicit, we'll
+choose the approach of representing our "message passing programs" using ordinary
+Racket (nested) lists with imposed structure. This is because of the assumption stated
+earlier -- we **only** have objects and message passing, so those are the only things
+we need to care about in our system. There *are* no other term types to deal with apart
+from message passing and a construct to help notate a sequence of messages to various
+objects!
+
+We'll take our usual structure of the recursive interpreter with support for
+"environments". For fun, we'll call our language "OOPS" for "object oriented
+programming system" :)
+
+Some kinds of expressions we should be able to evaluate with this -
+
+.. code-block:: racket
+
+    (2 + 3)       ; Should produce a number object with value 5
+    (42 describe) ; Should produce a string object with value "42"
+    (2 + (3 * 4)) ; Should produce a number object with value 14
+    ((7 < (3 + 5)) 
+        if (block () ("yes" print)) 
+           (block () ("no" print)))
+                  ; Should print "yes"
+    ((block (a b) (a + b)) invoke 3 4) 
+                  ; Should produce a number object with value 7
+
+.. code-block:: racket
+
+    (define (oops expr bindings)
+      (cond
+        [(symbol? expr)
+         (match (assoc expr bindings)
+           [(list sym val) val]
+           [_ (raise-argument-error 'oops "Bound symbol" expr)])]
+        [(oops-literal? expr)
+         (oops-make-from-literal expr)]
+        [(list? expr)
+         (when (empty? expr)
+           (raise-argument-error 'oops
+                                 "Non-empty program"
+                                 expr))
+         (if (equal? (first expr) 'block)
+             ; Support for blocks.
+             (oops-block expr bindings)
+             (if (oops-message? expr)
+                 (let ([target (oops (first expr) bindings)]
+                       [message (second expr)]
+                       [args (map (λ (subexpr) (oops subexpr bindings)) (rest (rest expr)))])
+                   (oops-send target message args))
+                 (raise-argument-error 'oops
+                                       "Message send"
+                                       expr)))]
+        [#t (raise-argument-error 'oops
+                                  "Message send expression as a list"
+                                  expr)]))
+
+    (define (oops-message? expr)
+      (symbol? (second expr)))
+
+    (define (oops-literal? expr)
+      (or (number? expr)
+          (string? expr)
+          (boolean? expr)))
+
+    (define (oops-make-from-literal expr)
+      (cond
+        [(number? expr) (oops-number expr)]
+        [(string? expr) (oops-string expr)]
+        [(boolean? expr) (if expr oops-true oops-false)]
+        [#t (raise-argument-error 'oops-make-from-literal "Valid literal" expr)]))
+                                    
+    (define (oops-block expr bindings)
+      (define formals (second expr))
+      (define body (rest (rest expr)))
+      (λ (self sel . args)
+        (match sel
+          ['invoke (let ([newbindings (extend-bindings formals args bindings)])
+                     (oops-eval-seq body self bindings))]
+          [_ (raise-argument-error 'Block "Valid selector" sel)])))
+                    
+    (define (oops-eval-seq body lastval bindings)
+      (if (empty? body)
+          lastval
+          (oops-eval-seq (rest body) (oops (first body) bindings) bindings)))
+
+    (define (extend-bindings formals values bindings)
+      (if (empty? formals)
+          bindings
+          (extend-bindings (rest formals) 
+                           (rest values) 
+                           (cons (list (first formals) (first values)) bindings))))
+
+    (define (oops-send target message args)
+      (apply target (cons target (cons message args))))
+
+    (define (oops-bool b)
+      (if b oops-true oops-false))
+
+    (define oops-true
+      (λ (self sel . args)
+        (match sel
+          ['if (oops-send (first args) 'invoke empty)]
+          ['not oops-false]
+          ['and (if (equal? (first args) oops-true)
+                    oops-true
+                    oops-false)]
+          ['or oops-true]
+          ['describe (oops-make-from-literal "True")]
+          [_ (raise-argument-error 'Boolean "Known selector" sel)])))
+
+    (define oops-false
+      (λ (self sel . args)
+        (match sel
+          ['if (oops-send (second args) 'invoke empty)]
+          ['not oops-true]
+          ['and oops-false]
+          ['or (if (equal? (first args) oops-true)
+                   oops-true
+                   oops-false)]
+          ['describe (oops-make-from-literal "False")]
+          [_ (raise-argument-error 'Boolean "Known selector" sel)])))
+
+    (define (oops-string value)
+      (λ (self sel . args)
+        (match sel
+          ['$value value]
+          ['== (oops-bool (string=? value (oops-send (first args) '$value)))]
+          ['print (display value) self]
+          ['concat (oops-make-from-literal (string-append value (oops-send (first args) '$value)))]
+          [_ (raise-argument-error 'String "Known selector" sel)])))
+
+
+    (define (oops-number value)
+      (λ (self sel . args)
+        (match sel
+          ['$value value]
+          ['+ (oops-make-from-literal 
+               (+ value (oops-send (first args) '$value empty)))]
+          ['- (oops-make-from-literal 
+               (- value (oops-send (first args) '$value empty)))]
+          ['* (oops-make-from-literal 
+               (* value (oops-send (first args) '$value empty)))]
+          ['/ (oops-make-from-literal 
+               (/ value (oops-send (first args) '$value empty)))] 
+          ['< (oops-bool (< value (oops-send (first args) '$value)))]
+          ['> (oops-bool (> value (oops-send (first args) '$value)))]
+          ['<= (oops-bool (<= value (oops-send (first args) '$value)))]
+          ['>= (oops-bool (>= value (oops-send (first args) '$value)))]
+          ['== (oops-bool (equal? value (oops-send (first args) '$value)))]
+          ['describe (oops-make-from-literal (number->string value))]
+          [_ (raise-argument-error 'Number "Known selector" sel)])))
+
+    (define (oops-array n)
+      (define vec (make-vector n oops-false))
+      (λ (self sel . args)
+        (match sel
+          ['at (vector-ref vec (oops-send (first args) '$value))]
+          ['setAt (vector-set! vec (oops-send (first args) '$value) (second args)) self]
+          [_ (raise-argument-error 'Array "Known selector" sel)])))
+
+Hello

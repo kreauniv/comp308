@@ -475,7 +475,7 @@ That was fun, wasn't it?
     value it returns can be decided by any constraints on the value that may appear
     in the code after the :rkt:`options` call.
 
-    .. code-block:; racket
+    .. code-block:: racket
 
         (define (pytriplets)
             (let ([x (options 2 3 4 5 6 7 8 9)]

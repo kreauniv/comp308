@@ -1,0 +1,419 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alternative application semantics &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="alternative-application-semantics">
+<h1>Alternative application semantics<a class="headerlink" href="#alternative-application-semantics" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This section takes a different approach compared to the original
+<a class="reference external" href="https://cs.brown.edu/courses/cs173/2012/book/Alternate_Application_Semantics.html">PLAI second edition</a>. Reasons – <a class="reference external" href="https://cs.brown.edu/courses/cs173/2012/book/Alternate_Application_Semantics.html#%28part._.Lazy_.Application%29">Lazy application</a> is
+dealt with well in PLAI already, so please refer to that. I don’t think
+students gain much by working through the “reactive” application semantics
+from a PL perspective. Visual tools such as Excel, Max/MSP or PureData are
+better models of this mode than any textual programming language or sub
+language. If students are to learn it, it would probably be to learn that it
+isn’t a great idea to pursue in a textual PL, despite possible conceptual
+elegance of the original Fran. I’m choosing to do searching a little
+differently due to doing type systems afterwards. I had not intended to do
+type systems due to time constraints but am trying to see if this change of
+approach can help with the constraint of a trimester system.</p>
+</div>
+<div class="section" id="solving-for-goals">
+<h2>Solving for goals<a class="headerlink" href="#solving-for-goals" title="Permalink to this headline">¶</a></h2>
+<p>One paradigm for program execution (function application) is to consider
+“variables” to be first class entities you can pass to your functions.
+Variables start off with low information content and as your function
+progresses, more information is added to them. By “information” here, we’re not
+talking about adding bits of data, but in the sense that a variable may
+initially be defined to take one of several values in a given set and as the
+program progresses, the size of this set is progressively reduced, thereby
+making the variable more precise about its values.</p>
+<p>The simplest version of that process of adding information is to have variables
+be initially in an “Unknown” state and later on as the program progresses, they
+may transition to a “Known” state getting bound to some value, after which the
+value cannot be changed.</p>
+<p>The purpose of a program in this paradigm is to start off with a set of
+variables (at least some of them) in an “unknown state” and when the program
+finishes, at least some of them become known – or “bound” to values.
+Furthermore, we consider the program to produce one or more such possible set
+of bindings of the program’s variables. We’ll look at how we can compute this.</p>
+<p>Let’s define a value type that represents this idea of a “variable”. We’ll further
+give our variables some string name that we can recognize them by.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">Var</span> <span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="kd">#:transparent</span><span class="p">)</span>
+<span class="c1">; That gives us Var, Var? and Var-name</span>
+</pre></div>
+</div>
+<p>We’ll represent the idea of a set of bindings for our variables using our usual
+“association list”, with variables as keys and values which can be either variables
+themselves or ordinary values.</p>
+<div class="admonition-question admonition">
+<p class="admonition-title"><strong>Question</strong></p>
+<p>Our “bindings as an association list” representation permits the occurrence
+of mutiple bindings for a single variable. Reflect on whether that is
+desirable. What do you think?</p>
+</div>
+<p>We’ll constrain our bindings list such that a particular variable can only
+occur in the key position in one of the entries. i.e. We’re not permitted to
+indicate different bindings for a variable in the same bindings set. Given that
+we’re making variables using <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Var</span></span></code>, we can lookup our variables in the
+bindings list using <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">assv</span></span></code>.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">v1</span> <span class="p">(</span><span class="n">Var</span> <span class="s2">&quot;one&quot;</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">v2</span> <span class="p">(</span><span class="n">Var</span> <span class="s2">&quot;one&quot;</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">display</span> <span class="p">(</span><span class="nb">eqv?</span> <span class="n">v1</span> <span class="n">v2</span><span class="p">))</span> <span class="c1">; Shows #f, which is what we want. We want each of our</span>
+                       <span class="c1">; Var values to be distinguishable irrespective of their</span>
+                       <span class="c1">; names.</span>
+</pre></div>
+</div>
+<p>Given that a set of bindings may indicate that a variable <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span></code> (we’ll use
+the convention of referring to variables using capitalized names) is is bound
+to another variable <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">B</span></span></code>, we need a procedure to determine the value at the
+end of such a chain of “bindings”. We’ll call this procedure <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">walk</span></span></code>.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">walk</span> <span class="n">var</span> <span class="n">bindings</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">m</span> <span class="p">(</span><span class="nb">assv</span> <span class="n">var</span> <span class="n">bindings</span><span class="p">)])</span>
+        <span class="p">(</span><span class="k">if</span> <span class="n">m</span>
+            <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="n">Var?</span> <span class="p">(</span><span class="nb">second</span> <span class="n">m</span><span class="p">))</span>
+                <span class="p">(</span><span class="n">walk</span> <span class="p">(</span><span class="nb">second</span> <span class="n">m</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)</span>
+                <span class="p">(</span><span class="nb">second</span> <span class="n">m</span><span class="p">))</span>
+            <span class="c1">; We let a var be itself if it isn&#39;t found in bindings.</span>
+            <span class="c1">; This also lets us deal with the case where A is bound</span>
+            <span class="c1">; to B but B does not appear as a key in the bindings.</span>
+            <span class="n">var</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Now let’s consider what kinds of assertions we can make about two “things” in
+our system. A “thing” being a variable or a value. If we assert that
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">&lt;thing1&gt;</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="name"><span class="pre">&lt;thing2&gt;</span></span></code>, what effect would we expect such an assertion to
+have on our current set of bindings?</p>
+<ol class="arabic simple">
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">32</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="literal number integer"><span class="pre">32</span></span></code> – i.e. both things are values that are equal to each other.
+In this case, we’re happy. No contradictions. And our bindings doesn’t
+change one bit.</p></li>
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="literal number integer"><span class="pre">32</span></span></code> – i.e. first thing is a variable and the second thing is a value.
+In this case, we’d like to make note of this additional information in our
+bindings set. We’ll therefore add an entry for it there.</p></li>
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">32</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="name"><span class="pre">A</span></span></code> – same as the previous case, we add a bindings for <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span></code> to
+our bindings set.</p></li>
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="name"><span class="pre">B</span></span></code> – i.e. two <em>different</em> variables are declared to be equal to
+each other. We can add a binding to this effect to our set. <strong>Question</strong>: Should
+we add <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span></code> bound to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">B</span></span></code> or <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">B</span></span></code> bound to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span></code>?</p></li>
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="name"><span class="pre">A</span></span></code> – i.e two variables are declared to be equal and they are the same.
+This also has no impact on our bindings set and we stay happy.</p></li>
+</ol>
+<p>In any other case (such as <code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">2</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="literal number integer"><span class="pre">3</span></span></code>), the assertion will fail. Let’s capture all
+of these in a function – <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code>. This process we described above, that
+takes an assertion and augments a set of bindings with new information that reflects
+the facts being asserted is called “unification” in the case where the assertion is
+made via equality.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; unify tries to assert A = B in the context of the given</span>
+<span class="c1">; bindings. It produces an augmented set of bindings if the</span>
+<span class="c1">; assertion provided new information about variables involved.</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">av</span> <span class="p">(</span><span class="n">walk</span> <span class="n">A</span> <span class="n">bindings</span><span class="p">)]</span>
+          <span class="p">[</span><span class="n">bv</span> <span class="p">(</span><span class="n">walk</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)])</span>
+          <span class="c1">; By taking the walked end values for both LHS and RHS</span>
+          <span class="c1">; of the unification, we&#39;re guaranteed that both never</span>
+          <span class="c1">; appear as the key in our bindings set.</span>
+        <span class="p">(</span><span class="k">cond</span>
+            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">equal?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">))</span>
+             <span class="n">av</span><span class="p">]</span>         <span class="c1">; Handles 5</span>
+            <span class="p">[(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span>   <span class="c1">; Handles 2 &amp; 4</span>
+             <span class="p">(</span><span class="n">extend</span> <span class="n">av</span> <span class="n">bv</span> <span class="n">bindings</span><span class="p">)]</span>
+            <span class="p">[(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span>   <span class="c1">; Handles 3</span>
+             <span class="p">(</span><span class="n">extend</span> <span class="n">bv</span> <span class="n">av</span> <span class="n">bindings</span><span class="p">)]</span>
+            <span class="p">[(</span><span class="nb">eq?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)</span> <span class="c1">; Handles 1</span>
+             <span class="n">bindings</span><span class="p">]</span>
+            <span class="c1">; Produce #f in all other cases.</span>
+            <span class="p">[</span><span class="no">#t</span> <span class="no">#f</span><span class="p">])))</span>
+
+
+<span class="p">(</span><span class="k">define</span> <span class="n">empty-bindings</span> <span class="nb">empty</span><span class="p">)</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">extend</span> <span class="n">key</span> <span class="n">val</span> <span class="n">bindings</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">list</span> <span class="n">key</span> <span class="n">val</span><span class="p">)</span> <span class="n">bindings</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="section" id="goals">
+<h3>Goals<a class="headerlink" href="#goals" title="Permalink to this headline">¶</a></h3>
+<p>We earlier stated that our “program” in this model has the task of figuring out
+which possible assignments to variables makes sense – i.e. is consistent with
+a set of declarations about their properties. Since we’re talking about
+“possible assignments to variables”, we’ll model the result of our program
+as a list of bindings. i.e. if we call our set of bindings a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">BSet</span></span></code>,
+our program is expected to produce a “rkt:<cite>(listof BSet)</cite>.</p>
+<p>This is giving our program a uniform interface of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">BSet</span></span> <span class="keyword"><span class="pre">-&gt;</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">listof</span></span> <span class="name"><span class="pre">BSet</span></span><span class="punctuation"><span class="pre">)</span></span></code>.
+We’ll call such a program a “goal”, since it is faced with the goal of finding
+one or more possible sets of assignments to variables that is consistent with
+some logic. In this case, if our goal cannot be met, the result is expected to
+be an empty list indicating that there is no possible set of bindings that is
+consistent with the goal.</p>
+<p>Let’s now consider the simplest of such programs – a declaration of equality
+between two things … which is rkt:<cite>unify</cite> in a different clothing.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">eq</span> <span class="n">A</span> <span class="n">B</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">bindings</span><span class="p">)</span>
+        <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)])</span>
+            <span class="p">(</span><span class="k">if</span> <span class="n">b</span>
+                <span class="p">(</span><span class="nb">list</span> <span class="n">b</span><span class="p">)</span> <span class="c1">; Singleton list of bindings.</span>
+                <span class="nb">empty</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>It is useful to look at possible ways to combine <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">listof</span></span> <span class="name"><span class="pre">BSet</span></span><span class="punctuation"><span class="pre">)</span></span></code> values.</p>
+<p>If we concatenate two such lists, we’re saying that the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">BSet</span></span></code> values
+belonging to either of the two lists are permitted as outcomes. This is like an
+“or” (a.k.a. “disjunction”) and we can exploit that.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">disj</span> <span class="n">goalA</span> <span class="n">goalB</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">bindings</span><span class="p">)</span>
+        <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b1</span> <span class="p">(</span><span class="n">goalA</span> <span class="n">bindings</span><span class="p">)]</span>
+              <span class="p">[</span><span class="n">b2</span> <span class="p">(</span><span class="n">goalB</span> <span class="n">bindings</span><span class="p">)])</span>
+            <span class="p">(</span><span class="nb">append</span> <span class="n">b1</span> <span class="n">b2</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>So we have “or”. How do we get an “and” (a.k.a. “conjunction”) of two goals?
+Calling the first goal on bindings can produce a list of possible bindings,
+but we then need to use the second goal to examine whether it is consistent
+with any of them at all. To do that, we can call the second goal on each
+of the result bindings, each of which will produce a list of bindings, and
+then concatenate all those lists to get the result. That way, if the second
+goal fails on all of them, it will indicate that by returning an empty
+list in each case and when we concatenate them all, we’ll get an empty list
+as the result. If even one of them succeeded, the we’ll get a non-empty list
+and can go home happy.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">conj</span> <span class="n">goalA</span> <span class="n">goalB</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">bindings</span><span class="p">)</span>
+        <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">bs</span> <span class="p">(</span><span class="n">goalA</span> <span class="n">bindings</span><span class="p">)])</span>
+            <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">cs</span> <span class="p">(</span><span class="nb">map</span> <span class="n">goalB</span> <span class="n">bs</span><span class="p">)])</span>
+                <span class="p">(</span><span class="nb">apply</span> <span class="nb">append</span> <span class="n">cs</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Go off now and study how the above definition of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">conj</span></span></code> satisfies our
+descripion of “and” in the preceding paragraph.</p>
+</div>
+<p>Note that <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">eq</span></span></code> produces a goal based on a statement about variables and
+values, and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">disj</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">conj</span></span></code> take goals as arguments and produce
+a goal as their result. So we can call them “combinators”.</p>
+<p>We can now describe some simple interesting searches.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">a</span> <span class="p">(</span><span class="n">Var</span> <span class="s2">&quot;a&quot;</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">b</span> <span class="p">(</span><span class="n">Var</span> <span class="s2">&quot;b&quot;</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">goal</span> <span class="p">(</span><span class="n">conj</span> <span class="p">(</span><span class="n">eq</span> <span class="n">a</span> <span class="mi">1</span><span class="p">)</span>
+                   <span class="p">(</span><span class="n">disj</span> <span class="p">(</span><span class="n">eq</span> <span class="n">b</span> <span class="mi">2</span><span class="p">)</span>
+                         <span class="p">(</span><span class="n">eq</span> <span class="n">b</span> <span class="mi">3</span><span class="p">))))</span>
+<span class="p">(</span><span class="nb">writeln</span> <span class="p">(</span><span class="n">goal</span> <span class="n">empty-bindings</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Go off and run the above code to see what you get as the result.</p>
+</div>
+<p>This task of introducing new variables can perhaps be automated a bit.
+We define a new primitive called <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">fresh</span></span></code> which creates new variables
+and makes a goal of them.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">fresh</span> <span class="n">varnames</span> <span class="n">goal-proc</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">equal?</span> <span class="p">(</span><span class="nb">procedure-arity</span> <span class="n">goal-proc</span><span class="p">)</span> <span class="p">(</span><span class="nb">length</span> <span class="n">varnames</span><span class="p">))</span>
+        <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">vars</span> <span class="p">(</span><span class="nb">map</span> <span class="n">Var</span> <span class="n">varnames</span><span class="p">)])</span>
+            <span class="p">(</span><span class="nb">apply</span> <span class="n">goal-proc</span> <span class="n">vars</span><span class="p">))</span>
+        <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">fresh</span>
+                              <span class="s2">&quot;varnames should provide a name for each argument of the goal procedure&quot;</span>
+                              <span class="p">(</span><span class="nb">list</span> <span class="n">varnames</span> <span class="n">goal-proc</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>Now, we can code our simple example as –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">defien</span> <span class="n">goal</span> <span class="p">(</span><span class="n">fresh</span> <span class="o">&#39;</span><span class="p">(</span><span class="ss">a</span> <span class="ss">b</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">a</span> <span class="n">b</span><span class="p">)</span>
+                              <span class="p">(</span><span class="n">conj</span> <span class="p">(</span><span class="n">eq</span> <span class="n">a</span> <span class="mi">1</span><span class="p">)</span>
+                                    <span class="p">(</span><span class="n">disj</span> <span class="p">(</span><span class="n">eq</span> <span class="n">b</span> <span class="mi">2</span><span class="p">)</span>
+                                          <span class="p">(</span><span class="n">eq</span> <span class="n">b</span> <span class="mi">3</span><span class="p">))))))</span>
+<span class="p">(</span><span class="nb">writeln</span> <span class="p">(</span><span class="n">goal</span> <span class="n">empty-bindings</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="structural-unification">
+<h3>Structural unification<a class="headerlink" href="#structural-unification" title="Permalink to this headline">¶</a></h3>
+<p>So far, our “unification” procedure only dealt with simple values and variables.
+We can extend this mechanism to also consider matching, say two cons pairs.
+In that case though, we’d expect the corresponding parts of the cons pairs
+to unify and hence unify becomes a recursive procedure.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>What are possible problems when we try to do this? Think through
+possible cases one might encounter when calling <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code> with such
+cons pairs to be unified and what we’re supposed to do to them. Below
+are spoilers, so do that now!</p>
+</div>
+<p>What is supposed to happen when we ask for a variable to be unified with a cons
+pair which itself contains this variable? If we wish to be strict about it, we
+can declare failure when we encounter such a case. If we decide on this, we
+need to add an “occurs check” to our unify cases. Otherwise we need to consider
+the possibility that the unification request is intended to produce an infinite
+circular data structure as the variable’s resultant binding and tip toe around
+that possibility without catching ourselves doing an infinte loop.</p>
+<p>We’ll chicken out and do the simple “don’t let that happen” approach. You can
+try the other option as an exercise (heheh!).</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="n">expr</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">expr</span><span class="p">)</span>
+        <span class="p">(</span><span class="k">or</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="p">(</span><span class="nb">first</span> <span class="n">expr</span><span class="p">))</span>
+            <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">expr</span><span class="p">)))</span>
+        <span class="c1">; Note that if expr itself is var, we don&#39;t treat</span>
+        <span class="c1">; that as &quot;var occurs&quot;, since that is benign self equality.</span>
+        <span class="no">#f</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We now use this to modify our unification procedure to support pairs.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">av</span> <span class="p">(</span><span class="n">walk</span> <span class="n">A</span> <span class="n">bindings</span><span class="p">)]</span>
+          <span class="p">[</span><span class="n">bv</span> <span class="p">(</span><span class="n">walk</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)])</span>
+          <span class="c1">; By taking the walked end values for both LHS and RHS</span>
+          <span class="c1">; of the unification, we&#39;re guaranteed that both never</span>
+          <span class="c1">; appear as the key in our bindings set.</span>
+        <span class="p">(</span><span class="k">cond</span>
+            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">equal?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">))</span>
+             <span class="n">av</span><span class="p">]</span>         <span class="c1">; Handles 5</span>
+            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)))</span>   <span class="c1">; Handles 2 &amp; 4</span>
+             <span class="p">(</span><span class="n">extend</span> <span class="n">av</span> <span class="n">bv</span> <span class="n">bindings</span><span class="p">)]</span>
+            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">bv</span> <span class="n">av</span><span class="p">)))</span>   <span class="c1">; Handles 3</span>
+             <span class="p">(</span><span class="n">extend</span> <span class="n">bv</span> <span class="n">av</span> <span class="n">bindings</span><span class="p">)]</span>
+            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">bv</span><span class="p">))</span>
+             <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b2</span> <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">first</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">first</span> <span class="n">bv</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)])</span>
+                 <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">bv</span><span class="p">)</span> <span class="n">b2</span><span class="p">))]</span>
+            <span class="p">[(</span><span class="nb">eq?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)</span> <span class="c1">; Handles 1</span>
+             <span class="n">bindings</span><span class="p">]</span>
+            <span class="c1">; Produce #f in all other cases.</span>
+            <span class="p">[</span><span class="no">#t</span> <span class="no">#f</span><span class="p">])))</span>
+</pre></div>
+</div>
+<p>Such a structural unification is way more powerful than the ordinary atomic
+value unification we did earlier. Check out the simple example below and make
+more of your own –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">goal</span>
+    <span class="p">(</span><span class="n">fresh</span> <span class="o">&#39;</span><span class="p">(</span><span class="ss">a</span> <span class="ss">b</span><span class="p">)</span>
+           <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">a</span> <span class="n">b</span><span class="p">)</span>
+               <span class="p">(</span><span class="n">eq</span> <span class="p">(</span><span class="nb">cons</span> <span class="n">a</span> <span class="n">b</span><span class="p">)</span> <span class="p">(</span><span class="nb">list</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="nb">writeln</span> <span class="p">(</span><span class="n">goal</span> <span class="n">empty-bindings</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Thoroughly thrash out various possible usages of such structural unification.
+What sets of arguments will you try it with and what would you expect? How might
+you extend it even further?</p>
+</div>
+<div class="admonition-question admonition">
+<p class="admonition-title"><strong>Question</strong></p>
+<p>Why didn’t we consider implementing a <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">not</span></span></code> since we implemented “and”
+and “or” as <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">conj</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">disj</span></span></code> respectively?</p>
+</div>
+<p><strong>Reference</strong>: The approach above specifies a small goal language called <a class="reference external" href="https://github.com/jasonhemann/microKanren/blob/master/microKanren.scm">microKanren</a>.
+You may also want to go through <a class="reference external" href="https://erik-j.de/microkanren/">A Gentle Introduction to microKanren</a>.</p>
+<p>More coming after the following lecture…</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Comp308: Principles of Programming Languages</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun.html">Functions and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stacks-and-scope.html">Stacks and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun-in-piclang.html">Functions in PicLang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mutations.html">Mutations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="control.html">Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="objects.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Srikumar K. S..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/appsem.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

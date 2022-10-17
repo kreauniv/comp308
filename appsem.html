@@ -280,8 +280,8 @@ that possibility without catching ourselves doing an infinte loop.</p>
 try the other option as an exercise (heheh!).</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="n">expr</span><span class="p">)</span>
     <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">expr</span><span class="p">)</span>
-        <span class="p">(</span><span class="k">or</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="p">(</span><span class="nb">first</span> <span class="n">expr</span><span class="p">))</span>
-            <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">expr</span><span class="p">)))</span>
+        <span class="p">(</span><span class="k">or</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="p">(</span><span class="nb">car</span> <span class="n">expr</span><span class="p">))</span>
+            <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">expr</span><span class="p">)))</span>
         <span class="c1">; Note that if expr itself is var, we don&#39;t treat</span>
         <span class="c1">; that as &quot;var occurs&quot;, since that is benign self equality.</span>
         <span class="no">#f</span><span class="p">))</span>
@@ -302,8 +302,12 @@ try the other option as an exercise (heheh!).</p>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">bv</span> <span class="n">av</span><span class="p">)))</span>   <span class="c1">; Handles 3</span>
              <span class="p">(</span><span class="n">extend</span> <span class="n">bv</span> <span class="n">av</span> <span class="n">bindings</span><span class="p">)]</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">bv</span><span class="p">))</span>
-             <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b2</span> <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">first</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">first</span> <span class="n">bv</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)])</span>
-                 <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">bv</span><span class="p">)</span> <span class="n">b2</span><span class="p">))]</span>
+             <span class="c1">; We have to use car and cdr here instead of first</span>
+             <span class="c1">; and rest because the latter two require the</span>
+             <span class="c1">; pair to be a non-empty list ... which is not a</span>
+             <span class="c1">; constraint we require to be met by the two pairs.</span>
+             <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b2</span> <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">car</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="n">bv</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)])</span>
+                 <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">bv</span><span class="p">)</span> <span class="n">b2</span><span class="p">))]</span>
             <span class="p">[(</span><span class="nb">eq?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)</span> <span class="c1">; Handles 1</span>
              <span class="n">bindings</span><span class="p">]</span>
             <span class="c1">; Produce #f in all other cases.</span>

@@ -291,8 +291,8 @@ try the other option as an exercise (heheh!).
 
     (define (occurs? var expr)
         (if (pair? expr)
-            (or (occurs? var (first expr))
-                (occurs? var (rest expr)))
+            (or (occurs? var (car expr))
+                (occurs? var (cdr expr)))
             ; Note that if expr itself is var, we don't treat
             ; that as "var occurs", since that is benign self equality.
             #f))
@@ -315,8 +315,12 @@ We now use this to modify our unification procedure to support pairs.
                 [(and (Var? bv) (not (occurs? bv av)))   ; Handles 3
                  (extend bv av bindings)]
                 [(and (pair? av) (pair? bv))
-                 (let ([b2 (unify (first av) (first bv) bindings)])
-                     (unify (rest av) (rest bv) b2))]
+                 ; We have to use car and cdr here instead of first
+                 ; and rest because the latter two require the 
+                 ; pair to be a non-empty list ... which is not a
+                 ; constraint we require to be met by the two pairs.
+                 (let ([b2 (unify (car av) (car bv) bindings)])
+                     (unify (cdr av) (cdr bv) b2))]
                 [(eq? av bv) ; Handles 1
                  bindings]
                 ; Produce #f in all other cases.

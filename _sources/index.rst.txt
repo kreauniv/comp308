@@ -22,6 +22,7 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    control
    objects
    generators
+   appsem
 
 
 Indices and tables

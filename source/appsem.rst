@@ -460,6 +460,9 @@ two functors. We want the fields to match in count. i.e. We're going to demand t
     powers did the above extensions to unify (relative to the first cut) give
     you? What kinds of goals would you try it on?
 
+    **Hint**: For one thing, you can model :rkt:`pair` itself using
+    :rkt:`(FExpr 'cons (list <head> <tail>))`.
+
 More coming after the following lecture...
 
 

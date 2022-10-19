@@ -157,7 +157,7 @@ which possible assignments to variables makes sense -- i.e. is consistent with
 a set of declarations about their properties. Since we're talking about
 "possible assignments to variables", we'll model the result of our program
 as a list of bindings. i.e. if we call our set of bindings a :rkt:`BSet`,
-our program is expected to produce a "rkt:`(listof BSet)`.
+our program is expected to produce a :rkt:`(listof BSet)`.
 
 This is giving our program a uniform interface of :rkt:`BSet -> (listof BSet)`.
 We'll call such a program a "goal", since it is faced with the goal of finding
@@ -167,7 +167,7 @@ be an empty list indicating that there is no possible set of bindings that is
 consistent with the goal.
 
 Let's now consider the simplest of such programs -- a declaration of equality
-between two things ... which is rkt:`unify` in a different clothing.
+between two things ... which is :rkt:`unify` in a different clothing.
 
 .. code-block:: racket
 
@@ -357,6 +357,108 @@ You may also want to go through `A Gentle Introduction to microKanren`_.
 .. _microKanren: https://github.com/jasonhemann/microKanren/blob/master/microKanren.scm
 .. _A Gentle Introduction to microKanren: https://erik-j.de/microkanren/
 
+Generalizing pair structure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the latest version of :rkt:`unify` above, we supported unification of two
+"pair" structures. What if we want to generalize that and support arbitrary
+:rkt:`struct`-like ... structures?
+
+To do that, see what is special about a :rkt:`struct` that we define ourselves.
+The main component of the definition that identifies a structure is its name,
+and the fields are a list of values. We could model the structure's name as a
+constant symbol and the fields as ... a list of values! While Racket's
+structures have fixed arity, there is no real need to restrict ourselves to
+fixed arity structures for the purpose of unification because we've already
+implemented unification between lists!
+
+So, let's model such an arbitrary structure as a Racket :rkt:`struct`. We
+borrow a term used in Prolog -- "functor" -- for this purpose. In Prolog, in an
+expression of the form :rkt:`word(arg1,arg2,...)` the :rkt:`word` is referred
+to as a "functor".
+
+.. code-block:: racket
+
+    (struct FExpr (functor args))
+    ; functor is a symbol
+    ; args is a list of values.
+
+When our new :rkt:`unify` tries to match two functors, we're going to demand
+that their :rkt:`name` parts match exactly and both be symbols (and,
+in particular, not variables). For the fields themselves, we can bank on our
+support for matching two lists.
+
+.. admonition:: **Design question**
+
+    Should we permit matching a variable against an entire sublist of fields of
+    a particular functor? i.e. Should our unify support unification between
+    :rkt:`(FExpr 'f (cons (Var "one") (Var "two")))` and :rkt:`(FExpr 'f
+    (list 1 2 3 4))`? What are the consequences of permitting versus not permitting
+    such a unification?
+
+We're going to assume that we cannot do "partial list of fields" matching between
+two functors. We want the fields to match in count. i.e. We're going to demand that
+:rkt:`fields` actually be a **list** and not merely be a sequence of nested conses.
+
+.. code-block:: racket
+
+    (define (valid-fexpr? f)
+        (and (FExpr? f)
+             (symbol? (FExpr-functor f))
+             (list? (FExpr-args f))))
+
+    (define (occurs? var expr)
+        (cond
+            [(pair? expr)
+             (or (occurs? var (car expr))
+                 (occurs? var (cdr expr)))]
+            [(valid-fexpr? expr)
+             (ormap (λ (e) (occurs? var e)) (FExpr-args expr))]
+            ; Note that if expr itself is var, we don't treat
+            ; that as "var occurs", since that is benign self equality.
+            [else #f]))
+
+    (define (unify A B bindings)
+        (let ([av (walk A bindings)]
+              [bv (walk B bindings)])
+              ; By taking the walked end values for both LHS and RHS
+              ; of the unification, we're guaranteed that both never
+              ; appear as the key in our bindings set.
+            (cond
+                [(and (Var? av) (Var? bv) (equal? av bv))
+                 av]
+                [(and (Var? av) (not (occurs? av bv)))
+                 (extend av bv bindings)]
+                [(and (Var? bv) (not (occurs? bv av)))
+                 (extend bv av bindings)]
+                [(and (pair? av) (pair? bv))
+                 ; We have to use car and cdr here instead of first
+                 ; and rest because the latter two require the 
+                 ; pair to be a non-empty list ... which is not a
+                 ; constraint we require to be met by the two pairs.
+                 (let ([b2 (unify (car av) (car bv) bindings)])
+                     (unify (cdr av) (cdr bv) b2))]
+                [(and (valid-fexpr? av) 
+                      (valid-fexpr? bv)
+                      (equal? (FExpr-functor av) (FExpr-functor bv))
+                      (equal? (length (FExpr-args av) (FExpr-args bv)))]
+                 ; We already know how to unify lists!
+                 ; Here we're relying on the previous cond case, which
+                 ; works with general nested pairs and hence also works with lists
+                 ; ... which is what we're limiting ourselves to in this case.
+                 (unify (FExpr-args av) (FExpr-args bv) bindings)]
+                [(eq? av bv)
+                 bindings]
+                ; Produce #f in all other cases.
+                [#t #f])))
+
+
+.. admonition:: **Questions**
+
+    What can you imagine using the above extension for? After all, programming
+    languages are there to wish our imaginations into existence. So what wizard
+    powers did the above extensions to unify (relative to the first cut) give
+    you? What kinds of goals would you try it on?
 
 More coming after the following lecture...
 

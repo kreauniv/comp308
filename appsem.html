@@ -169,7 +169,7 @@ which possible assignments to variables makes sense – i.e. is consistent with
 a set of declarations about their properties. Since we’re talking about
 “possible assignments to variables”, we’ll model the result of our program
 as a list of bindings. i.e. if we call our set of bindings a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">BSet</span></span></code>,
-our program is expected to produce a “rkt:<cite>(listof BSet)</cite>.</p>
+our program is expected to produce a <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">listof</span></span> <span class="name"><span class="pre">BSet</span></span><span class="punctuation"><span class="pre">)</span></span></code>.</p>
 <p>This is giving our program a uniform interface of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">BSet</span></span> <span class="keyword"><span class="pre">-&gt;</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">listof</span></span> <span class="name"><span class="pre">BSet</span></span><span class="punctuation"><span class="pre">)</span></span></code>.
 We’ll call such a program a “goal”, since it is faced with the goal of finding
 one or more possible sets of assignments to variables that is consistent with
@@ -177,7 +177,7 @@ some logic. In this case, if our goal cannot be met, the result is expected to
 be an empty list indicating that there is no possible set of bindings that is
 consistent with the goal.</p>
 <p>Let’s now consider the simplest of such programs – a declaration of equality
-between two things … which is rkt:<cite>unify</cite> in a different clothing.</p>
+between two things … which is <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code> in a different clothing.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">eq</span> <span class="n">A</span> <span class="n">B</span><span class="p">)</span>
     <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">bindings</span><span class="p">)</span>
         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)])</span>
@@ -338,6 +338,101 @@ and “or” as <code class="code highlight racket docutils literal notranslate"
 </div>
 <p><strong>Reference</strong>: The approach above specifies a small goal language called <a class="reference external" href="https://github.com/jasonhemann/microKanren/blob/master/microKanren.scm">microKanren</a>.
 You may also want to go through <a class="reference external" href="https://erik-j.de/microkanren/">A Gentle Introduction to microKanren</a>.</p>
+</div>
+<div class="section" id="generalizing-pair-structure">
+<h3>Generalizing pair structure<a class="headerlink" href="#generalizing-pair-structure" title="Permalink to this headline">¶</a></h3>
+<p>In the latest version of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code> above, we supported unification of two
+“pair” structures. What if we want to generalize that and support arbitrary
+<code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">struct</span></span></code>-like … structures?</p>
+<p>To do that, see what is special about a <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">struct</span></span></code> that we define ourselves.
+The main component of the definition that identifies a structure is its name,
+and the fields are a list of values. We could model the structure’s name as a
+constant symbol and the fields as … a list of values! While Racket’s
+structures have fixed arity, there is no real need to restrict ourselves to
+fixed arity structures for the purpose of unification because we’ve already
+implemented unification between lists!</p>
+<p>So, let’s model such an arbitrary structure as a Racket <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">struct</span></span></code>. We
+borrow a term used in Prolog – “functor” – for this purpose. In Prolog, in an
+expression of the form <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">word</span></span><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">arg1</span></span><span class="operator"><span class="pre">,</span></span><span class="name"><span class="pre">arg2</span></span><span class="operator"><span class="pre">,</span></span><span class="keyword"><span class="pre">…</span></span><span class="punctuation"><span class="pre">)</span></span></code> the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">word</span></span></code> is referred
+to as a “functor”.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">FExpr</span> <span class="p">(</span><span class="n">functor</span> <span class="n">args</span><span class="p">))</span>
+<span class="c1">; functor is a symbol</span>
+<span class="c1">; args is a list of values.</span>
+</pre></div>
+</div>
+<p>When our new <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code> tries to match two functors, we’re going to demand
+that their <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">name</span></span></code> parts match exactly and both be symbols (and,
+in particular, not variables). For the fields themselves, we can bank on our
+support for matching two lists.</p>
+<div class="admonition-design-question admonition">
+<p class="admonition-title"><strong>Design question</strong></p>
+<p>Should we permit matching a variable against an entire sublist of fields of
+a particular functor? i.e. Should our unify support unification between
+<code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">FExpr</span></span> <span class="operator"><span class="pre">‘</span></span><span class="literal string symbol"><span class="pre">f</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">cons</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Var</span></span> <span class="literal string double"><span class="pre">“one”</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Var</span></span> <span class="literal string double"><span class="pre">“two”</span></span><span class="punctuation"><span class="pre">)))</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">FExpr</span></span> <span class="operator"><span class="pre">‘</span></span><span class="literal string symbol"><span class="pre">f</span></span>
+<span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">list</span></span> <span class="literal number integer"><span class="pre">1</span></span> <span class="literal number integer"><span class="pre">2</span></span> <span class="literal number integer"><span class="pre">3</span></span> <span class="literal number integer"><span class="pre">4</span></span><span class="punctuation"><span class="pre">))</span></span></code>? What are the consequences of permitting versus not permitting
+such a unification?</p>
+</div>
+<p>We’re going to assume that we cannot do “partial list of fields” matching between
+two functors. We want the fields to match in count. i.e. We’re going to demand that
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">fields</span></span></code> actually be a <strong>list</strong> and not merely be a sequence of nested conses.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">valid-fexpr?</span> <span class="n">f</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">and</span> <span class="p">(</span><span class="n">FExpr?</span> <span class="n">f</span><span class="p">)</span>
+         <span class="p">(</span><span class="nb">symbol?</span> <span class="p">(</span><span class="n">FExpr-functor</span> <span class="n">f</span><span class="p">))</span>
+         <span class="p">(</span><span class="nb">list?</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">f</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="n">expr</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">cond</span>
+        <span class="p">[(</span><span class="nb">pair?</span> <span class="n">expr</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">or</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="p">(</span><span class="nb">car</span> <span class="n">expr</span><span class="p">))</span>
+             <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">expr</span><span class="p">)))]</span>
+        <span class="p">[(</span><span class="n">valid-fexpr?</span> <span class="n">expr</span><span class="p">)</span>
+         <span class="p">(</span><span class="nb">ormap</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="n">e</span><span class="p">))</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">expr</span><span class="p">))]</span>
+        <span class="c1">; Note that if expr itself is var, we don&#39;t treat</span>
+        <span class="c1">; that as &quot;var occurs&quot;, since that is benign self equality.</span>
+        <span class="p">[</span><span class="k">else</span> <span class="no">#f</span><span class="p">]))</span>
+
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">av</span> <span class="p">(</span><span class="n">walk</span> <span class="n">A</span> <span class="n">bindings</span><span class="p">)]</span>
+          <span class="p">[</span><span class="n">bv</span> <span class="p">(</span><span class="n">walk</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)])</span>
+          <span class="c1">; By taking the walked end values for both LHS and RHS</span>
+          <span class="c1">; of the unification, we&#39;re guaranteed that both never</span>
+          <span class="c1">; appear as the key in our bindings set.</span>
+        <span class="p">(</span><span class="k">cond</span>
+            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">equal?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">))</span>
+             <span class="n">av</span><span class="p">]</span>
+            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)))</span>
+             <span class="p">(</span><span class="n">extend</span> <span class="n">av</span> <span class="n">bv</span> <span class="n">bindings</span><span class="p">)]</span>
+            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">bv</span> <span class="n">av</span><span class="p">)))</span>
+             <span class="p">(</span><span class="n">extend</span> <span class="n">bv</span> <span class="n">av</span> <span class="n">bindings</span><span class="p">)]</span>
+            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">bv</span><span class="p">))</span>
+             <span class="c1">; We have to use car and cdr here instead of first</span>
+             <span class="c1">; and rest because the latter two require the</span>
+             <span class="c1">; pair to be a non-empty list ... which is not a</span>
+             <span class="c1">; constraint we require to be met by the two pairs.</span>
+             <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b2</span> <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">car</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="n">bv</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)])</span>
+                 <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">bv</span><span class="p">)</span> <span class="n">b2</span><span class="p">))]</span>
+            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">valid-fexpr?</span> <span class="n">av</span><span class="p">)</span>
+                  <span class="p">(</span><span class="n">valid-fexpr?</span> <span class="n">bv</span><span class="p">)</span>
+                  <span class="p">(</span><span class="nb">equal?</span> <span class="p">(</span><span class="n">FExpr-functor</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">FExpr-functor</span> <span class="n">bv</span><span class="p">))</span>
+                  <span class="p">(</span><span class="nb">equal?</span> <span class="p">(</span><span class="nb">length</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">bv</span><span class="p">)))]</span>
+             <span class="c1">; We already know how to unify lists!</span>
+             <span class="c1">; Here we&#39;re relying on the previous cond case, which</span>
+             <span class="c1">; works with general nested pairs and hence also works with lists</span>
+             <span class="c1">; ... which is what we&#39;re limiting ourselves to in this case.</span>
+             <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">bv</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)]</span>
+            <span class="p">[(</span><span class="nb">eq?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)</span>
+             <span class="n">bindings</span><span class="p">]</span>
+            <span class="c1">; Produce #f in all other cases.</span>
+            <span class="p">[</span><span class="no">#t</span> <span class="no">#f</span><span class="p">])))</span>
+</pre></div>
+</div>
+<div class="admonition-questions admonition">
+<p class="admonition-title"><strong>Questions</strong></p>
+<p>What can you imagine using the above extension for? After all, programming
+languages are there to wish our imaginations into existence. So what wizard
+powers did the above extensions to unify (relative to the first cut) give
+you? What kinds of goals would you try it on?</p>
+</div>
 <p>More coming after the following lecture…</p>
 </div>
 </div>

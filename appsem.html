@@ -435,7 +435,127 @@ you? What kinds of goals would you try it on?</p>
 <p><strong>Hint</strong>: For one thing, you can model <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">pair</span></span></code> itself using
 <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">FExpr</span></span> <span class="operator"><span class="pre">‘</span></span><span class="literal string symbol"><span class="pre">cons</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">list</span></span> <span class="name"><span class="pre">&lt;head&gt;</span></span> <span class="name"><span class="pre">&lt;tail&gt;</span></span><span class="punctuation"><span class="pre">))</span></span></code>.</p>
 </div>
-<p>More coming after the following lecture…</p>
+</div>
+</div>
+<div class="section" id="prolog">
+<h2>Prolog<a class="headerlink" href="#prolog" title="Permalink to this headline">¶</a></h2>
+<p>Prolog is a language in which key ideas we discussed above – <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code>, the
+notion of “goals”, and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">disj</span></span></code> / <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">conj</span></span></code> as “goal combinators” – are
+available as language level primitives.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is a bit of a lie. While logically Prolog tries to do what we
+presented in this section, it doesn’t do it using the same mechanism. The
+mechanism employed is “backtracking depth first search”, similar to what we
+did in the last section on generators. The choice of mechanism has some
+interesting conseqences for the language design, with Prolog getting some
+not-quite-logical behaviours as a consequence of turning this into a
+practical language (which it certainly is) and our implementation being that
+much purer, but far less efficient than Prolog for large problems … can
+you see why it can be inefficient?</p>
+</div>
+<ol class="arabic simple">
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code> is simply <code class="code highlight racket docutils literal notranslate"><span class="name builtin"><span class="pre">=</span></span></code> in Prolog</p></li>
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">disj</span></span></code> between goals is represented as an infix operator <code class="code highlight racket docutils literal notranslate"><span class="comment single"><span class="pre">;</span></span></code></p></li>
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">conj</span></span></code> between goals is represented as an infix operator <code class="code highlight racket docutils literal notranslate"><span class="operator"><span class="pre">,</span></span></code></p></li>
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">FExpr</span></span> <span class="operator"><span class="pre">‘</span></span><span class="literal string symbol"><span class="pre">functor</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">list</span></span> <span class="name"><span class="pre">Arg1</span></span> <span class="name"><span class="pre">Arg2</span></span> <span class="keyword"><span class="pre">…</span></span><span class="punctuation"><span class="pre">))</span></span></code> is represented as
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">functor</span></span><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">Arg1</span></span><span class="operator"><span class="pre">,</span></span><span class="name"><span class="pre">Arg2</span></span><span class="operator"><span class="pre">,</span></span><span class="keyword"><span class="pre">…</span></span><span class="punctuation"><span class="pre">)</span></span></code> in Prolog.</p></li>
+<li><p>Prolog has “predicates” which express a goal in terms of subgoals using
+combinators like <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">disj</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">conj</span></span></code> – i.e. <code class="code highlight racket docutils literal notranslate"><span class="operator"><span class="pre">,</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="comment single"><span class="pre">;</span></span></code>
+operators. These predicates are declared in a function-like manner where
+formal parameters first get unified with actual parameters before the
+subgoals are solved. (We’ll see examples below) Predicates have only
+two results – either they succeed and produce a set of bindings required
+for them to succeed, or they fail.</p></li>
+</ol>
+<p>As a notational convenience, identifiers that start with a capitalized letter
+– like <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Result</span></span></code>, <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Any</span></span></code> – are variables and identifiers that start
+with a lower case letter – like <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">some</span></span></code>, <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">disj</span></span></code> – are ordinary
+symbols, much like Scheme symbols.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference external" href="https://www.swi-prolog.org/">SWI Prolog</a> is a free and rich+powerful Prolog engine you can play
+with. You can write web services with it too if you want to, write solvers
+for some kinds of optimization problems, use it as a sophisticated search
+engine on a database of facts and so on.</p>
+</div>
+<div class="section" id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<p>Consider the following block of code. Place it in a file named <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">presence.pl</span></span></code>.
+Then run <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">swipl</span></span></code> and on the REPL type <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">[</span></span><span class="name"><span class="pre">presence</span></span><span class="punctuation"><span class="pre">]</span></span><span class="operator"><span class="pre">.</span></span></code> (including the period
+at the end), followed by return key. Now the module is loaded for you to play with.</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="p">:-</span> <span class="nf">module</span><span class="p">(</span><span class="s s-Atom">presence</span><span class="p">,</span> <span class="p">[</span><span class="s s-Atom">is_in</span><span class="o">/</span><span class="mi">2</span><span class="p">]).</span> <span class="c1">% A standard module declaration. Ignore this for now.</span>
+
+<span class="c1">% Declare some facts. Facts are simply predicates that are declared to be true.</span>
+<span class="nf">is_in</span><span class="p">(</span><span class="s s-Atom">srikumar</span><span class="p">,</span> <span class="s s-Atom">chennai</span><span class="p">).</span>
+<span class="nf">is_in</span><span class="p">(</span><span class="s s-Atom">chennai</span><span class="p">,</span> <span class="s s-Atom">tamilnadu</span><span class="p">).</span>
+<span class="nf">is_in</span><span class="p">(</span><span class="s s-Atom">tamilnadu</span><span class="p">,</span> <span class="s s-Atom">india</span><span class="p">).</span>
+
+<span class="c1">% This predicate depends on other subgoals being met.</span>
+<span class="c1">% Here we&#39;re saying that is A is in C and C is in B, then A is in B.</span>
+<span class="nf">is_in</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="nv">B</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">is_in</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="nv">C</span><span class="p">),</span> <span class="c1">% NOTE: comma here means &quot;conjunction&quot; -- i.e. &quot;and&quot;.</span>
+    <span class="nf">is_in</span><span class="p">(</span><span class="nv">C</span><span class="p">,</span> <span class="nv">B</span><span class="p">).</span>
+</pre></div>
+</div>
+<p>After loading the module, try the following in the REPL -</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">is_in</span><span class="p">(</span><span class="n">tamilnadu</span><span class="p">,</span> <span class="n">chennai</span><span class="p">)</span><span class="o">.</span>
+<span class="n">false</span>
+
+<span class="o">%</span> <span class="n">is_in</span><span class="p">(</span><span class="n">chennai</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span><span class="o">.</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">tamilnadu</span> <span class="o">&lt;</span><span class="n">hit</span> <span class="p">;</span> <span class="k">for</span> <span class="n">other</span> <span class="n">possible</span> <span class="n">answers</span><span class="o">&gt;</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">india</span> <span class="o">&lt;</span><span class="n">hit</span> <span class="p">;</span> <span class="n">now</span><span class="o">&gt;</span>
+
+<span class="o">%</span> <span class="n">is_in</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">tamilnadu</span><span class="p">)</span><span class="o">.</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">chennai</span><span class="p">;</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">srikumar</span>
+</pre></div>
+</div>
+<p>So you can see it can provide all permissible answers to the questions you ask,
+and much of this is based on <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code>, <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">disj</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">conj</span></span></code> as
+language primitives!</p>
+<p>You can play with Prolog’s unification right on the REPL -</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% A = 5.
+% 5 = A.
+% some(X) = some(other).
+% [1,2,B] = [A,2,C]. % We have Prolog lists on both sides here.
+% A + B = 2 + 3.  % Surprise! Why? Find out through experiments.
+% A + B = 5 - 3.  % Surprise! Why? Find out through experiments.
+% plus(num(5), minus(num(10),num(1))) = plus(A, minus(num(10),B))
+</pre></div>
+</div>
+</div>
+<div class="section" id="prolog-based-interpreter">
+<h3>Prolog-based interpreter<a class="headerlink" href="#prolog-based-interpreter" title="Permalink to this headline">¶</a></h3>
+<p>We can actually build our calculator language in Prolog like below –</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="p">:-</span> <span class="nf">module</span><span class="p">(</span><span class="s s-Atom">interp</span><span class="p">,</span> <span class="p">[</span><span class="s s-Atom">interp</span><span class="o">/</span><span class="mi">2</span><span class="p">]).</span>
+
+<span class="nf">interp</span><span class="p">(</span><span class="nf">num</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span> <span class="nv">Result</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nv">Result</span> <span class="o">=</span> <span class="nv">X</span><span class="p">.</span>
+
+<span class="nf">interp</span><span class="p">(</span><span class="nf">add</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="nv">B</span><span class="p">),</span> <span class="nv">Result</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">interp</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="nv">RA</span><span class="p">),</span>
+    <span class="nf">interp</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="nv">RB</span><span class="p">),</span>
+    <span class="nv">Result</span> <span class="o">is</span> <span class="nv">RA</span> <span class="o">+</span> <span class="nv">RB</span><span class="p">.</span> <span class="c1">% Note &quot;is&quot; instead of &quot;=&quot; actually does calculation.</span>
+
+<span class="nf">interp</span><span class="p">(</span><span class="nf">sub</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="nv">B</span><span class="p">),</span> <span class="nv">Result</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">interp</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="nv">RA</span><span class="p">),</span>
+    <span class="nf">interp</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="nv">RB</span><span class="p">),</span>
+    <span class="nv">Result</span> <span class="o">is</span> <span class="nv">RA</span> <span class="o">-</span> <span class="nv">RB</span><span class="p">.</span>
+
+<span class="nf">interp</span><span class="p">(</span><span class="nf">mul</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="nv">B</span><span class="p">),</span> <span class="nv">Result</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">interp</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="nv">RA</span><span class="p">),</span>
+    <span class="nf">interp</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="nv">RB</span><span class="p">),</span>
+    <span class="nv">Result</span> <span class="o">is</span> <span class="nv">RA</span> <span class="o">*</span> <span class="nv">RB</span><span class="p">.</span>
+</pre></div>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Study the above Prolog module source and compare it with our Scheme based interpreter
+for the arithmetic language. How is the recursive evaluation handled in both places?
+See how we use unification here where we used <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">match</span></span></code> in Racket?</p>
+</div>
+<p>Now try the following after loading the above module.</p>
 </div>
 </div>
 </div>
@@ -473,6 +593,7 @@ you? What kinds of goals would you try it on?</p>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Alternative application semantics</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#solving-for-goals">Solving for goals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#prolog">Prolog</a></li>
 </ul>
 </li>
 </ul>

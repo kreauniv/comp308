@@ -162,8 +162,9 @@ made via equality.</p>
     <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">list</span> <span class="n">key</span> <span class="n">val</span><span class="p">)</span> <span class="n">bindings</span><span class="p">))</span>
 </pre></div>
 </div>
+</div>
 <div class="section" id="goals">
-<h3>Goals<a class="headerlink" href="#goals" title="Permalink to this headline">¶</a></h3>
+<h2>Goals<a class="headerlink" href="#goals" title="Permalink to this headline">¶</a></h2>
 <p>We earlier stated that our “program” in this model has the task of figuring out
 which possible assignments to variables makes sense – i.e. is consistent with
 a set of declarations about their properties. Since we’re talking about
@@ -257,7 +258,7 @@ and makes a goal of them.</p>
 </div>
 </div>
 <div class="section" id="structural-unification">
-<h3>Structural unification<a class="headerlink" href="#structural-unification" title="Permalink to this headline">¶</a></h3>
+<h2>Structural unification<a class="headerlink" href="#structural-unification" title="Permalink to this headline">¶</a></h2>
 <p>So far, our “unification” procedure only dealt with simple values and variables.
 We can extend this mechanism to also consider matching, say two cons pairs.
 In that case though, we’d expect the corresponding parts of the cons pairs
@@ -339,8 +340,8 @@ and “or” as <code class="code highlight racket docutils literal notranslate"
 <p><strong>Reference</strong>: The approach above specifies a small goal language called <a class="reference external" href="https://github.com/jasonhemann/microKanren/blob/master/microKanren.scm">microKanren</a>.
 You may also want to go through <a class="reference external" href="https://erik-j.de/microkanren/">A Gentle Introduction to microKanren</a>.</p>
 </div>
-<div class="section" id="generalizing-pair-structure">
-<h3>Generalizing pair structure<a class="headerlink" href="#generalizing-pair-structure" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="generalizing-pair-s">
+<h2>Generalizing “pair”s<a class="headerlink" href="#generalizing-pair-s" title="Permalink to this headline">¶</a></h2>
 <p>In the latest version of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code> above, we supported unification of two
 “pair” structures. What if we want to generalize that and support arbitrary
 <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">struct</span></span></code>-like … structures?</p>
@@ -436,7 +437,6 @@ you? What kinds of goals would you try it on?</p>
 <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">FExpr</span></span> <span class="operator"><span class="pre">‘</span></span><span class="literal string symbol"><span class="pre">cons</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name builtin"><span class="pre">list</span></span> <span class="name"><span class="pre">&lt;head&gt;</span></span> <span class="name"><span class="pre">&lt;tail&gt;</span></span><span class="punctuation"><span class="pre">))</span></span></code>.</p>
 </div>
 </div>
-</div>
 <div class="section" id="prolog">
 <h2>Prolog<a class="headerlink" href="#prolog" title="Permalink to this headline">¶</a></h2>
 <p>Prolog is a language in which key ideas we discussed above – <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code>, the
@@ -499,34 +499,35 @@ at the end), followed by return key. Now the module is loaded for you to play wi
 </pre></div>
 </div>
 <p>After loading the module, try the following in the REPL -</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">is_in</span><span class="p">(</span><span class="n">tamilnadu</span><span class="p">,</span> <span class="n">chennai</span><span class="p">)</span><span class="o">.</span>
-<span class="n">false</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>?- is_in(tamilnadu, chennai).
+false
 
-<span class="o">%</span> <span class="n">is_in</span><span class="p">(</span><span class="n">chennai</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span><span class="o">.</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">tamilnadu</span> <span class="o">&lt;</span><span class="n">hit</span> <span class="p">;</span> <span class="k">for</span> <span class="n">other</span> <span class="n">possible</span> <span class="n">answers</span><span class="o">&gt;</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">india</span> <span class="o">&lt;</span><span class="n">hit</span> <span class="p">;</span> <span class="n">now</span><span class="o">&gt;</span>
+?- is_in(chennai, X).
+X = tamilnadu &lt;hit ; for other possible answers&gt;
+X = india &lt;hit ; now&gt;
 
-<span class="o">%</span> <span class="n">is_in</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">tamilnadu</span><span class="p">)</span><span class="o">.</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">chennai</span><span class="p">;</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">srikumar</span>
+?- is_in(X, tamilnadu).
+X = chennai;
+X = srikumar
 </pre></div>
 </div>
 <p>So you can see it can provide all permissible answers to the questions you ask,
 and much of this is based on <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code>, <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">disj</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">conj</span></span></code> as
 language primitives!</p>
 <p>You can play with Prolog’s unification right on the REPL -</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>% A = 5.
-% 5 = A.
-% some(X) = some(other).
-% [1,2,B] = [A,2,C]. % We have Prolog lists on both sides here.
-% A + B = 2 + 3.  % Surprise! Why? Find out through experiments.
-% A + B = 5 - 3.  % Surprise! Why? Find out through experiments.
-% plus(num(5), minus(num(10),num(1))) = plus(A, minus(num(10),B))
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>?- A = 5.
+?- 5 = A.
+?- some(X) = some(other).
+?- [1,2,B] = [A,2,C]. % We have Prolog lists on both sides here.
+?- A + B = 2 + 3.  % Surprise! Why? Find out through experiments.
+?- A + B = 5 - 3.  % Surprise! Why? Find out through experiments.
+?- plus(num(5), minus(num(10),num(1))) = plus(A, minus(num(10),B))
 </pre></div>
 </div>
 </div>
-<div class="section" id="prolog-based-interpreter">
-<h3>Prolog-based interpreter<a class="headerlink" href="#prolog-based-interpreter" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="our-interpreter-expressed-in-prolog">
+<h2>Our interpreter expressed in Prolog<a class="headerlink" href="#our-interpreter-expressed-in-prolog" title="Permalink to this headline">¶</a></h2>
 <p>We can actually build our calculator language in Prolog like below –</p>
 <div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="p">:-</span> <span class="nf">module</span><span class="p">(</span><span class="s s-Atom">interp</span><span class="p">,</span> <span class="p">[</span><span class="s s-Atom">interp</span><span class="o">/</span><span class="mi">2</span><span class="p">]).</span>
 
@@ -556,9 +557,8 @@ for the arithmetic language. How is the recursive evaluation handled in both pla
 See how we use unification here where we used <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">match</span></span></code> in Racket?</p>
 </div>
 <p>Now try the following after loading the above module.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">interp</span><span class="p">(</span><span class="n">add</span><span class="p">(</span><span class="n">num</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">mul</span><span class="p">(</span><span class="n">num</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">num</span><span class="p">(</span><span class="mi">4</span><span class="p">))),</span> <span class="n">Result</span><span class="p">)</span><span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>?- interp(add(num(10), mul(num(3), num(4))), Result).
 </pre></div>
-</div>
 </div>
 </div>
 </div>
@@ -596,7 +596,11 @@ See how we use unification here where we used <code class="code highlight racket
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Alternative application semantics</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#solving-for-goals">Solving for goals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#goals">Goals</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#structural-unification">Structural unification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generalizing-pair-s">Generalizing “pair”s</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#prolog">Prolog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#our-interpreter-expressed-in-prolog">Our interpreter expressed in Prolog</a></li>
 </ul>
 </li>
 </ul>

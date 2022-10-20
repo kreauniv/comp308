@@ -150,7 +150,7 @@ made via equality.
         (cons (list key val) bindings))
 
 Goals
-~~~~~
+-----
 
 We earlier stated that our "program" in this model has the task of figuring out
 which possible assignments to variables makes sense -- i.e. is consistent with
@@ -264,7 +264,7 @@ Now, we can code our simple example as --
 
 
 Structural unification
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 So far, our "unification" procedure only dealt with simple values and variables.
 We can extend this mechanism to also consider matching, say two cons pairs.
@@ -357,8 +357,8 @@ You may also want to go through `A Gentle Introduction to microKanren`_.
 .. _microKanren: https://github.com/jasonhemann/microKanren/blob/master/microKanren.scm
 .. _A Gentle Introduction to microKanren: https://erik-j.de/microkanren/
 
-Generalizing pair structure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Generalizing "pair"s
+--------------------
 
 In the latest version of :rkt:`unify` above, we supported unification of two
 "pair" structures. What if we want to generalize that and support arbitrary
@@ -536,14 +536,14 @@ After loading the module, try the following in the REPL -
 
 .. code-block::
 
-    % is_in(tamilnadu, chennai).
+    ?- is_in(tamilnadu, chennai).
     false
 
-    % is_in(chennai, X).
+    ?- is_in(chennai, X).
     X = tamilnadu <hit ; for other possible answers>
     X = india <hit ; now>
 
-    % is_in(X, tamilnadu).
+    ?- is_in(X, tamilnadu).
     X = chennai;
     X = srikumar
 
@@ -555,17 +555,17 @@ You can play with Prolog's unification right on the REPL -
 
 .. code-block::
 
-    % A = 5.
-    % 5 = A.
-    % some(X) = some(other).
-    % [1,2,B] = [A,2,C]. % We have Prolog lists on both sides here.
-    % A + B = 2 + 3.  % Surprise! Why? Find out through experiments.
-    % A + B = 5 - 3.  % Surprise! Why? Find out through experiments.
-    % plus(num(5), minus(num(10),num(1))) = plus(A, minus(num(10),B))
+    ?- A = 5.
+    ?- 5 = A.
+    ?- some(X) = some(other).
+    ?- [1,2,B] = [A,2,C]. % We have Prolog lists on both sides here.
+    ?- A + B = 2 + 3.  % Surprise! Why? Find out through experiments.
+    ?- A + B = 5 - 3.  % Surprise! Why? Find out through experiments.
+    ?- plus(num(5), minus(num(10),num(1))) = plus(A, minus(num(10),B))
 
 
-Prolog-based interpreter
-~~~~~~~~~~~~~~~~~~~~~~~~
+Our interpreter expressed in Prolog
+-----------------------------------
 
 We can actually build our calculator language in Prolog like below --
 
@@ -602,6 +602,6 @@ Now try the following after loading the above module.
 
 .. code-block::
 
-    % interp(add(num(10), mul(num(3), num(4))), Result).
+    ?- interp(add(num(10), mul(num(3), num(4))), Result).
 
 

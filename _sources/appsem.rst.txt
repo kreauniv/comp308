@@ -600,7 +600,7 @@ We can actually build our calculator language in Prolog like below --
 
 Now try the following after loading the above module.
 
-.. code-bock::
+.. code-block::
 
     % interp(add(num(10), mul(num(3), num(4))), Result).
 

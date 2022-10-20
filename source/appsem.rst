@@ -463,8 +463,145 @@ two functors. We want the fields to match in count. i.e. We're going to demand t
     **Hint**: For one thing, you can model :rkt:`pair` itself using
     :rkt:`(FExpr 'cons (list <head> <tail>))`.
 
-More coming after the following lecture...
+Prolog
+------
+
+Prolog is a language in which key ideas we discussed above -- :rkt:`unify`, the
+notion of "goals", and :rkt:`disj` / :rkt:`conj` as "goal combinators" -- are
+available as language level primitives.
+
+.. note:: This is a bit of a lie. While logically Prolog tries to do what we
+   presented in this section, it doesn't do it using the same mechanism. The
+   mechanism employed is "backtracking depth first search", similar to what we
+   did in the last section on generators. The choice of mechanism has some
+   interesting conseqences for the language design, with Prolog getting some
+   not-quite-logical behaviours as a consequence of turning this into a
+   practical language (which it certainly is) and our implementation being that
+   much purer, but far less efficient than Prolog for large problems ... can
+   you see why it can be inefficient?
+
+1. :rkt:`unify` is simply :rkt:`=` in Prolog
+
+2. :rkt:`disj` between goals is represented as an infix operator :rkt:`;`
+
+3. :rkt:`conj` between goals is represented as an infix operator :rkt:`,`
+
+4. :rkt:`(FExpr 'functor (list Arg1 Arg2 ...))` is represented as
+   :rkt:`functor(Arg1,Arg2,...)` in Prolog.
+
+5. Prolog has "predicates" which express a goal in terms of subgoals using
+   combinators like :rkt:`disj` and :rkt:`conj` -- i.e. :rkt:`,` and :rkt:`;`
+   operators. These predicates are declared in a function-like manner where
+   formal parameters first get unified with actual parameters before the
+   subgoals are solved. (We'll see examples below) Predicates have only
+   two results -- either they succeed and produce a set of bindings required
+   for them to succeed, or they fail. 
+
+As a notational convenience, identifiers that start with a capitalized letter
+-- like :rkt:`Result`, :rkt:`Any` -- are variables and identifiers that start
+with a lower case letter -- like :rkt:`some`, :rkt:`disj` -- are ordinary
+symbols, much like Scheme symbols.
+
+.. note:: `SWI Prolog`_ is a free and rich+powerful Prolog engine you can play
+   with. You can write web services with it too if you want to, write solvers
+   for some kinds of optimization problems, use it as a sophisticated search
+   engine on a database of facts and so on.
+
+.. _SWI Prolog: https://www.swi-prolog.org/
+
+Examples
+~~~~~~~~
+
+Consider the following block of code. Place it in a file named :rkt:`presence.pl`.
+Then run :rkt:`swipl` and on the REPL type :rkt:`[presence].` (including the period
+at the end), followed by return key. Now the module is loaded for you to play with. 
+
+.. code-block:: prolog
+
+    :- module(presence, [is_in/2]). % A standard module declaration. Ignore this for now.
+
+    % Declare some facts. Facts are simply predicates that are declared to be true.
+    is_in(srikumar, chennai).
+    is_in(chennai, tamilnadu).
+    is_in(tamilnadu, india).
+
+    % This predicate depends on other subgoals being met.
+    % Here we're saying that is A is in C and C is in B, then A is in B.
+    is_in(A, B) :-
+        is_in(A, C), % NOTE: comma here means "conjunction" -- i.e. "and".
+        is_in(C, B).
 
 
+After loading the module, try the following in the REPL -
+
+.. code-block::
+
+    % is_in(tamilnadu, chennai).
+    false
+
+    % is_in(chennai, X).
+    X = tamilnadu <hit ; for other possible answers>
+    X = india <hit ; now>
+
+    % is_in(X, tamilnadu).
+    X = chennai;
+    X = srikumar
+
+So you can see it can provide all permissible answers to the questions you ask,
+and much of this is based on :rkt:`unify`, :rkt:`disj` and :rkt:`conj` as
+language primitives!
+
+You can play with Prolog's unification right on the REPL -
+
+.. code-block::
+
+    % A = 5.
+    % 5 = A.
+    % some(X) = some(other).
+    % [1,2,B] = [A,2,C]. % We have Prolog lists on both sides here.
+    % A + B = 2 + 3.  % Surprise! Why? Find out through experiments.
+    % A + B = 5 - 3.  % Surprise! Why? Find out through experiments.
+    % plus(num(5), minus(num(10),num(1))) = plus(A, minus(num(10),B))
+
+
+Prolog-based interpreter
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+We can actually build our calculator language in Prolog like below --
+
+.. code-block:: prolog
+
+    :- module(interp, [interp/2]).
+
+    interp(num(X), Result) :-
+        Result = X.
+
+    interp(add(A, B), Result) :-
+        interp(A, RA),
+        interp(B, RB),
+        Result is RA + RB. % Note "is" instead of "=" actually does calculation.
+
+    interp(sub(A, B), Result) :-
+        interp(A, RA),
+        interp(B, RB),
+        Result is RA - RB.
+
+    interp(mul(A, B), Result) :-
+        interp(A, RA),
+        interp(B, RB),
+        Result is RA * RB.
+
+
+.. admonition:: **Exercise**
+
+    Study the above Prolog module source and compare it with our Scheme based interpreter
+    for the arithmetic language. How is the recursive evaluation handled in both places?
+    See how we use unification here where we used :rkt:`match` in Racket?
+
+Now try the following after loading the above module.
+
+.. code-bock::
+
+    % interp(add(num(10), mul(num(3), num(4))), Result).
 
 

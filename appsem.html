@@ -115,19 +115,19 @@ our system. A “thing” being a variable or a value. If we assert that
 <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">&lt;thing1&gt;</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="name"><span class="pre">&lt;thing2&gt;</span></span></code>, what effect would we expect such an assertion to
 have on our current set of bindings?</p>
 <ol class="arabic simple">
-<li><p><code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">32</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="literal number integer"><span class="pre">32</span></span></code> – i.e. both things are values that are equal to each other.
-In this case, we’re happy. No contradictions. And our bindings doesn’t
-change one bit.</p></li>
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="name"><span class="pre">A</span></span></code> – i.e two variables are declared to be equal and they are the same.
+This also has no impact on our bindings set and we stay happy.</p></li>
 <li><p><code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="literal number integer"><span class="pre">32</span></span></code> – i.e. first thing is a variable and the second thing is a value.
 In this case, we’d like to make note of this additional information in our
 bindings set. We’ll therefore add an entry for it there.</p></li>
-<li><p><code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">32</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="name"><span class="pre">A</span></span></code> – same as the previous case, we add a bindings for <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span></code> to
-our bindings set.</p></li>
 <li><p><code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="name"><span class="pre">B</span></span></code> – i.e. two <em>different</em> variables are declared to be equal to
 each other. We can add a binding to this effect to our set. <strong>Question</strong>: Should
 we add <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span></code> bound to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">B</span></span></code> or <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">B</span></span></code> bound to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span></code>?</p></li>
-<li><p><code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="name"><span class="pre">A</span></span></code> – i.e two variables are declared to be equal and they are the same.
-This also has no impact on our bindings set and we stay happy.</p></li>
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">32</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="name"><span class="pre">A</span></span></code> – same as the previous case, we add a bindings for <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">A</span></span></code> to
+our bindings set.</p></li>
+<li><p><code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">32</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="literal number integer"><span class="pre">32</span></span></code> – i.e. both things are values that are equal to each other.
+In this case, we’re happy. No contradictions. And our bindings doesn’t
+change one bit.</p></li>
 </ol>
 <p>In any other case (such as <code class="code highlight racket docutils literal notranslate"><span class="literal number integer"><span class="pre">2</span></span> <span class="name builtin"><span class="pre">=</span></span> <span class="literal number integer"><span class="pre">3</span></span></code>), the assertion will fail. Let’s capture all
 of these in a function – <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code>. This process we described above, that
@@ -145,12 +145,12 @@ made via equality.</p>
           <span class="c1">; appear as the key in our bindings set.</span>
         <span class="p">(</span><span class="k">cond</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">equal?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">))</span>
-             <span class="n">av</span><span class="p">]</span>         <span class="c1">; Handles 5</span>
-            <span class="p">[(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span>   <span class="c1">; Handles 2 &amp; 4</span>
+             <span class="n">av</span><span class="p">]</span>         <span class="c1">; Handles 1</span>
+            <span class="p">[(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span>   <span class="c1">; Handles 2 &amp; 3</span>
              <span class="p">(</span><span class="n">extend</span> <span class="n">av</span> <span class="n">bv</span> <span class="n">bindings</span><span class="p">)]</span>
-            <span class="p">[(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span>   <span class="c1">; Handles 3</span>
+            <span class="p">[(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span>   <span class="c1">; Handles 4</span>
              <span class="p">(</span><span class="n">extend</span> <span class="n">bv</span> <span class="n">av</span> <span class="n">bindings</span><span class="p">)]</span>
-            <span class="p">[(</span><span class="nb">eq?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)</span> <span class="c1">; Handles 1</span>
+            <span class="p">[(</span><span class="nb">eq?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)</span> <span class="c1">; Handles 5</span>
              <span class="n">bindings</span><span class="p">]</span>
             <span class="c1">; Produce #f in all other cases.</span>
             <span class="p">[</span><span class="no">#t</span> <span class="no">#f</span><span class="p">])))</span>

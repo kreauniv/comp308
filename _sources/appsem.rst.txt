@@ -96,23 +96,23 @@ our system. A "thing" being a variable or a value. If we assert that
 :rkt:`<thing1> = <thing2>`, what effect would we expect such an assertion to
 have on our current set of bindings?
 
-1. :rkt:`32 = 32` -- i.e. both things are values that are equal to each other.
-   In this case, we're happy. No contradictions. And our bindings doesn't
-   change one bit.
+1. :rkt:`A = A` -- i.e two variables are declared to be equal and they are the same.
+   This also has no impact on our bindings set and we stay happy.
 
 2. :rkt:`A = 32` -- i.e. first thing is a variable and the second thing is a value.
    In this case, we'd like to make note of this additional information in our
    bindings set. We'll therefore add an entry for it there.
 
-3. :rkt:`32 = A` -- same as the previous case, we add a bindings for :rkt:`A` to
-   our bindings set.
-
-4. :rkt:`A = B` -- i.e. two *different* variables are declared to be equal to
+3. :rkt:`A = B` -- i.e. two *different* variables are declared to be equal to
    each other. We can add a binding to this effect to our set. **Question**: Should
    we add :rkt:`A` bound to :rkt:`B` or :rkt:`B` bound to :rkt:`A`?
 
-5. :rkt:`A = A` -- i.e two variables are declared to be equal and they are the same.
-   This also has no impact on our bindings set and we stay happy.
+4. :rkt:`32 = A` -- same as the previous case, we add a bindings for :rkt:`A` to
+   our bindings set.
+
+5. :rkt:`32 = 32` -- i.e. both things are values that are equal to each other.
+   In this case, we're happy. No contradictions. And our bindings doesn't
+   change one bit.
 
 In any other case (such as :rkt:`2 = 3`), the assertion will fail. Let's capture all
 of these in a function -- :rkt:`unify`. This process we described above, that
@@ -133,12 +133,12 @@ made via equality.
               ; appear as the key in our bindings set.
             (cond
                 [(and (Var? av) (Var? bv) (equal? av bv))
-                 av]         ; Handles 5
-                [(Var? av)   ; Handles 2 & 4
+                 av]         ; Handles 1
+                [(Var? av)   ; Handles 2 & 3
                  (extend av bv bindings)]
-                [(Var? bv)   ; Handles 3
+                [(Var? bv)   ; Handles 4
                  (extend bv av bindings)]
-                [(eq? av bv) ; Handles 1
+                [(eq? av bv) ; Handles 5
                  bindings]
                 ; Produce #f in all other cases.
                 [#t #f])))

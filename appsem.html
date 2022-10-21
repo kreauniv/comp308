@@ -253,10 +253,11 @@ and makes a goal of them.</p>
 </pre></div>
 </div>
 <p>Now, we can code our simple example as –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">defien</span> <span class="n">goal</span> <span class="p">(</span><span class="n">fresh</span> <span class="o">&#39;</span><span class="p">(</span><span class="ss">a</span> <span class="ss">b</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">a</span> <span class="n">b</span><span class="p">)</span>
-                              <span class="p">(</span><span class="n">conj</span> <span class="p">(</span><span class="n">eq</span> <span class="n">a</span> <span class="mi">1</span><span class="p">)</span>
-                                    <span class="p">(</span><span class="n">disj</span> <span class="p">(</span><span class="n">eq</span> <span class="n">b</span> <span class="mi">2</span><span class="p">)</span>
-                                          <span class="p">(</span><span class="n">eq</span> <span class="n">b</span> <span class="mi">3</span><span class="p">))))))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">defien</span> <span class="n">goal</span> <span class="p">(</span><span class="n">fresh</span> <span class="o">&#39;</span><span class="p">(</span><span class="ss">a</span> <span class="ss">b</span><span class="p">)</span>
+                    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">a</span> <span class="n">b</span><span class="p">)</span>
+                        <span class="p">(</span><span class="n">conj</span> <span class="p">(</span><span class="n">eq</span> <span class="n">a</span> <span class="mi">1</span><span class="p">)</span>
+                              <span class="p">(</span><span class="n">disj</span> <span class="p">(</span><span class="n">eq</span> <span class="n">b</span> <span class="mi">2</span><span class="p">)</span>
+                                    <span class="p">(</span><span class="n">eq</span> <span class="n">b</span> <span class="mi">3</span><span class="p">))))))</span>
 <span class="p">(</span><span class="nb">writeln</span> <span class="p">(</span><span class="n">goal</span> <span class="n">empty-bindings</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -301,10 +302,10 @@ try the other option as an exercise (heheh!).</p>
           <span class="c1">; appear as the key in our bindings set.</span>
         <span class="p">(</span><span class="k">cond</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">equal?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">))</span>
-             <span class="n">av</span><span class="p">]</span>         <span class="c1">; Handles 5</span>
-            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)))</span>   <span class="c1">; Handles 2 &amp; 4</span>
+             <span class="n">av</span><span class="p">]</span>         <span class="c1">; Handles 1</span>
+            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)))</span>   <span class="c1">; Handles 2 &amp; 3</span>
              <span class="p">(</span><span class="n">extend</span> <span class="n">av</span> <span class="n">bv</span> <span class="n">bindings</span><span class="p">)]</span>
-            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">bv</span> <span class="n">av</span><span class="p">)))</span>   <span class="c1">; Handles 3</span>
+            <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">bv</span> <span class="n">av</span><span class="p">)))</span>   <span class="c1">; Handles 4</span>
              <span class="p">(</span><span class="n">extend</span> <span class="n">bv</span> <span class="n">av</span> <span class="n">bindings</span><span class="p">)]</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">bv</span><span class="p">))</span>
              <span class="c1">; We have to use car and cdr here instead of first</span>
@@ -313,7 +314,7 @@ try the other option as an exercise (heheh!).</p>
              <span class="c1">; constraint we require to be met by the two pairs.</span>
              <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b2</span> <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">car</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="n">bv</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)])</span>
                  <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">bv</span><span class="p">)</span> <span class="n">b2</span><span class="p">))]</span>
-            <span class="p">[(</span><span class="nb">eq?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)</span> <span class="c1">; Handles 1</span>
+            <span class="p">[(</span><span class="nb">eq?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)</span> <span class="c1">; Handles 5</span>
              <span class="n">bindings</span><span class="p">]</span>
             <span class="c1">; Produce #f in all other cases.</span>
             <span class="p">[</span><span class="no">#t</span> <span class="no">#f</span><span class="p">])))</span>
@@ -419,7 +420,7 @@ two functors. We want the fields to match in count. i.e. We’re going to demand
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">valid-fexpr?</span> <span class="n">av</span><span class="p">)</span>
                   <span class="p">(</span><span class="n">valid-fexpr?</span> <span class="n">bv</span><span class="p">)</span>
                   <span class="p">(</span><span class="nb">equal?</span> <span class="p">(</span><span class="n">FExpr-functor</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">FExpr-functor</span> <span class="n">bv</span><span class="p">))</span>
-                  <span class="p">(</span><span class="nb">equal?</span> <span class="p">(</span><span class="nb">length</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">bv</span><span class="p">)))]</span>
+                  <span class="p">(</span><span class="nb">equal?</span> <span class="p">(</span><span class="nb">length</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">av</span><span class="p">))</span> <span class="p">(</span><span class="nb">length</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">bv</span><span class="p">))))</span>
              <span class="c1">; We already know how to unify lists!</span>
              <span class="c1">; Here we&#39;re relying on the previous cond case, which</span>
              <span class="c1">; works with general nested pairs and hence also works with lists</span>

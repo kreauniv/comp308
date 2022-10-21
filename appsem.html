@@ -137,29 +137,29 @@ made via equality.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; unify tries to assert A = B in the context of the given</span>
 <span class="c1">; bindings. It produces an augmented set of bindings if the</span>
 <span class="c1">; assertion provided new information about variables involved.</span>
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">av</span> <span class="p">(</span><span class="n">walk</span> <span class="n">A</span> <span class="n">bindings</span><span class="p">)]</span>
-          <span class="p">[</span><span class="n">bv</span> <span class="p">(</span><span class="n">walk</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)])</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bset</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">av</span> <span class="p">(</span><span class="n">walk</span> <span class="n">A</span> <span class="n">bset</span><span class="p">)]</span>
+          <span class="p">[</span><span class="n">bv</span> <span class="p">(</span><span class="n">walk</span> <span class="n">B</span> <span class="n">bset</span><span class="p">)])</span>
           <span class="c1">; By taking the walked end values for both LHS and RHS</span>
           <span class="c1">; of the unification, we&#39;re guaranteed that both never</span>
           <span class="c1">; appear as the key in our bindings set.</span>
         <span class="p">(</span><span class="k">cond</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">equal?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">))</span>
-             <span class="n">av</span><span class="p">]</span>         <span class="c1">; Handles 1</span>
+             <span class="n">bset</span><span class="p">]</span>         <span class="c1">; Handles 1</span>
             <span class="p">[(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span>   <span class="c1">; Handles 2 &amp; 3</span>
-             <span class="p">(</span><span class="n">extend</span> <span class="n">av</span> <span class="n">bv</span> <span class="n">bindings</span><span class="p">)]</span>
+             <span class="p">(</span><span class="n">extend</span> <span class="n">av</span> <span class="n">bv</span> <span class="n">bset</span><span class="p">)]</span>
             <span class="p">[(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span>   <span class="c1">; Handles 4</span>
-             <span class="p">(</span><span class="n">extend</span> <span class="n">bv</span> <span class="n">av</span> <span class="n">bindings</span><span class="p">)]</span>
+             <span class="p">(</span><span class="n">extend</span> <span class="n">bv</span> <span class="n">av</span> <span class="n">bset</span><span class="p">)]</span>
             <span class="p">[(</span><span class="nb">eq?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)</span> <span class="c1">; Handles 5</span>
-             <span class="n">bindings</span><span class="p">]</span>
+             <span class="n">bset</span><span class="p">]</span>
             <span class="c1">; Produce #f in all other cases.</span>
-            <span class="p">[</span><span class="no">#t</span> <span class="no">#f</span><span class="p">])))</span>
+            <span class="p">[</span><span class="k">else</span> <span class="no">#f</span><span class="p">])))</span>
 
 
-<span class="p">(</span><span class="k">define</span> <span class="n">empty-bindings</span> <span class="nb">empty</span><span class="p">)</span>
+<span class="p">(</span><span class="k">define</span> <span class="n">empty-bset</span> <span class="nb">empty</span><span class="p">)</span>
 
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">extend</span> <span class="n">key</span> <span class="n">val</span> <span class="n">bindings</span><span class="p">)</span>
-    <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">list</span> <span class="n">key</span> <span class="n">val</span><span class="p">)</span> <span class="n">bindings</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">extend</span> <span class="n">key</span> <span class="n">val</span> <span class="n">bset</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">cons</span> <span class="p">(</span><span class="nb">list</span> <span class="n">key</span> <span class="n">val</span><span class="p">)</span> <span class="n">bset</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -181,7 +181,7 @@ consistent with the goal.</p>
 between two things … which is <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code> in a different clothing.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">eq</span> <span class="n">A</span> <span class="n">B</span><span class="p">)</span>
     <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">bindings</span><span class="p">)</span>
-        <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)])</span>
+        <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bset</span><span class="p">)])</span>
             <span class="p">(</span><span class="k">if</span> <span class="n">b</span>
                 <span class="p">(</span><span class="nb">list</span> <span class="n">b</span><span class="p">)</span> <span class="c1">; Singleton list of bindings.</span>
                 <span class="nb">empty</span><span class="p">))))</span>
@@ -192,10 +192,8 @@ between two things … which is <code class="code highlight racket docutils lite
 belonging to either of the two lists are permitted as outcomes. This is like an
 “or” (a.k.a. “disjunction”) and we can exploit that.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">disj</span> <span class="n">goalA</span> <span class="n">goalB</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">bindings</span><span class="p">)</span>
-        <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b1</span> <span class="p">(</span><span class="n">goalA</span> <span class="n">bindings</span><span class="p">)]</span>
-              <span class="p">[</span><span class="n">b2</span> <span class="p">(</span><span class="n">goalB</span> <span class="n">bindings</span><span class="p">)])</span>
-            <span class="p">(</span><span class="nb">append</span> <span class="n">b1</span> <span class="n">b2</span><span class="p">))))</span>
+    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">bset</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">append</span> <span class="p">(</span><span class="n">goalA</span> <span class="n">bset</span><span class="p">)</span> <span class="p">(</span><span class="n">goalB</span> <span class="n">bset</span><span class="p">))))</span>
 </pre></div>
 </div>
 <p>So we have “or”. How do we get an “and” (a.k.a. “conjunction”) of two goals?
@@ -210,10 +208,8 @@ case and when we concatenate them all, we’ll get an empty list as the result.
 If even one of them succeeded, the we’ll get a non-empty list and can go home
 happy.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">conj</span> <span class="n">goalA</span> <span class="n">goalB</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">bindings</span><span class="p">)</span>
-        <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">bs</span> <span class="p">(</span><span class="n">goalA</span> <span class="n">bindings</span><span class="p">)])</span>
-            <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">cs</span> <span class="p">(</span><span class="nb">map</span> <span class="n">goalB</span> <span class="n">bs</span><span class="p">)])</span>
-                <span class="p">(</span><span class="nb">apply</span> <span class="nb">append</span> <span class="n">cs</span><span class="p">)))))</span>
+    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">bset</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">apply</span> <span class="nb">append</span> <span class="p">(</span><span class="nb">map</span> <span class="n">goalB</span> <span class="p">(</span><span class="n">goalA</span> <span class="n">bset</span><span class="p">)))))</span>
 </pre></div>
 </div>
 <div class="admonition-exercise admonition">
@@ -294,30 +290,30 @@ try the other option as an exercise (heheh!).</p>
 </pre></div>
 </div>
 <p>We now use this to modify our unification procedure to support pairs.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">av</span> <span class="p">(</span><span class="n">walk</span> <span class="n">A</span> <span class="n">bindings</span><span class="p">)]</span>
-          <span class="p">[</span><span class="n">bv</span> <span class="p">(</span><span class="n">walk</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)])</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bset</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">av</span> <span class="p">(</span><span class="n">walk</span> <span class="n">A</span> <span class="n">bset</span><span class="p">)]</span>
+          <span class="p">[</span><span class="n">bv</span> <span class="p">(</span><span class="n">walk</span> <span class="n">B</span> <span class="n">bset</span><span class="p">)])</span>
           <span class="c1">; By taking the walked end values for both LHS and RHS</span>
           <span class="c1">; of the unification, we&#39;re guaranteed that both never</span>
           <span class="c1">; appear as the key in our bindings set.</span>
         <span class="p">(</span><span class="k">cond</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">equal?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">))</span>
-             <span class="n">av</span><span class="p">]</span>         <span class="c1">; Handles 1</span>
+             <span class="n">bset</span><span class="p">]</span>         <span class="c1">; Handles 1</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)))</span>   <span class="c1">; Handles 2 &amp; 3</span>
-             <span class="p">(</span><span class="n">extend</span> <span class="n">av</span> <span class="n">bv</span> <span class="n">bindings</span><span class="p">)]</span>
+             <span class="p">(</span><span class="n">extend</span> <span class="n">av</span> <span class="n">bv</span> <span class="n">bset</span><span class="p">)]</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">bv</span> <span class="n">av</span><span class="p">)))</span>   <span class="c1">; Handles 4</span>
-             <span class="p">(</span><span class="n">extend</span> <span class="n">bv</span> <span class="n">av</span> <span class="n">bindings</span><span class="p">)]</span>
+             <span class="p">(</span><span class="n">extend</span> <span class="n">bv</span> <span class="n">av</span> <span class="n">bset</span><span class="p">)]</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">bv</span><span class="p">))</span>
              <span class="c1">; We have to use car and cdr here instead of first</span>
              <span class="c1">; and rest because the latter two require the</span>
              <span class="c1">; pair to be a non-empty list ... which is not a</span>
              <span class="c1">; constraint we require to be met by the two pairs.</span>
-             <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b2</span> <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">car</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="n">bv</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)])</span>
+             <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b2</span> <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">car</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="n">bv</span><span class="p">)</span> <span class="n">bset</span><span class="p">)])</span>
                  <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">bv</span><span class="p">)</span> <span class="n">b2</span><span class="p">))]</span>
             <span class="p">[(</span><span class="nb">eq?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)</span> <span class="c1">; Handles 5</span>
-             <span class="n">bindings</span><span class="p">]</span>
+             <span class="n">bset</span><span class="p">]</span>
             <span class="c1">; Produce #f in all other cases.</span>
-            <span class="p">[</span><span class="no">#t</span> <span class="no">#f</span><span class="p">])))</span>
+            <span class="p">[</span><span class="k">else</span> <span class="no">#f</span><span class="p">])))</span>
 </pre></div>
 </div>
 <p>Such a structural unification is way more powerful than the ordinary atomic
@@ -397,25 +393,25 @@ two functors. We want the fields to match in count. i.e. We’re going to demand
         <span class="c1">; that as &quot;var occurs&quot;, since that is benign self equality.</span>
         <span class="p">[</span><span class="k">else</span> <span class="no">#f</span><span class="p">]))</span>
 
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">av</span> <span class="p">(</span><span class="n">walk</span> <span class="n">A</span> <span class="n">bindings</span><span class="p">)]</span>
-          <span class="p">[</span><span class="n">bv</span> <span class="p">(</span><span class="n">walk</span> <span class="n">B</span> <span class="n">bindings</span><span class="p">)])</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bset</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">av</span> <span class="p">(</span><span class="n">walk</span> <span class="n">A</span> <span class="n">bset</span><span class="p">)]</span>
+          <span class="p">[</span><span class="n">bv</span> <span class="p">(</span><span class="n">walk</span> <span class="n">B</span> <span class="n">bset</span><span class="p">)])</span>
           <span class="c1">; By taking the walked end values for both LHS and RHS</span>
           <span class="c1">; of the unification, we&#39;re guaranteed that both never</span>
           <span class="c1">; appear as the key in our bindings set.</span>
         <span class="p">(</span><span class="k">cond</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">equal?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">))</span>
-             <span class="n">av</span><span class="p">]</span>
+             <span class="n">bset</span><span class="p">]</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)))</span>
-             <span class="p">(</span><span class="n">extend</span> <span class="n">av</span> <span class="n">bv</span> <span class="n">bindings</span><span class="p">)]</span>
+             <span class="p">(</span><span class="n">extend</span> <span class="n">av</span> <span class="n">bv</span> <span class="n">bset</span><span class="p">)]</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">Var?</span> <span class="n">bv</span><span class="p">)</span> <span class="p">(</span><span class="nb">not</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">bv</span> <span class="n">av</span><span class="p">)))</span>
-             <span class="p">(</span><span class="n">extend</span> <span class="n">bv</span> <span class="n">av</span> <span class="n">bindings</span><span class="p">)]</span>
+             <span class="p">(</span><span class="n">extend</span> <span class="n">bv</span> <span class="n">av</span> <span class="n">bset</span><span class="p">)]</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">bv</span><span class="p">))</span>
              <span class="c1">; We have to use car and cdr here instead of first</span>
              <span class="c1">; and rest because the latter two require the</span>
              <span class="c1">; pair to be a non-empty list ... which is not a</span>
              <span class="c1">; constraint we require to be met by the two pairs.</span>
-             <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b2</span> <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">car</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="n">bv</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)])</span>
+             <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b2</span> <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">car</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">car</span> <span class="n">bv</span><span class="p">)</span> <span class="n">bset</span><span class="p">)])</span>
                  <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">bv</span><span class="p">)</span> <span class="n">b2</span><span class="p">))]</span>
             <span class="p">[(</span><span class="k">and</span> <span class="p">(</span><span class="n">valid-fexpr?</span> <span class="n">av</span><span class="p">)</span>
                   <span class="p">(</span><span class="n">valid-fexpr?</span> <span class="n">bv</span><span class="p">)</span>
@@ -425,11 +421,11 @@ two functors. We want the fields to match in count. i.e. We’re going to demand
              <span class="c1">; Here we&#39;re relying on the previous cond case, which</span>
              <span class="c1">; works with general nested pairs and hence also works with lists</span>
              <span class="c1">; ... which is what we&#39;re limiting ourselves to in this case.</span>
-             <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">bv</span><span class="p">)</span> <span class="n">bindings</span><span class="p">)]</span>
+             <span class="p">(</span><span class="n">unify</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">av</span><span class="p">)</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">bv</span><span class="p">)</span> <span class="n">bset</span><span class="p">)]</span>
             <span class="p">[(</span><span class="nb">eq?</span> <span class="n">av</span> <span class="n">bv</span><span class="p">)</span>
-             <span class="n">bindings</span><span class="p">]</span>
+             <span class="n">bset</span><span class="p">]</span>
             <span class="c1">; Produce #f in all other cases.</span>
-            <span class="p">[</span><span class="no">#t</span> <span class="no">#f</span><span class="p">])))</span>
+            <span class="p">[</span><span class="k">else</span> <span class="no">#f</span><span class="p">])))</span>
 </pre></div>
 </div>
 <div class="admonition-questions admonition">

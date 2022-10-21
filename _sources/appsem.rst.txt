@@ -125,29 +125,29 @@ made via equality.
     ; unify tries to assert A = B in the context of the given
     ; bindings. It produces an augmented set of bindings if the
     ; assertion provided new information about variables involved.
-    (define (unify A B bindings)
-        (let ([av (walk A bindings)]
-              [bv (walk B bindings)])
+    (define (unify A B bset)
+        (let ([av (walk A bset)]
+              [bv (walk B bset)])
               ; By taking the walked end values for both LHS and RHS
               ; of the unification, we're guaranteed that both never
               ; appear as the key in our bindings set.
             (cond
                 [(and (Var? av) (Var? bv) (equal? av bv))
-                 av]         ; Handles 1
+                 bset]         ; Handles 1
                 [(Var? av)   ; Handles 2 & 3
-                 (extend av bv bindings)]
+                 (extend av bv bset)]
                 [(Var? bv)   ; Handles 4
-                 (extend bv av bindings)]
+                 (extend bv av bset)]
                 [(eq? av bv) ; Handles 5
-                 bindings]
+                 bset]
                 ; Produce #f in all other cases.
-                [#t #f])))
+                [else #f])))
 
 
-    (define empty-bindings empty)
+    (define empty-bset empty)
 
-    (define (extend key val bindings)
-        (cons (list key val) bindings))
+    (define (extend key val bset)
+        (cons (list key val) bset))
 
 Goals
 -----
@@ -173,7 +173,7 @@ between two things ... which is :rkt:`unify` in a different clothing.
 
     (define (eq A B)
         (λ (bindings)
-            (let ([b (unify A B bindings)])
+            (let ([b (unify A B bset)])
                 (if b
                     (list b) ; Singleton list of bindings.
                     empty))))
@@ -188,10 +188,8 @@ belonging to either of the two lists are permitted as outcomes. This is like an
 .. code-block:: racket
 
     (define (disj goalA goalB)
-        (λ (bindings)
-            (let ([b1 (goalA bindings)]
-                  [b2 (goalB bindings)])
-                (append b1 b2))))
+        (λ (bset)
+            (append (goalA bset) (goalB bset))))
 
 
 So we have "or". How do we get an "and" (a.k.a. "conjunction") of two goals?
@@ -209,10 +207,8 @@ happy.
 .. code-block:: racket
 
     (define (conj goalA goalB)
-        (λ (bindings)
-            (let ([bs (goalA bindings)])
-                (let ([cs (map goalB bs)])
-                    (apply append cs)))))
+        (λ (bset)
+            (apply append (map goalB (goalA bset)))))
 
 .. admonition:: **Exercise**
 
@@ -306,30 +302,30 @@ We now use this to modify our unification procedure to support pairs.
 
 .. code-block:: racket
 
-    (define (unify A B bindings)
-        (let ([av (walk A bindings)]
-              [bv (walk B bindings)])
+    (define (unify A B bset)
+        (let ([av (walk A bset)]
+              [bv (walk B bset)])
               ; By taking the walked end values for both LHS and RHS
               ; of the unification, we're guaranteed that both never
               ; appear as the key in our bindings set.
             (cond
                 [(and (Var? av) (Var? bv) (equal? av bv))
-                 av]         ; Handles 1
+                 bset]         ; Handles 1
                 [(and (Var? av) (not (occurs? av bv)))   ; Handles 2 & 3
-                 (extend av bv bindings)]
+                 (extend av bv bset)]
                 [(and (Var? bv) (not (occurs? bv av)))   ; Handles 4
-                 (extend bv av bindings)]
+                 (extend bv av bset)]
                 [(and (pair? av) (pair? bv))
                  ; We have to use car and cdr here instead of first
                  ; and rest because the latter two require the 
                  ; pair to be a non-empty list ... which is not a
                  ; constraint we require to be met by the two pairs.
-                 (let ([b2 (unify (car av) (car bv) bindings)])
+                 (let ([b2 (unify (car av) (car bv) bset)])
                      (unify (cdr av) (cdr bv) b2))]
                 [(eq? av bv) ; Handles 5
-                 bindings]
+                 bset]
                 ; Produce #f in all other cases.
-                [#t #f])))
+                [else #f])))
 
 Such a structural unification is way more powerful than the ordinary atomic
 value unification we did earlier. Check out the simple example below and make
@@ -423,25 +419,25 @@ two functors. We want the fields to match in count. i.e. We're going to demand t
             ; that as "var occurs", since that is benign self equality.
             [else #f]))
 
-    (define (unify A B bindings)
-        (let ([av (walk A bindings)]
-              [bv (walk B bindings)])
+    (define (unify A B bset)
+        (let ([av (walk A bset)]
+              [bv (walk B bset)])
               ; By taking the walked end values for both LHS and RHS
               ; of the unification, we're guaranteed that both never
               ; appear as the key in our bindings set.
             (cond
                 [(and (Var? av) (Var? bv) (equal? av bv))
-                 av]
+                 bset]
                 [(and (Var? av) (not (occurs? av bv)))
-                 (extend av bv bindings)]
+                 (extend av bv bset)]
                 [(and (Var? bv) (not (occurs? bv av)))
-                 (extend bv av bindings)]
+                 (extend bv av bset)]
                 [(and (pair? av) (pair? bv))
                  ; We have to use car and cdr here instead of first
                  ; and rest because the latter two require the 
                  ; pair to be a non-empty list ... which is not a
                  ; constraint we require to be met by the two pairs.
-                 (let ([b2 (unify (car av) (car bv) bindings)])
+                 (let ([b2 (unify (car av) (car bv) bset)])
                      (unify (cdr av) (cdr bv) b2))]
                 [(and (valid-fexpr? av) 
                       (valid-fexpr? bv)
@@ -451,11 +447,11 @@ two functors. We want the fields to match in count. i.e. We're going to demand t
                  ; Here we're relying on the previous cond case, which
                  ; works with general nested pairs and hence also works with lists
                  ; ... which is what we're limiting ourselves to in this case.
-                 (unify (FExpr-args av) (FExpr-args bv) bindings)]
+                 (unify (FExpr-args av) (FExpr-args bv) bset)]
                 [(eq? av bv)
-                 bindings]
+                 bset]
                 ; Produce #f in all other cases.
-                [#t #f])))
+                [else #f])))
 
 
 .. admonition:: **Questions**

@@ -260,10 +260,11 @@ Now, we can code our simple example as --
 
 .. code-block:: racket
 
-    (defien goal (fresh '(a b) (λ (a b)
-                                  (conj (eq a 1)
-                                        (disj (eq b 2)
-                                              (eq b 3))))))
+    (defien goal (fresh '(a b) 
+                        (λ (a b)
+                            (conj (eq a 1)
+                                  (disj (eq b 2)
+                                        (eq b 3))))))
     (writeln (goal empty-bindings))
 
 
@@ -313,10 +314,10 @@ We now use this to modify our unification procedure to support pairs.
               ; appear as the key in our bindings set.
             (cond
                 [(and (Var? av) (Var? bv) (equal? av bv))
-                 av]         ; Handles 5
-                [(and (Var? av) (not (occurs? av bv)))   ; Handles 2 & 4
+                 av]         ; Handles 1
+                [(and (Var? av) (not (occurs? av bv)))   ; Handles 2 & 3
                  (extend av bv bindings)]
-                [(and (Var? bv) (not (occurs? bv av)))   ; Handles 3
+                [(and (Var? bv) (not (occurs? bv av)))   ; Handles 4
                  (extend bv av bindings)]
                 [(and (pair? av) (pair? bv))
                  ; We have to use car and cdr here instead of first
@@ -325,7 +326,7 @@ We now use this to modify our unification procedure to support pairs.
                  ; constraint we require to be met by the two pairs.
                  (let ([b2 (unify (car av) (car bv) bindings)])
                      (unify (cdr av) (cdr bv) b2))]
-                [(eq? av bv) ; Handles 1
+                [(eq? av bv) ; Handles 5
                  bindings]
                 ; Produce #f in all other cases.
                 [#t #f])))
@@ -445,7 +446,7 @@ two functors. We want the fields to match in count. i.e. We're going to demand t
                 [(and (valid-fexpr? av) 
                       (valid-fexpr? bv)
                       (equal? (FExpr-functor av) (FExpr-functor bv))
-                      (equal? (length (FExpr-args av) (FExpr-args bv)))]
+                      (equal? (length (FExpr-args av)) (length (FExpr-args bv))))
                  ; We already know how to unify lists!
                  ; Here we're relying on the previous cond case, which
                  ; works with general nested pairs and hence also works with lists

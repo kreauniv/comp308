@@ -195,15 +195,16 @@ belonging to either of the two lists are permitted as outcomes. This is like an
 
 
 So we have "or". How do we get an "and" (a.k.a. "conjunction") of two goals?
-Calling the first goal on bindings can produce a list of possible bindings,
-but we then need to use the second goal to examine whether it is consistent
-with any of them at all. To do that, we can call the second goal on each
-of the result bindings, each of which will produce a list of bindings, and
-then concatenate all those lists to get the result. That way, if the second
-goal fails on all of them, it will indicate that by returning an empty
-list in each case and when we concatenate them all, we'll get an empty list
-as the result. If even one of them succeeded, the we'll get a non-empty list
-and can go home happy.
+Calling the first goal on bindings can produce a list of possible bindings, but
+we then need to use the second goal to examine whether it is consistent with
+any of them at all. To do that, we can call the second goal on each of the
+result bindings, each of which will produce a list of bindings that are
+consistent with goalB and the result bindings we applied it to. Then we
+concatenate all those lists to get the result. That way, if the second goal
+fails on all of them, it will indicate that by returning an empty list in each
+case and when we concatenate them all, we'll get an empty list as the result.
+If even one of them succeeded, the we'll get a non-empty list and can go home
+happy.
 
 .. code-block:: racket
 
@@ -216,7 +217,10 @@ and can go home happy.
 .. admonition:: **Exercise**
 
     Go off now and study how the above definition of :rkt:`conj` satisfies our
-    descripion of "and" in the preceding paragraph.
+    descripion of "and" in the preceding paragraph. What properties do we
+    expect such a :rkt:`conj` to satisfy, logically? Does it satisfy them? In
+    particular, why should we expect :rkt:`(conj goalA goalB)` to produce the
+    same set of possibilities produced by :rkt:`(conj goalB goalA)`?
 
 
 Note that :rkt:`eq` produces a goal based on a statement about variables and

@@ -218,3 +218,44 @@
     (apply goalproc vars)))
 
   
+; An alternative way to define unification is to define it
+; for pairs instead of lists, since pairs are what lists
+; are built out of in Scheme.
+
+(define (occurs/pair? A B)
+  (cond
+    [(Var? B)
+     (eq? A B)]
+    [(pair? B)
+     (and (not (empty? B))
+          (or (occurs/pair? A (car B))
+              (occurs/pair? A (cdr B))))]
+    [(valid-fexpr? B)
+     (occurs? A (FExpr-args B))]
+    [else #f]))
+
+(define (unify/pair A B bset)
+  (let ([Av (walk A bset)]
+        [Bv (walk B bset)])
+    (cond
+      [(samevar? Av Bv)
+       bset]
+      [(and (Var? Av) (not (occurs/pair? Av Bv)))
+       (extend Av Bv bset)]
+      [(and (Var? Bv) (not (occurs/pair? Bv Av)))
+       (extend Bv Av bset)]
+      ; Av and Bv are no longer variables.
+      ; They're ordinary values.
+      [(and (pair? Av) (not (empty? Av))
+            (pair? Bv) (not (empty? Bv)))
+       (let ([b2 (unify/pair (car Av) (car Bv) bset)])
+         (if b2
+             (unify/pair (cdr Av) (cdr Bv) b2)
+             #f))]
+      [(and (valid-fexpr? Av)
+            (valid-fexpr? Bv)
+            (equal? (FExpr-functor Av) (FExpr-functor Bv)))
+       (unify/pair (FExpr-args Av) (FExpr-args Bv) bset)]
+      [(equal? Av Bv)
+       bset]
+      [else #f])))

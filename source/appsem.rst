@@ -315,7 +315,7 @@ We now use this to modify our unification procedure to support pairs.
                  (extend av bv bset)]
                 [(and (Var? bv) (not (occurs? bv av)))   ; Handles 4
                  (extend bv av bset)]
-                [(and (pair? av) (pair? bv))
+                [(and (pair? av) (pair? bv) (not (empty? av)) (not (empty? bv)))
                  ; We have to use car and cdr here instead of first
                  ; and rest because the latter two require the 
                  ; pair to be a non-empty list ... which is not a
@@ -432,7 +432,7 @@ two functors. We want the fields to match in count. i.e. We're going to demand t
                  (extend av bv bset)]
                 [(and (Var? bv) (not (occurs? bv av)))
                  (extend bv av bset)]
-                [(and (pair? av) (pair? bv))
+                [(and (pair? av) (pair? bv) (not (empty? av)) (not (empty? bv)))
                  ; We have to use car and cdr here instead of first
                  ; and rest because the latter two require the 
                  ; pair to be a non-empty list ... which is not a

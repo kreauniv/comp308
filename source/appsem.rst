@@ -256,7 +256,7 @@ Now, we can code our simple example as --
 
 .. code-block:: racket
 
-    (defien goal (fresh '(a b) 
+    (define goal (fresh '(a b) 
                         (λ (a b)
                             (conj (eq a 1)
                                   (disj (eq b 2)

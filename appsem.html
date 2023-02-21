@@ -180,7 +180,7 @@ consistent with the goal.</p>
 <p>Let’s now consider the simplest of such programs – a declaration of equality
 between two things … which is <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">unify</span></span></code> in a different clothing.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">eq</span> <span class="n">A</span> <span class="n">B</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">bindings</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">bset</span><span class="p">)</span>
         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bset</span><span class="p">)])</span>
             <span class="p">(</span><span class="k">if</span> <span class="n">b</span>
                 <span class="p">(</span><span class="nb">list</span> <span class="n">b</span><span class="p">)</span> <span class="c1">; Singleton list of bindings.</span>

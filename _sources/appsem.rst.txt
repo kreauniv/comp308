@@ -172,7 +172,7 @@ between two things ... which is :rkt:`unify` in a different clothing.
 .. code-block:: racket
 
     (define (eq A B)
-        (λ (bindings)
+        (λ (bset)
             (let ([b (unify A B bset)])
                 (if b
                     (list b) ; Singleton list of bindings.

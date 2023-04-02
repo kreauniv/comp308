@@ -6,7 +6,7 @@ Types: Checking some program invariants statically
    and to be considered a "work in progress".
 
 In this section, we build on the notion of "goals" discussed in the
-section on alternative application semantics and use the notions of
+section on :ref:`alternative application semantics` and use the notions of
 unification and goals to understand how we can express some invariants
 of our programs that can be checked before we run them. We'll use
 Prolog here because it simplifies the discussion. We'll also restrict

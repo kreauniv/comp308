@@ -111,7 +111,7 @@ With the above additions, our type checker now becomes --
     % if its argument is of type ArgTy and its body is of type
     % BodyTy given occurrences of the argument in the body
     % are consistent with the type of the argument being ArgTy.
-    typeof(Env, fun(ArgSym, ArgTy, Body, BodyTy), fun(ArgTy, BodyTy)) :-
+    typeof(Env, fun(ArgSym, ArgTy, Body, BodyTy), fun(Env, ArgTy, BodyTy)) :-
         typeof([ArgSym = ArgTy|Env], Body, BodyTy).
 
     % Applying a function Fun to an Arg produces a value of type ResultTy
@@ -119,7 +119,7 @@ With the above additions, our type checker now becomes --
     % given the argument type.
     typeof(Env, apply(Fun, Arg), ResultTy) :-
         typeof(Env, Arg, ArgTy),
-        typeof(Env, Fun, fun(ArgTy, ResultTy)).
+        typeof(Env, Fun, fun(TyEnv, ArgTy, ResultTy)).
 
 
 .. note:: Notice how we exploit the ideas of unification and
@@ -131,9 +131,9 @@ and therefore any sub term can be one of the following types --
 
 1. A number, which we denote using the atom :code:`num`.
 
-2. A function or "closure", which we denote using the term
-   :code:`fun(ArgTy, BodyTy)`. So the full type description of a function
-   includes the type of its argument and the type of its result.
+2. A function or "closure", whose type we denote using the term
+   :code:`fun(TyEnv, ArgTy, BodyTy)`. So the full type description of a
+   function includes the type of its argument and the type of its result.
 
 3. Similar to our interpreter, we use an "environment" to keep track
    of the types of "identifier" sub-expressions. In this case, we bind
@@ -212,9 +212,9 @@ what should we be passing in in place of the variables :code:`XTy1`,
 :code:`XTy2`, :code:`BTy1` and :code:`BTy2`?
 
 We know that the type of an expression of the form
-:code:`fun(X,Xty,B,Bty)` is :code:`fun(XTy,BTy)`. We can therefore
-consider -- :code:`XTy1 = fun(XTy2, BTy2)`. Since we're "applying"
-:code:`X` to itself, we also have :code:`XTy2 = fun(XTy2, BTy2)`. So
+:code:`fun(X,Xty,B,Bty)` is :code:`fun(_,XTy,BTy)`. We can therefore
+consider -- :code:`XTy1 = fun(_, XTy2, BTy2)`. Since we're "applying"
+:code:`X` to itself, we also have :code:`XTy2 = fun(_, XTy2, BTy2)`. So
 we're justified in saying :code:`XTy1 = XTy2` and similarly
 :code:`BTy1 = BTy2`. So let's use that to simplify our expression --
 
@@ -228,9 +228,9 @@ we'll need to keep expanding forever, as --
 
 .. code-block:: prolog
 
-    fun(XTy, BTy)
-    -> fun(fun(XTy, BTy), BTy)
-    -> fun(fun(fun(XTy,BTy), BTy), BTy)
+    fun(_, XTy, BTy)
+    -> fun(_, fun(_, XTy, BTy), BTy)
+    -> fun(_, fun(_, fun(_, XTy, BTy), BTy), BTy)
     ...
 
 .. index:: Strong normalization
@@ -251,7 +251,7 @@ a finite number of steps. This property is called *strong normalization*.
     a program will terminate before you actually run it?
 
 However, we also have some experience dealing with this kind of an
-equation. We're trying to solve the equation :code:`XTy = fun(XTy,
+equation. We're trying to solve the equation :code:`XTy = fun(_, XTy,
 BTy)` for :code:`XTy`, given arbitrary :code:`BTy`.
 
 .. code-block:: prolog
@@ -270,8 +270,8 @@ the recursive function may refer to the function itself by name.
 
 .. code-block:: prolog
 
-    typeof(Env, rec(Fname, Arg, ArgTy, Body, BodyTy), fun(ArgTy, BodyTy)) :-
-        typeof([Arg = ArgTy, Fname = fun(ArgTy, BodyTy) | Env], Body, BodyTy).
+    typeof(Env, rec(Fname, Arg, ArgTy, Body, BodyTy), fun(Env, ArgTy, BodyTy)) :-
+        typeof([Arg = ArgTy, Fname = fun(Env, ArgTy, BodyTy) | Env], Body, BodyTy).
 
 This is certainly not a general notion of recursion, but is useful enough for
 many cases such as looping and we're now not relying on Prolog's ability

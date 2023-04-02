@@ -107,11 +107,11 @@ With the above additions, our type checker now becomes --
         atom(X),
         member(X = Ty, Env).
 
-    % A fun(...) expression is of type fun(Env, ArgTy, BodyTy)
+    % A fun(...) expression is of type fun(ArgTy, BodyTy)
     % if its argument is of type ArgTy and its body is of type
     % BodyTy given occurrences of the argument in the body
     % are consistent with the type of the argument being ArgTy.
-    typeof(Env, fun(ArgSym, ArgTy, Body, BodyTy), fun(Env, ArgTy, BodyTy)) :-
+    typeof(Env, fun(ArgSym, ArgTy, Body, BodyTy), fun(ArgTy, BodyTy)) :-
         typeof([ArgSym = ArgTy|Env], Body, BodyTy).
 
     % Applying a function Fun to an Arg produces a value of type ResultTy
@@ -119,7 +119,7 @@ With the above additions, our type checker now becomes --
     % given the argument type.
     typeof(Env, apply(Fun, Arg), ResultTy) :-
         typeof(Env, Arg, ArgTy),
-        typeof(Env, Fun, fun(_TyEnv, ArgTy, ResultTy)).
+        typeof(Env, Fun, fun(ArgTy, ResultTy)).
 
 
 .. note:: Notice how we exploit the ideas of unification and
@@ -132,7 +132,7 @@ and therefore any sub term can be one of the following types --
 1. A number, which we denote using the atom :code:`num`.
 
 2. A function or "closure", whose type we denote using the term
-   :code:`fun(TyEnv, ArgTy, BodyTy)`. So the full type description of a
+   :code:`fun(ArgTy, BodyTy)`. So the full type description of a
    function includes the type of its argument and the type of its result.
 
 3. Similar to our interpreter, we use an "environment" to keep track
@@ -212,9 +212,9 @@ what should we be passing in in place of the variables :code:`XTy1`,
 :code:`XTy2`, :code:`BTy1` and :code:`BTy2`?
 
 We know that the type of an expression of the form
-:code:`fun(X,Xty,B,Bty)` is :code:`fun(_,XTy,BTy)`. We can therefore
+:code:`fun(X,Xty,B,Bty)` is :code:`fun(XTy,BTy)`. We can therefore
 consider -- :code:`XTy1 = fun(_, XTy2, BTy2)`. Since we're "applying"
-:code:`X` to itself, we also have :code:`XTy2 = fun(_, XTy2, BTy2)`. So
+:code:`X` to itself, we also have :code:`XTy2 = fun(XTy2, BTy2)`. So
 we're justified in saying :code:`XTy1 = XTy2` and similarly
 :code:`BTy1 = BTy2`. So let's use that to simplify our expression --
 
@@ -228,9 +228,9 @@ we'll need to keep expanding forever, as --
 
 .. code-block:: prolog
 
-    fun(_, XTy, BTy)
-    -> fun(_, fun(_, XTy, BTy), BTy)
-    -> fun(_, fun(_, fun(_, XTy, BTy), BTy), BTy)
+    fun(XTy, BTy)
+    -> fun(fun(XTy, BTy), BTy)
+    -> fun(fun(fun(XTy, BTy), BTy), BTy)
     ...
 
 .. index:: Strong normalization
@@ -250,9 +250,9 @@ a finite number of steps. This property is called *strong normalization*.
     complete. Can you think of situations where it is very useful to know that
     a program will terminate before you actually run it?
 
-However, we also have some experience dealing with this kind of an
-equation. We're trying to solve the equation :code:`XTy = fun(_, XTy,
-BTy)` for :code:`XTy`, given arbitrary :code:`BTy`.
+However, we also have some experience dealing with this kind of an equation.
+We're trying to solve the equation :code:`XTy = fun(XTy, BTy)` for :code:`XTy`,
+given arbitrary :code:`BTy`.
 
 .. code-block:: prolog
 
@@ -270,8 +270,8 @@ the recursive function may refer to the function itself by name.
 
 .. code-block:: prolog
 
-    typeof(Env, rec(Fname, Arg, ArgTy, Body, BodyTy), fun(Env, ArgTy, BodyTy)) :-
-        typeof([Arg = ArgTy, Fname = fun(Env, ArgTy, BodyTy) | Env], Body, BodyTy).
+    typeof(Env, rec(Fname, Arg, ArgTy, Body, BodyTy), fun(ArgTy, BodyTy)) :-
+        typeof([Arg = ArgTy, Fname = fun(ArgTy, BodyTy) | Env], Body, BodyTy).
 
 This is certainly not a general notion of recursion, but is useful enough for
 many cases such as looping and we're now not relying on Prolog's ability
@@ -353,7 +353,7 @@ Let us say we introduce another kind of term in our language -- the
 
 .. code-block:: prolog
 
-    typeof(Env, funinf(Arg, Body), fun(Env, ArgTy, BodyTy)) :-
+    typeof(Env, funinf(Arg, Body), fun(ArgTy, BodyTy)) :-
         %....what goes here?
 
 For one thing, we can perhaps infer :code:`ArgTy` from the body based on
@@ -361,13 +361,13 @@ usage.
 
 .. code-block:: prolog
 
-    typeof(Env, funinf(Arg, Body), fun(Env, ArgTy, BodyTy)) :-
+    typeof(Env, funinf(Arg, Body), fun(ArgTy, BodyTy)) :-
         typeof([Arg = ArgTy|Env], Body, BodyTy).
         %....anything else needed?
 
 Supposing we have a function :code:`funinf(x, add(id(x), id(x)))`, 
 querying :code:`typeof(Env, funinf(x, add(id(x), id(x))), FunTy)`
-will result in :code:`FunTy = fun(Env, num, num)`, thanks to Prolog's
+will result in :code:`FunTy = fun(num, num)`, thanks to Prolog's
 unification and goal search mechanisms.
 
 In fact, much of what we've been writing so far already can do
@@ -382,7 +382,7 @@ on such inference. i.e. We can simply express our functions as
 
 .. code-block:: prolog
 
-    typeof(Env, fun(ArgSym, Body), fun(Env, ArgTy, BodyTy)) :-
+    typeof(Env, fun(ArgSym, Body), fun(ArgTy, BodyTy)) :-
         typeof([ArgSym = ArgTy|Env], Body, BodyTy).
 
 The above goal is saying "Find some :code:`ArgTy` and :code:`BodyTy` such that
@@ -393,7 +393,7 @@ use of Prolog variables when we constructed our function term. So instead of
 saying :code:`fun(x, num, add(id(x), id(x)), num)`, all we needed to say was
 :code:`fun(x, XTy, add(id(x), id(x)), RTy)` and our type checker would've told
 us what :code:`XTy` and :code:`RTy` should be when we query
-:code:`typeof(Env, fun(x, XTy, add(id(x), id(x)), RTy), fun(Env, XTy, RTy))`.
+:code:`typeof(Env, fun(x, XTy, add(id(x), id(x)), RTy), fun(XTy, RTy))`.
 
 .. admonition:: **Exercise**
 

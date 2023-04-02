@@ -1,0 +1,488 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Types: Checking some program invariants statically &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Alternative application semantics" href="appsem.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="types-checking-some-program-invariants-statically">
+<h1>Types: Checking some program invariants statically<a class="headerlink" href="#types-checking-some-program-invariants-statically" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This section was written after the fact. We did types in class but
+these notes were written up later. It is also currently incomplete
+and to be considered a “work in progress”.</p>
+</div>
+<p>In this section, we build on the notion of “goals” discussed in the
+section on alternative application semantics and use the notions of
+unification and goals to understand how we can express some invariants
+of our programs that can be checked before we run them. We’ll use
+Prolog here because it simplifies the discussion. We’ll also restrict
+ourselves to talking about the “arithmetic expressions” language and
+leave extensions to your own efforts.</p>
+<div class="section" id="pure-arithmetic-expressions">
+<h2>Pure arithmetic expressions<a class="headerlink" href="#pure-arithmetic-expressions" title="Permalink to this headline">¶</a></h2>
+<p>First off, if we only talk about arithmetic expressions sans function
+application, there is little for us to check, since every expression
+we can compose using our <code class="code docutils literal notranslate"><span class="pre">add</span></code>, <code class="code docutils literal notranslate"><span class="pre">sub</span></code> and <code class="code docutils literal notranslate"><span class="pre">mul</span></code> operations
+is guaranteed to produce a number as a result. So our type checker
+for that restricted language would look like this -</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="p">:-</span> <span class="nf">module</span><span class="p">(</span><span class="s s-Atom">typecheck</span><span class="p">,</span> <span class="p">[</span><span class="s s-Atom">typeof</span><span class="o">/</span><span class="mi">2</span><span class="p">]).</span>
+
+<span class="nf">typeof</span><span class="p">(</span><span class="nf">num</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">number</span><span class="p">(</span><span class="nv">X</span><span class="p">).</span>
+
+<span class="nf">typeof</span><span class="p">(</span><span class="nf">add</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+
+<span class="nf">typeof</span><span class="p">(</span><span class="nf">sub</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+
+<span class="nf">typeof</span><span class="p">(</span><span class="nf">mul</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+</pre></div>
+</div>
+<p>We use the Prolog built-in predicate <code class="code docutils literal notranslate"><span class="pre">number(X)</span></code> which succeeds if
+the given <code class="code docutils literal notranslate"><span class="pre">X</span></code> happens to be a number and fails otherwise. So, we
+can use the above type checker to validate any arithmetic expression
+we can write for our simple arithmetic language.</p>
+<p>A few observations are in order -</p>
+<ol class="arabic">
+<li><p>The type checker already looks like it is “interpreting” the
+expression but just stopping short of calculation. i.e. it has a
+structure that closely mimics our interpreter for the language.</p></li>
+<li><p>The type-checking of <code class="code docutils literal notranslate"><span class="pre">add</span></code>, <code class="code docutils literal notranslate"><span class="pre">sub</span></code> and <code class="code docutils literal notranslate"><span class="pre">mul</span></code> are
+indistinguishable and can be replaced by a common predicate –</p>
+<blockquote>
+<div><div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">binoptype</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="nv">B</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>i.e. when we write <code class="code docutils literal notranslate"><span class="pre">add(A,B)</span></code>, we already know that the <code class="code docutils literal notranslate"><span class="pre">A</span></code>
+and <code class="code docutils literal notranslate"><span class="pre">B</span></code> terms must evaluate to numbers.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="when-we-introduce-functions">
+<h2>When we introduce functions<a class="headerlink" href="#when-we-introduce-functions" title="Permalink to this headline">¶</a></h2>
+<p>Things get interesting when we introduce functions and function
+application in our language. As we know, this adds three new terms
+to our language –</p>
+<ol class="arabic simple">
+<li><p>We need a term to hold a symbol or “identifier” – <code class="code docutils literal notranslate"><span class="pre">id</span></code>.</p></li>
+<li><p>We need a term using which we can express a “function”. This term
+won’t evaluate to a number. It will evaluate to a “function value”.</p></li>
+<li><p>We need a term for applying a function value to an argument to
+produce a result.</p></li>
+</ol>
+<p>With the above additions, our type checker now becomes –</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="p">:-</span> <span class="nf">module</span><span class="p">(</span><span class="s s-Atom">typecheck</span><span class="p">,</span> <span class="p">[</span><span class="s s-Atom">typeof</span><span class="o">/</span><span class="mi">3</span><span class="p">]).</span>
+
+<span class="nf">typeof</span><span class="p">(</span><span class="k">_</span><span class="p">,</span> <span class="nf">num</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">number</span><span class="p">(</span><span class="nv">X</span><span class="p">).</span>
+
+<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">add</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+
+<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">sub</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+
+<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">mul</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+
+<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">id</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span> <span class="nv">Ty</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">atom</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span>
+    <span class="nf">member</span><span class="p">(</span><span class="nv">X</span> <span class="o">=</span> <span class="nv">Ty</span><span class="p">,</span> <span class="nv">Env</span><span class="p">).</span>
+
+<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgSym</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">([</span><span class="nv">ArgSym</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">|</span><span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
+
+<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">apply</span><span class="p">(</span><span class="nv">Fun</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">),</span> <span class="nv">ResultTy</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Fun</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">ResultTy</span><span class="p">)),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">).</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Notice how we exploit the ideas of unification and
+conjunctions to describe the type structure of programs in our mini
+language.</p>
+</div>
+<p>Functions introduce the notion of “identifiers” in our language
+and therefore any sub term can be one of the following types –</p>
+<ol class="arabic simple">
+<li><p>A number, which we denote using the atom <code class="code docutils literal notranslate"><span class="pre">num</span></code>.</p></li>
+<li><p>A function or “closure”, which we denote using the term
+<code class="code docutils literal notranslate"><span class="pre">fun(ArgTy,</span> <span class="pre">BodyTy)</span></code>. So the full type description of a function
+includes the type of its argument and the type of its result.</p></li>
+<li><p>Similar to our interpreter, we use an “environment” to keep track
+of the types of “identifier” sub-expressions. In this case, we bind
+our identifiers to <strong>type</strong> terms in contrast to using the
+environment to bind identifiers to values when we interpret the
+expression.</p></li>
+</ol>
+</div>
+<div class="section" id="typing-conditional-expressions">
+<h2>Typing conditional expressions<a class="headerlink" href="#typing-conditional-expressions" title="Permalink to this headline">¶</a></h2>
+<p>When we introduce booleans, comparisons and conditionals into our
+language, our type system needs to correspondingly grow.</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="k">_</span><span class="p">,</span> <span class="s s-Atom">true</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
+<span class="nf">typeof</span><span class="p">(</span><span class="k">_</span><span class="p">,</span> <span class="s s-Atom">false</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
+<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">equal</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">less</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">and</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
+<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">or</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
+<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="o">not</span><span class="p">(</span><span class="nv">A</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
+</pre></div>
+</div>
+<p>In the above formulation, we had a choice of how to represent
+booleans. We chose to be explicit about them and prevented numbers and
+functions from being interpreted as boolean. Untyped Scheme/Racket,
+for example, has the notion of “generalized booleans” where any value
+that is not <code class="code docutils literal notranslate"><span class="pre">#f</span></code> is taken to be “true” when used in a boolean
+context.</p>
+<p>… but how would be type an conditional
+expression <code class="code docutils literal notranslate"><span class="pre">if(Cond,Then,Else)</span></code> ? What if the <code class="code docutils literal notranslate"><span class="pre">Then</span></code> part is of one
+type and the <code class="code docutils literal notranslate"><span class="pre">Else</span></code> part is of another type? We have some choices to
+make here –</p>
+<ol class="arabic simple">
+<li><p>We can constrain the expression to be such that the <code class="code docutils literal notranslate"><span class="pre">Then</span></code> and
+<code class="code docutils literal notranslate"><span class="pre">Else</span></code> parts must be of the same type. This is a common strategy
+in many languages (especially functional statically checked ones)
+and very viable for most programs, given a rich type system.</p></li>
+<li><p>We introduce the notion of “union types” in our type system
+and type the <code class="code docutils literal notranslate"><span class="pre">if</span></code> expression as the union of the types of the
+<code class="code docutils literal notranslate"><span class="pre">Then</span></code> part and the <code class="code docutils literal notranslate"><span class="pre">Else</span></code> part.</p></li>
+</ol>
+<p>The second option is a substantial addition to our type system, so
+we’ll take the simpler route here initially until we understand more.</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">if</span><span class="p">(</span><span class="nv">Cond</span><span class="p">,</span><span class="nv">Then</span><span class="p">,</span><span class="nv">Else</span><span class="p">),</span> <span class="nv">Ty</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Cond</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Then</span><span class="p">,</span> <span class="nv">Ty</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Else</span><span class="p">,</span> <span class="nv">Ty</span><span class="p">).</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="recursive-functions">
+<h2>Recursive functions<a class="headerlink" href="#recursive-functions" title="Permalink to this headline">¶</a></h2>
+<p>Consider the expression –</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">apply</span><span class="p">(</span><span class="nf">fun</span><span class="p">(</span><span class="nv">X</span><span class="p">,</span> <span class="nv">XTy1</span><span class="p">,</span> <span class="nf">apply</span><span class="p">(</span><span class="nv">X</span><span class="p">,</span> <span class="nv">X</span><span class="p">),</span> <span class="nv">BTy1</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">X</span><span class="p">,</span> <span class="nv">XTy2</span><span class="p">,</span> <span class="nf">apply</span><span class="p">(</span><span class="nv">X</span><span class="p">,</span> <span class="nv">X</span><span class="p">),</span> <span class="nv">BTy2</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Before we ask the question of what type should this expression be,
+what should we be passing in in place of the variables <code class="code docutils literal notranslate"><span class="pre">XTy1</span></code>,
+<code class="code docutils literal notranslate"><span class="pre">XTy2</span></code>, <code class="code docutils literal notranslate"><span class="pre">BTy1</span></code> and <code class="code docutils literal notranslate"><span class="pre">BTy2</span></code>?</p>
+<p>We know that the type of an expression of the form
+<code class="code docutils literal notranslate"><span class="pre">fun(X,Xty,B,Bty)</span></code> is <code class="code docutils literal notranslate"><span class="pre">fun(XTy,BTy)</span></code>. We can therefore
+consider – <code class="code docutils literal notranslate"><span class="pre">XTy1</span> <span class="pre">=</span> <span class="pre">fun(XTy2,</span> <span class="pre">BTy2)</span></code>. Since we’re “applying”
+<code class="code docutils literal notranslate"><span class="pre">X</span></code> to itself, we also have <code class="code docutils literal notranslate"><span class="pre">XTy2</span> <span class="pre">=</span> <span class="pre">fun(XTy2,</span> <span class="pre">BTy2)</span></code>. So
+we’re justified in saying <code class="code docutils literal notranslate"><span class="pre">XTy1</span> <span class="pre">=</span> <span class="pre">XTy2</span></code> and similarly
+<code class="code docutils literal notranslate"><span class="pre">BTy1</span> <span class="pre">=</span> <span class="pre">BTy2</span></code>. So let’s use that to simplify our expression –</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">apply</span><span class="p">(</span><span class="nf">fun</span><span class="p">(</span><span class="nv">X</span><span class="p">,</span> <span class="nv">XTy</span><span class="p">,</span> <span class="nf">apply</span><span class="p">(</span><span class="nv">X</span><span class="p">,</span> <span class="nv">X</span><span class="p">),</span> <span class="nv">BTy</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">X</span><span class="p">,</span> <span class="nv">XTy</span><span class="p">,</span> <span class="nf">apply</span><span class="p">(</span><span class="nv">X</span><span class="p">,</span> <span class="nv">X</span><span class="p">),</span> <span class="nv">BTy</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>… and we have <code class="code docutils literal notranslate"><span class="pre">XTy</span> <span class="pre">=</span> <span class="pre">fun(XTy,</span> <span class="pre">BTy)</span></code>. Wait a sec now! What is the
+<code class="code docutils literal notranslate"><span class="pre">XTy</span></code> on the right side supposed to be? If we expand using the equation,
+we’ll need to keep expanding forever, as –</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">fun</span><span class="p">(</span><span class="nv">XTy</span><span class="p">,</span> <span class="nv">BTy</span><span class="p">)</span>
+<span class="s s-Atom">-&gt;</span> <span class="nf">fun</span><span class="p">(</span><span class="nf">fun</span><span class="p">(</span><span class="nv">XTy</span><span class="p">,</span> <span class="nv">BTy</span><span class="p">),</span> <span class="nv">BTy</span><span class="p">)</span>
+<span class="s s-Atom">-&gt;</span> <span class="nf">fun</span><span class="p">(</span><span class="nf">fun</span><span class="p">(</span><span class="nf">fun</span><span class="p">(</span><span class="nv">XTy</span><span class="p">,</span><span class="nv">BTy</span><span class="p">),</span> <span class="nv">BTy</span><span class="p">),</span> <span class="nv">BTy</span><span class="p">)</span>
+<span class="p">...</span>
+</pre></div>
+</div>
+<p id="index-0">When we dealt with structural unification, we forbid such unifications by using
+an <code class="code docutils literal notranslate"><span class="pre">occurs?</span></code> check that checks whether a variable being unified with a
+structure does not itself occur within the structure for this reason. So We
+cannot type such a program in our language at this point. An important result
+to note here since we cannot type recursion in our system is that every
+expression that has a type in our language is <strong>guaranteed to terminate</strong> after
+a finite number of steps. This property is called <em>strong normalization</em>.</p>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>This notion of “strong normalization” sounds like a very limited thing. Are
+languages with this property useful? For one thing they aren’t Turing
+complete. Can you think of situations where it is very useful to know that
+a program will terminate before you actually run it?</p>
+</div>
+<p>However, we also have some experience dealing with this kind of an
+equation. We’re trying to solve the equation <code class="code docutils literal notranslate"><span class="pre">XTy</span> <span class="pre">=</span> <span class="pre">fun(XTy,</span>
+<span class="pre">BTy)</span></code> for <code class="code docutils literal notranslate"><span class="pre">XTy</span></code>, given arbitrary <code class="code docutils literal notranslate"><span class="pre">BTy</span></code>.</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">solve</span><span class="p">(</span><span class="nv">XTy</span><span class="p">,</span> <span class="nv">BTy</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nv">XTy</span> <span class="o">=</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">XTy</span><span class="p">,</span> <span class="nv">BTy</span><span class="p">).</span>
+</pre></div>
+</div>
+<p>If we took our strict notion of unification, this would cause our type checker
+to fail. However, Prolog, however, permits this unification by solving the
+equation for us. You can imagine Prolog solving it for us like how we solved
+recursive functions in lambda calculus using recursion combinators.</p>
+<p>One way we can avoid relying on this special property of Prolog, is to add
+an explicit “recursive function” term in our language, where the body of
+the recursive function may refer to the function itself by name.</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">rec</span><span class="p">(</span><span class="nv">Fname</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">([</span><span class="nv">Arg</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">Fname</span> <span class="o">=</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">)</span> <span class="p">|</span> <span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
+</pre></div>
+</div>
+<p>This is certainly not a general notion of recursion, but is useful enough for
+many cases such as looping and we’re now not relying on Prolog’s ability
+to solve that recursive unification for us.</p>
+</div>
+<div class="section" id="types-and-mutation">
+<h2>Types and mutation<a class="headerlink" href="#types-and-mutation" title="Permalink to this headline">¶</a></h2>
+<p>Introducing sequenced computation in our language and a corresponding notion
+of “mutation of variables” would introduce an additional complexity to
+our type system.</p>
+<p>What would be the type of the identifier <code class="code docutils literal notranslate"><span class="pre">x</span></code> in –</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">seq</span><span class="p">(</span><span class="nf">set</span><span class="p">(</span><span class="nf">id</span><span class="p">(</span><span class="s s-Atom">x</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span> <span class="nf">set</span><span class="p">(</span><span class="nf">id</span><span class="p">(</span><span class="s s-Atom">x</span><span class="p">),</span> <span class="s s-Atom">false</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Should the identifier <code class="code docutils literal notranslate"><span class="pre">x</span></code> be of type <code class="code docutils literal notranslate"><span class="pre">num</span></code> or <code class="code docutils literal notranslate"><span class="pre">bool</span></code>?
+This gets more complicated if the two <code class="code docutils literal notranslate"><span class="pre">set</span></code> mutations happen in
+different branches of a conditional.</p>
+<p>A simple way this is resolved in statically typed languages is to say that an
+identifier has to have a fixed type in its scope and therefore cause the above
+sequencing operation to fail the type check.</p>
+</div>
+<div class="section" id="type-soundness">
+<h2>Type soundness<a class="headerlink" href="#type-soundness" title="Permalink to this headline">¶</a></h2>
+<p>Our type checker predicate <code class="code docutils literal notranslate"><span class="pre">typeof</span></code> is making a prediction about what
+will happen when we run our program on actual values. How do we know this
+function does not lie? – i.e. how do we know that if our type checker tells us
+that the type of an expression is <code class="code docutils literal notranslate"><span class="pre">T</span></code>, then when we evaluate the
+expression using our interpreter we’ll certainly get a value of type <code class="code docutils literal notranslate"><span class="pre">T</span></code>?</p>
+<p id="index-1">This property of a type system is called “soundness” – i.e. a type system is
+said to be sound if the the type computed by the type checker is guaranteed
+to be the type of an expression when it eventually gets evaluated.</p>
+<span class="target" id="index-2"></span><p id="index-3">Proving that a type system is sound is done in a series of alternating
+steps called <em>progress</em> and <em>preservation</em>. “Progress” is the statement
+that when we know the type of an expression, we can execute one step
+of computation. In the “preservation” step, we prove that the type computed
+earlier is indeed the type produced. With a series of alternating progress
+and preservation steps, we can therefore prove (or disprove) that a type
+system is sound.</p>
+<div class="admonition-question admonition">
+<p class="admonition-title"><strong>Question</strong></p>
+<p>Is there a use for unsound type systems? Do you know of programming
+languages that have a type system that is not sound?</p>
+</div>
+<p>Note that when dealing with a typed programming language, there is an implicit
+assumption about a set of known exceptional conditions that can occur, such as
+program non-termination, runtime check failures and such. Therefore soundness
+goes along with consideration for such exceptional conditions that a programmer
+needs to accept can occur.</p>
+</div>
+<div class="section" id="a-taste-of-type-inference">
+<h2>A taste of type inference<a class="headerlink" href="#a-taste-of-type-inference" title="Permalink to this headline">¶</a></h2>
+<p>So far, in our language, we’ve given the types of arguments and results of
+our functions explicitly and checked these against usage. Specifying types
+explicitly like this is good discipline, but we can let the computer do much
+of this checking work for us.</p>
+<p>In many circumstances, we can <strong>infer</strong>, for example, the argument type
+of a function by looking at the context in which it is being used.</p>
+<p>Let us say we introduce another kind of term in our language – the
+“function whose arg and body types are inferred from context”.</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">funinf</span><span class="p">(</span><span class="nv">Arg</span><span class="p">,</span> <span class="nv">Body</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
+    <span class="c1">%....what goes here?</span>
+</pre></div>
+</div>
+<p>For one thing, we can perhaps infer <code class="code docutils literal notranslate"><span class="pre">ArgTy</span></code> from the body based on
+usage.</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">funinf</span><span class="p">(</span><span class="nv">Arg</span><span class="p">,</span> <span class="nv">Body</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">([</span><span class="nv">Arg</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">|</span><span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
+    <span class="c1">%....anything else needed?</span>
+</pre></div>
+</div>
+<p>Supposing we have a function <code class="code docutils literal notranslate"><span class="pre">funinf(x,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)))</span></code>,
+querying <code class="code docutils literal notranslate"><span class="pre">typeof(Env,</span> <span class="pre">funinf(x,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x))),</span> <span class="pre">FunTy)</span></code>
+will result in <code class="code docutils literal notranslate"><span class="pre">FunTy</span> <span class="pre">=</span> <span class="pre">fun(num,</span> <span class="pre">num)</span></code>, thanks to Prolog’s
+unification and goal search mechanisms.</p>
+<p>In fact, much of what we’ve been writing so far already can do
+some inference for us because we’ve embedded it in Prolog where
+unification and goal search are built-in.</p>
+<p>So, given that we have operations such as <code class="code docutils literal notranslate"><span class="pre">add</span></code>, <code class="code docutils literal notranslate"><span class="pre">or</span></code>
+and <code class="code docutils literal notranslate"><span class="pre">equal</span></code> whose types are well known, we can completely
+dispense with explicitly specifying types in our system and rely
+on such inference. i.e. We can simply express our functions as
+<code class="code docutils literal notranslate"><span class="pre">fun(ArgSym,</span> <span class="pre">Body)</span></code> and use the goal search mechanism –</p>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgSym</span><span class="p">,</span> <span class="nv">Body</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
+    <span class="nf">typeof</span><span class="p">([</span><span class="nv">ArgSym</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">|</span><span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
+</pre></div>
+</div>
+<p>The above goal is saying “Find some <code class="code docutils literal notranslate"><span class="pre">ArgTy</span></code> and <code class="code docutils literal notranslate"><span class="pre">BodyTy</span></code> such that
+if you place <code class="code docutils literal notranslate"><span class="pre">ArgSym</span> <span class="pre">=</span> <span class="pre">ArgTy</span></code> in the environment, the body of the
+function checks out to be of type <code class="code docutils literal notranslate"><span class="pre">BodyTy</span></code>. In fact, we needn’t have made
+any modification to our type checker to do such inference if we permitted the
+use of Prolog variables when we constructed our function term. So instead of
+saying <code class="code docutils literal notranslate"><span class="pre">fun(x,</span> <span class="pre">num,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)),</span> <span class="pre">num)</span></code>, all we needed to say was
+<code class="code docutils literal notranslate"><span class="pre">fun(x,</span> <span class="pre">XTy,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)),</span> <span class="pre">RTy)</span></code> and our type checker would’ve told
+us what <code class="code docutils literal notranslate"><span class="pre">XTy</span></code> and <code class="code docutils literal notranslate"><span class="pre">RTy</span></code> should be when we query
+<code class="code docutils literal notranslate"><span class="pre">typeof(Env,</span> <span class="pre">fun(x,</span> <span class="pre">XTy,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)),</span> <span class="pre">RTy),</span> <span class="pre">fun(XTy,</span> <span class="pre">RTy))</span></code>.</p>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Work out how the above implementation can compute the type of a function
+argument based on how the argument ends up being used in the function body.
+Where can such a type inference fail? Is it possible for more than one
+solution to the goal search to turn up? How and when? Would this goal
+search process terminate always?</p>
+</div>
+</div>
+<div class="section" id="parametric-polymorphism">
+<h2>Parametric polymorphism<a class="headerlink" href="#parametric-polymorphism" title="Permalink to this headline">¶</a></h2>
+<p>Consider a function that always evaluates to the number <code class="code docutils literal notranslate"><span class="pre">42</span></code> in our language.
+We could write such a function as <code class="code docutils literal notranslate"><span class="pre">fun(x,</span> <span class="pre">num,</span> <span class="pre">num(42),</span> <span class="pre">num)</span></code>. However,
+since it is a “constant”, we don’t really care about the type of the argument.
+How can we express the notion of “this function can work no matter what type
+of argument you give it”? While we’re using a trivial example here to introduce
+the idea, this is a very common requirement when dealing with many functions.</p>
+<p>For example, “addition” as a function can basically say “give me any two things
+that can be added and I’ll add them”. This would work for integers, floating
+point numbers, complex number and even equal length vectors of numbers.</p>
+<p>While addition seems specific to “things that can be added”, there are still
+functions like <code class="code docutils literal notranslate"><span class="pre">map</span></code> which can apply arbitrary functions to elements of
+a sequence without caring about what specific type they are, as long as some
+structural constraints are met. For <code class="code docutils literal notranslate"><span class="pre">map</span></code>, for example, we say that
+it has the type -</p>
+<div class="highlight-haskell notranslate"><div class="highlight"><pre><span></span><span class="nf">map</span> <span class="ow">::</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="kt">Listof</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="kt">Listof</span> <span class="n">b</span>
+</pre></div>
+</div>
+<p>… where <code class="code docutils literal notranslate"><span class="pre">a</span></code> and <code class="code docutils literal notranslate"><span class="pre">b</span></code> are “type variables”. Parametric polymorphism
+combined with type inference can be a very powerful way to check correctness of
+our programs and makes for a rich language.</p>
+<p>… to be continued …</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Comp308: Principles of Programming Languages</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun.html">Functions and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stacks-and-scope.html">Stacks and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun-in-piclang.html">Functions in PicLang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mutations.html">Mutations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="control.html">Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="objects.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appsem.html">Alternative application semantics</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Types: Checking some program invariants statically</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pure-arithmetic-expressions">Pure arithmetic expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#when-we-introduce-functions">When we introduce functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#typing-conditional-expressions">Typing conditional expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#recursive-functions">Recursive functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#types-and-mutation">Types and mutation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#type-soundness">Type soundness</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#a-taste-of-type-inference">A taste of type inference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parametric-polymorphism">Parametric polymorphism</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="appsem.html" title="previous chapter">Alternative application semantics</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Srikumar K. S..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/types.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

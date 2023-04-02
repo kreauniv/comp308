@@ -473,7 +473,7 @@ available as language level primitives.
 
 .. note:: This is a bit of a lie. While logically Prolog tries to do what we
    presented in this section, it doesn't do it using the same mechanism. The
-   mechanism employed is "backtracking depth first search", similar to what we
+   mechanism employed is "backtracking depth-first search", similar to what we
    did in the last section on generators. The choice of mechanism has some
    interesting conseqences for the language design, with Prolog getting some
    not-quite-logical behaviours as a consequence of turning this into a

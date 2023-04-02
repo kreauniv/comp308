@@ -142,8 +142,8 @@ produce a result.</p></li>
 <span class="c1">% if Arg&#39;s type is ArgTy and the body type of the function is ResultTy</span>
 <span class="c1">% given the argument type.</span>
 <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">apply</span><span class="p">(</span><span class="nv">Fun</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">),</span> <span class="nv">ResultTy</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Fun</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">ResultTy</span><span class="p">)).</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Fun</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">ResultTy</span><span class="p">)),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">).</span>
 </pre></div>
 </div>
 <div class="admonition note">

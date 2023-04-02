@@ -119,7 +119,7 @@ With the above additions, our type checker now becomes --
     % given the argument type.
     typeof(Env, apply(Fun, Arg), ResultTy) :-
         typeof(Env, Arg, ArgTy),
-        typeof(Env, Fun, fun(TyEnv, ArgTy, ResultTy)).
+        typeof(Env, Fun, fun(_TyEnv, ArgTy, ResultTy)).
 
 
 .. note:: Notice how we exploit the ideas of unification and

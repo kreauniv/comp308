@@ -353,7 +353,7 @@ Let us say we introduce another kind of term in our language -- the
 
 .. code-block:: prolog
 
-    typeof(Env, funinf(Arg, Body), fun(ArgTy, BodyTy)) :-
+    typeof(Env, funinf(Arg, Body), fun(Env, ArgTy, BodyTy)) :-
         %....what goes here?
 
 For one thing, we can perhaps infer :code:`ArgTy` from the body based on

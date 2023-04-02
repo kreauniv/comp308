@@ -26,9 +26,11 @@ for that restricted language would look like this -
 
     :- module(typecheck, [typeof/2]).
 
+    % num(X) is a num as long as X is a number.
     typeof(num(X), num) :-
         number(X).
 
+    % add(A,B) is a num as long as both A and B are num.
     typeof(add(A,B), num) :-
         typeof(A, num),
         typeof(B, num).
@@ -100,16 +102,24 @@ With the above additions, our type checker now becomes --
         typeof(Env, A, num),
         typeof(Env, B, num).
 
+    % id(X) is of type Ty if a binding X = Ty exists in the environment.
     typeof(Env, id(X), Ty) :-
         atom(X),
         member(X = Ty, Env).
 
+    % A fun(...) expression is of type fun(ArgTy, BodyTy)
+    % if its argument is of type ArgTy and its body is of type
+    % BodyTy given occurrences of the argument in the body
+    % are consistent with the type of the argument being ArgTy.
     typeof(Env, fun(ArgSym, ArgTy, Body, BodyTy), fun(ArgTy, BodyTy)) :-
         typeof([ArgSym = ArgTy|Env], Body, BodyTy).
 
+    % Applying a function Fun to an Arg produces a value of type ResultTy
+    % if Arg's type is ArgTy and the body type of the function is ResultTy
+    % given the argument type.
     typeof(Env, apply(Fun, Arg), ResultTy) :-
-        typeof(Env, Fun, fun(ArgTy, ResultTy)),
-        typeof(Env, Arg, ArgTy).
+        typeof(Env, Arg, ArgTy),
+        typeof(Env, Fun, fun(ArgTy, ResultTy)).
 
 
 .. note:: Notice how we exploit the ideas of unification and

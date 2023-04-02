@@ -55,9 +55,11 @@ is guaranteed to produce a number as a result. So our type checker
 for that restricted language would look like this -</p>
 <div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="p">:-</span> <span class="nf">module</span><span class="p">(</span><span class="s s-Atom">typecheck</span><span class="p">,</span> <span class="p">[</span><span class="s s-Atom">typeof</span><span class="o">/</span><span class="mi">2</span><span class="p">]).</span>
 
+<span class="c1">% num(X) is a num as long as X is a number.</span>
 <span class="nf">typeof</span><span class="p">(</span><span class="nf">num</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
     <span class="nf">number</span><span class="p">(</span><span class="nv">X</span><span class="p">).</span>
 
+<span class="c1">% add(A,B) is a num as long as both A and B are num.</span>
 <span class="nf">typeof</span><span class="p">(</span><span class="nf">add</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
     <span class="nf">typeof</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
     <span class="nf">typeof</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
@@ -124,16 +126,24 @@ produce a result.</p></li>
     <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
     <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
 
+<span class="c1">% id(X) is of type Ty if a binding X = Ty exists in the environment.</span>
 <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">id</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span> <span class="nv">Ty</span><span class="p">)</span> <span class="p">:-</span>
     <span class="nf">atom</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span>
     <span class="nf">member</span><span class="p">(</span><span class="nv">X</span> <span class="o">=</span> <span class="nv">Ty</span><span class="p">,</span> <span class="nv">Env</span><span class="p">).</span>
 
+<span class="c1">% A fun(...) expression is of type fun(ArgTy, BodyTy)</span>
+<span class="c1">% if its argument is of type ArgTy and its body is of type</span>
+<span class="c1">% BodyTy given occurrences of the argument in the body</span>
+<span class="c1">% are consistent with the type of the argument being ArgTy.</span>
 <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgSym</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
     <span class="nf">typeof</span><span class="p">([</span><span class="nv">ArgSym</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">|</span><span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
 
+<span class="c1">% Applying a function Fun to an Arg produces a value of type ResultTy</span>
+<span class="c1">% if Arg&#39;s type is ArgTy and the body type of the function is ResultTy</span>
+<span class="c1">% given the argument type.</span>
 <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">apply</span><span class="p">(</span><span class="nv">Fun</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">),</span> <span class="nv">ResultTy</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Fun</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">ResultTy</span><span class="p">)),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">).</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">),</span>
+    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Fun</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">ResultTy</span><span class="p">)).</span>
 </pre></div>
 </div>
 <div class="admonition note">

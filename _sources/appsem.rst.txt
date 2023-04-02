@@ -605,4 +605,70 @@ Now try the following after loading the above module.
 
     ?- interp(add(num(10), mul(num(3), num(4))), Result).
 
+Adding functions to our interpreter
+-----------------------------------
+
+To add functions to our language, we've seen that we need three things -
+
+1. A term to represent an "identifier"
+
+2. A term to represent "function application"
+
+3. A term to represent a "function expression"
+
+We also need to introduce the idea of a "evaluation environment" that keeps
+track of bindings between identifiers and values that we should substitute
+for them in calculation. We also have to extend our interpreter to support
+more than just "number" as a value type.
+
+So we need to add the following -
+
+.. code-block:: prolog
+
+    :- module(interp, [interp/3]).
+
+    interp(_, num(X), num(Result)) :-
+        Result = X.
+
+    interp(Env, add(A, B), num(Result)) :-
+        interp(Env, A, num(RA)),
+        interp(Env, B, num(RB)),
+        Result is RA + RB. % Note "is" instead of "=" actually does calculation.
+
+    interp(Env, sub(A, B), num(Result)) :-
+        interp(Env, A, num(RA)),
+        interp(Env, B, num(RB)),
+        Result is RA - RB.
+
+    interp(Env, mul(A, B), num(Result)) :-
+        interp(Env, A, num(RA)),
+        interp(Env, B, num(RB)),
+        Result is RA * RB.
+
+    interp(Env, id(X), Result) :-
+        atom(X),
+        member(X = Result, Env).
+
+    interp(DefnEnv, fun(ArgSym, Body), fun(DefnEnv, ArgSym, Body)).
+
+    interp(Env, apply(Fun, Arg), Result) :-
+        interp(Env, Fun, fun(DefEnv, ArgSym, Body)),
+        interp(Env, Arg, ArgVal),
+        interp([ArgSym = ArgVal|DefEnv], Body, Result).
+
+
+The expression :code:`[ArgSym = ArgVal|DefEnv]` adds a term :code:`ArgSym = ArgVal`
+which is a pair of values along with the functor :code:`=`, to the head of the
+environment list :code:`DefEnv`. 
+
+Using :code:`=` as the functor helps readability but could be confusing about
+whether any binding is happening in **prolog**. To clarify that, you could've
+used any functor name, for example, you can use :code:`bind` like this too --
+:code:`[bind(ArgSym,ArgVal)|DefEnv]` -- as long as you also modify the
+interpretation of :code:`id(X)` to use :code:`member(bind(X,Result), Env)`
+instead of :code:`member(X = Result, Env)`.
+
+.. admonition:: **Exercise**
+    
+    Add booleans and conditional expressions to this interpreter.
 

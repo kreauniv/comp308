@@ -361,13 +361,13 @@ usage.
 
 .. code-block:: prolog
 
-    typeof(Env, funinf(Arg, Body), fun(ArgTy, BodyTy)) :-
+    typeof(Env, funinf(Arg, Body), fun(Env, ArgTy, BodyTy)) :-
         typeof([Arg = ArgTy|Env], Body, BodyTy).
         %....anything else needed?
 
 Supposing we have a function :code:`funinf(x, add(id(x), id(x)))`, 
 querying :code:`typeof(Env, funinf(x, add(id(x), id(x))), FunTy)`
-will result in :code:`FunTy = fun(num, num)`, thanks to Prolog's
+will result in :code:`FunTy = fun(Env, num, num)`, thanks to Prolog's
 unification and goal search mechanisms.
 
 In fact, much of what we've been writing so far already can do
@@ -382,7 +382,7 @@ on such inference. i.e. We can simply express our functions as
 
 .. code-block:: prolog
 
-    typeof(Env, fun(ArgSym, Body), fun(ArgTy, BodyTy)) :-
+    typeof(Env, fun(ArgSym, Body), fun(Env, ArgTy, BodyTy)) :-
         typeof([ArgSym = ArgTy|Env], Body, BodyTy).
 
 The above goal is saying "Find some :code:`ArgTy` and :code:`BodyTy` such that
@@ -393,7 +393,7 @@ use of Prolog variables when we constructed our function term. So instead of
 saying :code:`fun(x, num, add(id(x), id(x)), num)`, all we needed to say was
 :code:`fun(x, XTy, add(id(x), id(x)), RTy)` and our type checker would've told
 us what :code:`XTy` and :code:`RTy` should be when we query
-:code:`typeof(Env, fun(x, XTy, add(id(x), id(x)), RTy), fun(XTy, RTy))`.
+:code:`typeof(Env, fun(x, XTy, add(id(x), id(x)), RTy), fun(Env, XTy, RTy))`.
 
 .. admonition:: **Exercise**
 

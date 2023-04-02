@@ -107,7 +107,7 @@ With the above additions, our type checker now becomes --
         atom(X),
         member(X = Ty, Env).
 
-    % A fun(...) expression is of type fun(ArgTy, BodyTy)
+    % A fun(...) expression is of type fun(Env, ArgTy, BodyTy)
     % if its argument is of type ArgTy and its body is of type
     % BodyTy given occurrences of the argument in the body
     % are consistent with the type of the argument being ArgTy.

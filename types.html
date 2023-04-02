@@ -339,14 +339,14 @@ of a function by looking at the context in which it is being used.</p>
 </div>
 <p>For one thing, we can perhaps infer <code class="code docutils literal notranslate"><span class="pre">ArgTy</span></code> from the body based on
 usage.</p>
-<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">funinf</span><span class="p">(</span><span class="nv">Arg</span><span class="p">,</span> <span class="nv">Body</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">funinf</span><span class="p">(</span><span class="nv">Arg</span><span class="p">,</span> <span class="nv">Body</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
     <span class="nf">typeof</span><span class="p">([</span><span class="nv">Arg</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">|</span><span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
     <span class="c1">%....anything else needed?</span>
 </pre></div>
 </div>
 <p>Supposing we have a function <code class="code docutils literal notranslate"><span class="pre">funinf(x,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)))</span></code>,
 querying <code class="code docutils literal notranslate"><span class="pre">typeof(Env,</span> <span class="pre">funinf(x,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x))),</span> <span class="pre">FunTy)</span></code>
-will result in <code class="code docutils literal notranslate"><span class="pre">FunTy</span> <span class="pre">=</span> <span class="pre">fun(num,</span> <span class="pre">num)</span></code>, thanks to Prolog’s
+will result in <code class="code docutils literal notranslate"><span class="pre">FunTy</span> <span class="pre">=</span> <span class="pre">fun(Env,</span> <span class="pre">num,</span> <span class="pre">num)</span></code>, thanks to Prolog’s
 unification and goal search mechanisms.</p>
 <p>In fact, much of what we’ve been writing so far already can do
 some inference for us because we’ve embedded it in Prolog where
@@ -356,7 +356,7 @@ and <code class="code docutils literal notranslate"><span class="pre">equal</spa
 dispense with explicitly specifying types in our system and rely
 on such inference. i.e. We can simply express our functions as
 <code class="code docutils literal notranslate"><span class="pre">fun(ArgSym,</span> <span class="pre">Body)</span></code> and use the goal search mechanism –</p>
-<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgSym</span><span class="p">,</span> <span class="nv">Body</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgSym</span><span class="p">,</span> <span class="nv">Body</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
     <span class="nf">typeof</span><span class="p">([</span><span class="nv">ArgSym</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">|</span><span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
 </pre></div>
 </div>
@@ -368,7 +368,7 @@ use of Prolog variables when we constructed our function term. So instead of
 saying <code class="code docutils literal notranslate"><span class="pre">fun(x,</span> <span class="pre">num,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)),</span> <span class="pre">num)</span></code>, all we needed to say was
 <code class="code docutils literal notranslate"><span class="pre">fun(x,</span> <span class="pre">XTy,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)),</span> <span class="pre">RTy)</span></code> and our type checker would’ve told
 us what <code class="code docutils literal notranslate"><span class="pre">XTy</span></code> and <code class="code docutils literal notranslate"><span class="pre">RTy</span></code> should be when we query
-<code class="code docutils literal notranslate"><span class="pre">typeof(Env,</span> <span class="pre">fun(x,</span> <span class="pre">XTy,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)),</span> <span class="pre">RTy),</span> <span class="pre">fun(XTy,</span> <span class="pre">RTy))</span></code>.</p>
+<code class="code docutils literal notranslate"><span class="pre">typeof(Env,</span> <span class="pre">fun(x,</span> <span class="pre">XTy,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)),</span> <span class="pre">RTy),</span> <span class="pre">fun(Env,</span> <span class="pre">XTy,</span> <span class="pre">RTy))</span></code>.</p>
 <div class="admonition-exercise admonition">
 <p class="admonition-title"><strong>Exercise</strong></p>
 <p>Work out how the above implementation can compute the type of a function

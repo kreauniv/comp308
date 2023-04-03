@@ -118,8 +118,8 @@ With the above additions, our type checker now becomes --
     % if Arg's type is ArgTy and the body type of the function is ResultTy
     % given the argument type.
     typeof(Env, apply(Fun, Arg), ResultTy) :-
-        typeof(Env, Fun, fun(ArgTy, ResultTy)),
-        typeof(Env, Arg, ArgTy).
+        typeof(Env, Arg, ArgTy),
+        typeof(Env, Fun, fun(ArgTy, ResultTy)).
 
 
 .. note:: Notice how we exploit the ideas of unification and

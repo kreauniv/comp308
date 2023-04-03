@@ -205,7 +205,7 @@ Consider the expression --
 
 .. code-block:: prolog
 
-    apply(fun(X, XTy1, apply(X, X), BTy1), fun(X, XTy2, apply(X, X), BTy2))
+    apply(fun(x, XTy1, apply(id(x), id(x)), BTy1), fun(x, XTy2, apply(id(x), id(x)), BTy2))
 
 Before we ask the question of what type should this expression be,
 what should we be passing in in place of the variables :code:`XTy1`,
@@ -220,7 +220,7 @@ we're justified in saying :code:`XTy1 = XTy2` and similarly
 
 .. code-block:: prolog
 
-    apply(fun(X, XTy, apply(X, X), BTy), fun(X, XTy, apply(X, X), BTy))
+    apply(fun(x, XTy, apply(id(x), id(x)), BTy), fun(x, XTy, apply(id(x), id(x)), BTy))
 
 ... and we have :code:`XTy = fun(XTy, BTy)`. Wait a sec now! What is the
 :code:`XTy` on the right side supposed to be? If we expand using the equation,
@@ -394,6 +394,18 @@ saying :code:`fun(x, num, add(id(x), id(x)), num)`, all we needed to say was
 :code:`fun(x, XTy, add(id(x), id(x)), RTy)` and our type checker would've told
 us what :code:`XTy` and :code:`RTy` should be when we query
 :code:`typeof(Env, fun(x, XTy, add(id(x), id(x)), RTy), fun(XTy, RTy))`.
+
+So even with just what we had earlier, you can do a query like --
+:code:`typeof([], fun(x, apply(id(x),num(4))), T)`, which will succeed with
+:code:`T = fun(fun(num, _A), _A)`. Notice how SWI-Prolog gives a variable in
+place of the result type of the function. If you try :code:`typeof([], fun(x,
+id(x)), T)`, you'll similarly get :code:`T = fun(_A, _A)`, which makes sense as
+the identity function must have the same type for input and result. 
+
+We therefore have some minimal polymorphism implemented in our type system (as
+implemented in our checker) already, though our programs don't yet support
+explicit polymorphism. For that, we need to enrich the type system with
+types like "Listof A".
 
 .. admonition:: **Exercise**
 

@@ -53,24 +53,24 @@ application, there is little for us to check, since every expression
 we can compose using our <code class="code docutils literal notranslate"><span class="pre">add</span></code>, <code class="code docutils literal notranslate"><span class="pre">sub</span></code> and <code class="code docutils literal notranslate"><span class="pre">mul</span></code> operations
 is guaranteed to produce a number as a result. So our type checker
 for that restricted language would look like this -</p>
-<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="p">:-</span> <span class="nf">module</span><span class="p">(</span><span class="s s-Atom">typecheck</span><span class="p">,</span> <span class="p">[</span><span class="s s-Atom">typeof</span><span class="o">/</span><span class="mi">2</span><span class="p">]).</span>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="p">:-</span> <span class="nf">module</span><span class="p">(</span><span class="s s-Atom">typecheck</span><span class="p">,</span> <span class="p">[</span><span class="s s-Atom">exprtype</span><span class="o">/</span><span class="mi">2</span><span class="p">]).</span>
 
 <span class="c1">% num(X) is a num as long as X is a number.</span>
-<span class="nf">typeof</span><span class="p">(</span><span class="nf">num</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nf">num</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
     <span class="nf">number</span><span class="p">(</span><span class="nv">X</span><span class="p">).</span>
 
 <span class="c1">% add(A,B) is a num as long as both A and B are num.</span>
-<span class="nf">typeof</span><span class="p">(</span><span class="nf">add</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nf">add</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
 
-<span class="nf">typeof</span><span class="p">(</span><span class="nf">sub</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nf">sub</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
 
-<span class="nf">typeof</span><span class="p">(</span><span class="nf">mul</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nf">mul</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
 </pre></div>
 </div>
 <p>We use the Prolog built-in predicate <code class="code docutils literal notranslate"><span class="pre">number(X)</span></code> which succeeds if
@@ -86,8 +86,8 @@ structure that closely mimics our interpreter for the language.</p></li>
 indistinguishable and can be replaced by a common predicate –</p>
 <blockquote>
 <div><div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">binoptype</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="nv">B</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -109,25 +109,25 @@ won’t evaluate to a number. It will evaluate to a “function value”.</p></l
 produce a result.</p></li>
 </ol>
 <p>With the above additions, our type checker now becomes –</p>
-<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="p">:-</span> <span class="nf">module</span><span class="p">(</span><span class="s s-Atom">typecheck</span><span class="p">,</span> <span class="p">[</span><span class="s s-Atom">typeof</span><span class="o">/</span><span class="mi">3</span><span class="p">]).</span>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="p">:-</span> <span class="nf">module</span><span class="p">(</span><span class="s s-Atom">typecheck</span><span class="p">,</span> <span class="p">[</span><span class="s s-Atom">exprtype</span><span class="o">/</span><span class="mi">3</span><span class="p">]).</span>
 
-<span class="nf">typeof</span><span class="p">(</span><span class="k">_</span><span class="p">,</span> <span class="nf">num</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="k">_</span><span class="p">,</span> <span class="nf">num</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
     <span class="nf">number</span><span class="p">(</span><span class="nv">X</span><span class="p">).</span>
 
-<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">add</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">add</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
 
-<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">sub</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">sub</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
 
-<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">mul</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">mul</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
 
 <span class="c1">% id(X) is of type Ty if a binding X = Ty exists in the environment.</span>
-<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">id</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span> <span class="nv">Ty</span><span class="p">)</span> <span class="p">:-</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">id</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span> <span class="nv">Ty</span><span class="p">)</span> <span class="p">:-</span>
     <span class="nf">atom</span><span class="p">(</span><span class="nv">X</span><span class="p">),</span>
     <span class="nf">member</span><span class="p">(</span><span class="nv">X</span> <span class="o">=</span> <span class="nv">Ty</span><span class="p">,</span> <span class="nv">Env</span><span class="p">).</span>
 
@@ -135,15 +135,15 @@ produce a result.</p></li>
 <span class="c1">% if its argument is of type ArgTy and its body is of type</span>
 <span class="c1">% BodyTy given occurrences of the argument in the body</span>
 <span class="c1">% are consistent with the type of the argument being ArgTy.</span>
-<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgSym</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">([</span><span class="nv">ArgSym</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">|</span><span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgSym</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">([</span><span class="nv">ArgSym</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">|</span><span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
 
 <span class="c1">% Applying a function Fun to an Arg produces a value of type ResultTy</span>
 <span class="c1">% if Arg&#39;s type is ArgTy and the body type of the function is ResultTy</span>
 <span class="c1">% given the argument type.</span>
-<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">apply</span><span class="p">(</span><span class="nv">Fun</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">),</span> <span class="nv">ResultTy</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Fun</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">ResultTy</span><span class="p">)).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">apply</span><span class="p">(</span><span class="nv">Fun</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">),</span> <span class="nv">ResultTy</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Fun</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">ResultTy</span><span class="p">)).</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -170,22 +170,22 @@ expression.</p></li>
 <h2>Typing conditional expressions<a class="headerlink" href="#typing-conditional-expressions" title="Permalink to this headline">¶</a></h2>
 <p>When we introduce booleans, comparisons and conditionals into our
 language, our type system needs to correspondingly grow.</p>
-<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="k">_</span><span class="p">,</span> <span class="s s-Atom">true</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
-<span class="nf">typeof</span><span class="p">(</span><span class="k">_</span><span class="p">,</span> <span class="s s-Atom">false</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
-<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">equal</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
-<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">less</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
-<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">and</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
-<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">or</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
-<span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="o">not</span><span class="p">(</span><span class="nv">A</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">exprtype</span><span class="p">(</span><span class="k">_</span><span class="p">,</span> <span class="s s-Atom">true</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="k">_</span><span class="p">,</span> <span class="s s-Atom">false</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">equal</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">less</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">and</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">or</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span><span class="nv">B</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
+<span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="o">not</span><span class="p">(</span><span class="nv">A</span><span class="p">),</span> <span class="s s-Atom">bool</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
 </pre></div>
 </div>
 <p>In the above formulation, we had a choice of how to represent
@@ -209,10 +209,10 @@ and type the <code class="code docutils literal notranslate"><span class="pre">i
 </ol>
 <p>The second option is a substantial addition to our type system, so
 we’ll take the simpler route here initially until we understand more.</p>
-<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">if</span><span class="p">(</span><span class="nv">Cond</span><span class="p">,</span><span class="nv">Then</span><span class="p">,</span><span class="nv">Else</span><span class="p">),</span> <span class="nv">Ty</span><span class="p">)</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Cond</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Then</span><span class="p">,</span> <span class="nv">Ty</span><span class="p">),</span>
-    <span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Else</span><span class="p">,</span> <span class="nv">Ty</span><span class="p">).</span>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">if</span><span class="p">(</span><span class="nv">Cond</span><span class="p">,</span><span class="nv">Then</span><span class="p">,</span><span class="nv">Else</span><span class="p">),</span> <span class="nv">Ty</span><span class="p">)</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Cond</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Then</span><span class="p">,</span> <span class="nv">Ty</span><span class="p">),</span>
+    <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Else</span><span class="p">,</span> <span class="nv">Ty</span><span class="p">).</span>
 </pre></div>
 </div>
 </div>
@@ -271,8 +271,8 @@ functions using name binding, or using recursion combinators in lambda calculus.
 <p>One way we can avoid relying on this special property of Prolog, is to add
 an explicit “recursive function” term in our language, where the body of
 the recursive function may refer to the function itself by name.</p>
-<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">rec</span><span class="p">(</span><span class="nv">Fname</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">([</span><span class="nv">Arg</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">Fname</span> <span class="o">=</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">)</span> <span class="p">|</span> <span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">rec</span><span class="p">(</span><span class="nv">Fname</span><span class="p">,</span> <span class="nv">Arg</span><span class="p">,</span> <span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">([</span><span class="nv">Arg</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">Fname</span> <span class="o">=</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">)</span> <span class="p">|</span> <span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
 </pre></div>
 </div>
 <p>This is certainly not a general notion of recursion, but is useful enough for
@@ -297,7 +297,7 @@ sequencing operation to fail the type check.</p>
 </div>
 <div class="section" id="type-soundness">
 <h2>Type soundness<a class="headerlink" href="#type-soundness" title="Permalink to this headline">¶</a></h2>
-<p>Our type checker predicate <code class="code docutils literal notranslate"><span class="pre">typeof</span></code> is making a prediction about what
+<p>Our type checker predicate <code class="code docutils literal notranslate"><span class="pre">exprtype</span></code> is making a prediction about what
 will happen when we run our program on actual values. How do we know this
 function does not lie? – i.e. how do we know that if our type checker tells us
 that the type of an expression is <code class="code docutils literal notranslate"><span class="pre">T</span></code>, then when we evaluate the
@@ -333,19 +333,19 @@ of this checking work for us.</p>
 of a function by looking at the context in which it is being used.</p>
 <p>Let us say we introduce another kind of term in our language – the
 “function whose arg and body types are inferred from context”.</p>
-<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">funinf</span><span class="p">(</span><span class="nv">Arg</span><span class="p">,</span> <span class="nv">Body</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">funinf</span><span class="p">(</span><span class="nv">Arg</span><span class="p">,</span> <span class="nv">Body</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
     <span class="c1">%....what goes here?</span>
 </pre></div>
 </div>
 <p>For one thing, we can perhaps infer <code class="code docutils literal notranslate"><span class="pre">ArgTy</span></code> from the body based on
 usage.</p>
-<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">funinf</span><span class="p">(</span><span class="nv">Arg</span><span class="p">,</span> <span class="nv">Body</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">([</span><span class="nv">Arg</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">|</span><span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">funinf</span><span class="p">(</span><span class="nv">Arg</span><span class="p">,</span> <span class="nv">Body</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">([</span><span class="nv">Arg</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">|</span><span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
     <span class="c1">%....anything else needed?</span>
 </pre></div>
 </div>
 <p>Supposing we have a function <code class="code docutils literal notranslate"><span class="pre">funinf(x,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)))</span></code>,
-querying <code class="code docutils literal notranslate"><span class="pre">typeof(Env,</span> <span class="pre">funinf(x,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x))),</span> <span class="pre">FunTy)</span></code>
+querying <code class="code docutils literal notranslate"><span class="pre">exprtype(Env,</span> <span class="pre">funinf(x,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x))),</span> <span class="pre">FunTy)</span></code>
 will result in <code class="code docutils literal notranslate"><span class="pre">FunTy</span> <span class="pre">=</span> <span class="pre">fun(num,</span> <span class="pre">num)</span></code>, thanks to Prolog’s
 unification and goal search mechanisms.</p>
 <p>In fact, much of what we’ve been writing so far already can do
@@ -356,8 +356,8 @@ and <code class="code docutils literal notranslate"><span class="pre">equal</spa
 dispense with explicitly specifying types in our system and rely
 on such inference. i.e. We can simply express our functions as
 <code class="code docutils literal notranslate"><span class="pre">fun(ArgSym,</span> <span class="pre">Body)</span></code> and use the goal search mechanism –</p>
-<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">typeof</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgSym</span><span class="p">,</span> <span class="nv">Body</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
-    <span class="nf">typeof</span><span class="p">([</span><span class="nv">ArgSym</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">|</span><span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
+<div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgSym</span><span class="p">,</span> <span class="nv">Body</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="nv">ArgTy</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">))</span> <span class="p">:-</span>
+    <span class="nf">exprtype</span><span class="p">([</span><span class="nv">ArgSym</span> <span class="o">=</span> <span class="nv">ArgTy</span><span class="p">|</span><span class="nv">Env</span><span class="p">],</span> <span class="nv">Body</span><span class="p">,</span> <span class="nv">BodyTy</span><span class="p">).</span>
 </pre></div>
 </div>
 <p>The above goal is saying “Find some <code class="code docutils literal notranslate"><span class="pre">ArgTy</span></code> and <code class="code docutils literal notranslate"><span class="pre">BodyTy</span></code> such that
@@ -368,11 +368,11 @@ use of Prolog variables when we constructed our function term. So instead of
 saying <code class="code docutils literal notranslate"><span class="pre">fun(x,</span> <span class="pre">num,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)),</span> <span class="pre">num)</span></code>, all we needed to say was
 <code class="code docutils literal notranslate"><span class="pre">fun(x,</span> <span class="pre">XTy,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)),</span> <span class="pre">RTy)</span></code> and our type checker would’ve told
 us what <code class="code docutils literal notranslate"><span class="pre">XTy</span></code> and <code class="code docutils literal notranslate"><span class="pre">RTy</span></code> should be when we query
-<code class="code docutils literal notranslate"><span class="pre">typeof(Env,</span> <span class="pre">fun(x,</span> <span class="pre">XTy,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)),</span> <span class="pre">RTy),</span> <span class="pre">fun(XTy,</span> <span class="pre">RTy))</span></code>.</p>
+<code class="code docutils literal notranslate"><span class="pre">exprtype(Env,</span> <span class="pre">fun(x,</span> <span class="pre">XTy,</span> <span class="pre">add(id(x),</span> <span class="pre">id(x)),</span> <span class="pre">RTy),</span> <span class="pre">fun(XTy,</span> <span class="pre">RTy))</span></code>.</p>
 <p>So even with just what we had earlier, you can do a query like –
-<code class="code docutils literal notranslate"><span class="pre">typeof([],</span> <span class="pre">fun(x,</span> <span class="pre">apply(id(x),num(4))),</span> <span class="pre">T)</span></code>, which will succeed with
+<code class="code docutils literal notranslate"><span class="pre">exprtype([],</span> <span class="pre">fun(x,</span> <span class="pre">apply(id(x),num(4))),</span> <span class="pre">T)</span></code>, which will succeed with
 <code class="code docutils literal notranslate"><span class="pre">T</span> <span class="pre">=</span> <span class="pre">fun(fun(num,</span> <span class="pre">_A),</span> <span class="pre">_A)</span></code>. Notice how SWI-Prolog gives a variable in
-place of the result type of the function. If you try <code class="code docutils literal notranslate"><span class="pre">typeof([],</span> <span class="pre">fun(x,</span>
+place of the result type of the function. If you try <code class="code docutils literal notranslate"><span class="pre">exprtype([],</span> <span class="pre">fun(x,</span>
 <span class="pre">id(x)),</span> <span class="pre">T)</span></code>, you’ll similarly get <code class="code docutils literal notranslate"><span class="pre">T</span> <span class="pre">=</span> <span class="pre">fun(_A,</span> <span class="pre">_A)</span></code>, which makes sense as
 the identity function must have the same type for input and result.</p>
 <p>We therefore have some minimal polymorphism implemented in our type system (as

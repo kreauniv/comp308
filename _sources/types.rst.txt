@@ -24,24 +24,24 @@ for that restricted language would look like this -
 
 .. code-block:: prolog
 
-    :- module(typecheck, [typeof/2]).
+    :- module(typecheck, [exprtype/2]).
 
     % num(X) is a num as long as X is a number.
-    typeof(num(X), num) :-
+    exprtype(num(X), num) :-
         number(X).
 
     % add(A,B) is a num as long as both A and B are num.
-    typeof(add(A,B), num) :-
-        typeof(A, num),
-        typeof(B, num).
+    exprtype(add(A,B), num) :-
+        exprtype(A, num),
+        exprtype(B, num).
 
-    typeof(sub(A,B), num) :-
-        typeof(A, num),
-        typeof(B, num).
+    exprtype(sub(A,B), num) :-
+        exprtype(A, num),
+        exprtype(B, num).
 
-    typeof(mul(A,B), num) :-
-        typeof(A, num),
-        typeof(B, num).
+    exprtype(mul(A,B), num) :-
+        exprtype(A, num),
+        exprtype(B, num).
 
 We use the Prolog built-in predicate :code:`number(X)` which succeeds if
 the given :code:`X` happens to be a number and fails otherwise. So, we
@@ -60,8 +60,8 @@ A few observations are in order -
     .. code-block:: prolog
 
         binoptype(A, B) :-
-            typeof(A, num),
-            typeof(B, num).
+            exprtype(A, num),
+            exprtype(B, num).
 
    i.e. when we write :code:`add(A,B)`, we already know that the :code:`A`
    and :code:`B` terms must evaluate to numbers.
@@ -85,25 +85,25 @@ With the above additions, our type checker now becomes --
 
 .. code-block:: prolog
 
-    :- module(typecheck, [typeof/3]).
+    :- module(typecheck, [exprtype/3]).
 
-    typeof(_, num(X), num) :-
+    exprtype(_, num(X), num) :-
         number(X).
 
-    typeof(Env, add(A,B), num) :-
-        typeof(Env, A, num),
-        typeof(Env, B, num).
+    exprtype(Env, add(A,B), num) :-
+        exprtype(Env, A, num),
+        exprtype(Env, B, num).
 
-    typeof(Env, sub(A,B), num) :-
-        typeof(Env, A, num),
-        typeof(Env, B, num).
+    exprtype(Env, sub(A,B), num) :-
+        exprtype(Env, A, num),
+        exprtype(Env, B, num).
 
-    typeof(Env, mul(A,B), num) :-
-        typeof(Env, A, num),
-        typeof(Env, B, num).
+    exprtype(Env, mul(A,B), num) :-
+        exprtype(Env, A, num),
+        exprtype(Env, B, num).
 
     % id(X) is of type Ty if a binding X = Ty exists in the environment.
-    typeof(Env, id(X), Ty) :-
+    exprtype(Env, id(X), Ty) :-
         atom(X),
         member(X = Ty, Env).
 
@@ -111,15 +111,15 @@ With the above additions, our type checker now becomes --
     % if its argument is of type ArgTy and its body is of type
     % BodyTy given occurrences of the argument in the body
     % are consistent with the type of the argument being ArgTy.
-    typeof(Env, fun(ArgSym, ArgTy, Body, BodyTy), fun(ArgTy, BodyTy)) :-
-        typeof([ArgSym = ArgTy|Env], Body, BodyTy).
+    exprtype(Env, fun(ArgSym, ArgTy, Body, BodyTy), fun(ArgTy, BodyTy)) :-
+        exprtype([ArgSym = ArgTy|Env], Body, BodyTy).
 
     % Applying a function Fun to an Arg produces a value of type ResultTy
     % if Arg's type is ArgTy and the body type of the function is ResultTy
     % given the argument type.
-    typeof(Env, apply(Fun, Arg), ResultTy) :-
-        typeof(Env, Arg, ArgTy),
-        typeof(Env, Fun, fun(ArgTy, ResultTy)).
+    exprtype(Env, apply(Fun, Arg), ResultTy) :-
+        exprtype(Env, Arg, ArgTy),
+        exprtype(Env, Fun, fun(ArgTy, ResultTy)).
 
 
 .. note:: Notice how we exploit the ideas of unification and
@@ -149,22 +149,22 @@ language, our type system needs to correspondingly grow.
 
 .. code-block:: prolog
 
-    typeof(_, true, bool).
-    typeof(_, false, bool).
-    typeof(Env, equal(A,B), bool) :-
-        typeof(Env, A, num),
-        typeof(Env, B, num).
-    typeof(Env, less(A,B), bool) :-
-        typeof(Env, A, num),
-        typeof(Env, B, num).
-    typeof(Env, and(A,B), bool) :-
-        typeof(Env, A, bool),
-        typeof(Env, B, bool).
-    typeof(Env, or(A,B), bool) :-
-        typeof(Env, A, bool),
-        typeof(Env, B, bool).
-    typeof(Env, not(A), bool) :-
-        typeof(Env, A, bool).
+    exprtype(_, true, bool).
+    exprtype(_, false, bool).
+    exprtype(Env, equal(A,B), bool) :-
+        exprtype(Env, A, num),
+        exprtype(Env, B, num).
+    exprtype(Env, less(A,B), bool) :-
+        exprtype(Env, A, num),
+        exprtype(Env, B, num).
+    exprtype(Env, and(A,B), bool) :-
+        exprtype(Env, A, bool),
+        exprtype(Env, B, bool).
+    exprtype(Env, or(A,B), bool) :-
+        exprtype(Env, A, bool),
+        exprtype(Env, B, bool).
+    exprtype(Env, not(A), bool) :-
+        exprtype(Env, A, bool).
 
 In the above formulation, we had a choice of how to represent
 booleans. We chose to be explicit about them and prevented numbers and
@@ -192,10 +192,10 @@ we'll take the simpler route here initially until we understand more.
 
 .. code-block:: prolog
 
-    typeof(Env, if(Cond,Then,Else), Ty) :-
-        typeof(Env, Cond, bool),
-        typeof(Env, Then, Ty),
-        typeof(Env, Else, Ty).
+    exprtype(Env, if(Cond,Then,Else), Ty) :-
+        exprtype(Env, Cond, bool),
+        exprtype(Env, Then, Ty),
+        exprtype(Env, Else, Ty).
 
 
 Recursive functions
@@ -270,8 +270,8 @@ the recursive function may refer to the function itself by name.
 
 .. code-block:: prolog
 
-    typeof(Env, rec(Fname, Arg, ArgTy, Body, BodyTy), fun(ArgTy, BodyTy)) :-
-        typeof([Arg = ArgTy, Fname = fun(ArgTy, BodyTy) | Env], Body, BodyTy).
+    exprtype(Env, rec(Fname, Arg, ArgTy, Body, BodyTy), fun(ArgTy, BodyTy)) :-
+        exprtype([Arg = ArgTy, Fname = fun(ArgTy, BodyTy) | Env], Body, BodyTy).
 
 This is certainly not a general notion of recursion, but is useful enough for
 many cases such as looping and we're now not relying on Prolog's ability
@@ -302,7 +302,7 @@ sequencing operation to fail the type check.
 Type soundness
 --------------
 
-Our type checker predicate :code:`typeof` is making a prediction about what
+Our type checker predicate :code:`exprtype` is making a prediction about what
 will happen when we run our program on actual values. How do we know this
 function does not lie? -- i.e. how do we know that if our type checker tells us
 that the type of an expression is :code:`T`, then when we evaluate the
@@ -353,7 +353,7 @@ Let us say we introduce another kind of term in our language -- the
 
 .. code-block:: prolog
 
-    typeof(Env, funinf(Arg, Body), fun(ArgTy, BodyTy)) :-
+    exprtype(Env, funinf(Arg, Body), fun(ArgTy, BodyTy)) :-
         %....what goes here?
 
 For one thing, we can perhaps infer :code:`ArgTy` from the body based on
@@ -361,12 +361,12 @@ usage.
 
 .. code-block:: prolog
 
-    typeof(Env, funinf(Arg, Body), fun(ArgTy, BodyTy)) :-
-        typeof([Arg = ArgTy|Env], Body, BodyTy).
+    exprtype(Env, funinf(Arg, Body), fun(ArgTy, BodyTy)) :-
+        exprtype([Arg = ArgTy|Env], Body, BodyTy).
         %....anything else needed?
 
 Supposing we have a function :code:`funinf(x, add(id(x), id(x)))`, 
-querying :code:`typeof(Env, funinf(x, add(id(x), id(x))), FunTy)`
+querying :code:`exprtype(Env, funinf(x, add(id(x), id(x))), FunTy)`
 will result in :code:`FunTy = fun(num, num)`, thanks to Prolog's
 unification and goal search mechanisms.
 
@@ -382,8 +382,8 @@ on such inference. i.e. We can simply express our functions as
 
 .. code-block:: prolog
 
-    typeof(Env, fun(ArgSym, Body), fun(ArgTy, BodyTy)) :-
-        typeof([ArgSym = ArgTy|Env], Body, BodyTy).
+    exprtype(Env, fun(ArgSym, Body), fun(ArgTy, BodyTy)) :-
+        exprtype([ArgSym = ArgTy|Env], Body, BodyTy).
 
 The above goal is saying "Find some :code:`ArgTy` and :code:`BodyTy` such that
 if you place :code:`ArgSym = ArgTy` in the environment, the body of the
@@ -393,12 +393,12 @@ use of Prolog variables when we constructed our function term. So instead of
 saying :code:`fun(x, num, add(id(x), id(x)), num)`, all we needed to say was
 :code:`fun(x, XTy, add(id(x), id(x)), RTy)` and our type checker would've told
 us what :code:`XTy` and :code:`RTy` should be when we query
-:code:`typeof(Env, fun(x, XTy, add(id(x), id(x)), RTy), fun(XTy, RTy))`.
+:code:`exprtype(Env, fun(x, XTy, add(id(x), id(x)), RTy), fun(XTy, RTy))`.
 
 So even with just what we had earlier, you can do a query like --
-:code:`typeof([], fun(x, apply(id(x),num(4))), T)`, which will succeed with
+:code:`exprtype([], fun(x, apply(id(x),num(4))), T)`, which will succeed with
 :code:`T = fun(fun(num, _A), _A)`. Notice how SWI-Prolog gives a variable in
-place of the result type of the function. If you try :code:`typeof([], fun(x,
+place of the result type of the function. If you try :code:`exprtype([], fun(x,
 id(x)), T)`, you'll similarly get :code:`T = fun(_A, _A)`, which makes sense as
 the identity function must have the same type for input and result. 
 

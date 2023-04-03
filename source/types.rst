@@ -260,9 +260,9 @@ given arbitrary :code:`BTy`.
         XTy = fun(XTy, BTy).
 
 If we took our strict notion of unification, this would cause our type checker
-to fail. However, Prolog, however, permits this unification by solving the
-equation for us. You can imagine Prolog solving it for us like how we solved
-recursive functions in lambda calculus using recursion combinators.
+to fail. Prolog, however, permits this unification by solving the equation for
+us. You can imagine Prolog solving it for us like how we solved recursion for
+functions using name binding, or using recursion combinators in lambda calculus.
 
 One way we can avoid relying on this special property of Prolog, is to add
 an explicit "recursive function" term in our language, where the body of

@@ -173,10 +173,9 @@ for example, has the notion of "generalized booleans" where any value
 that is not :code:`#f` is taken to be "true" when used in a boolean
 context. 
 
-... but how would be type an conditional
-expression :code:`if(Cond,Then,Else)` ? What if the :code:`Then` part is of one
-type and the :code:`Else` part is of another type? We have some choices to
-make here --
+... but how would we type a conditional expression :code:`if(Cond,Then,Else)` ?
+What if the :code:`Then` part is of one type and the :code:`Else` part is of
+another type? We have some choices to make here --
 
 1. We can constrain the expression to be such that the :code:`Then` and
    :code:`Else` parts must be of the same type. This is a common strategy
@@ -213,7 +212,7 @@ what should we be passing in in place of the variables :code:`XTy1`,
 
 We know that the type of an expression of the form
 :code:`fun(X,Xty,B,Bty)` is :code:`fun(XTy,BTy)`. We can therefore
-consider -- :code:`XTy1 = fun(_, XTy2, BTy2)`. Since we're "applying"
+consider -- :code:`XTy1 = fun(XTy2, BTy2)`. Since we're "applying"
 :code:`X` to itself, we also have :code:`XTy2 = fun(XTy2, BTy2)`. So
 we're justified in saying :code:`XTy1 = XTy2` and similarly
 :code:`BTy1 = BTy2`. So let's use that to simplify our expression --

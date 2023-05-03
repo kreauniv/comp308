@@ -194,10 +194,9 @@ functions from being interpreted as boolean. Untyped Scheme/Racket,
 for example, has the notion of “generalized booleans” where any value
 that is not <code class="code docutils literal notranslate"><span class="pre">#f</span></code> is taken to be “true” when used in a boolean
 context.</p>
-<p>… but how would be type an conditional
-expression <code class="code docutils literal notranslate"><span class="pre">if(Cond,Then,Else)</span></code> ? What if the <code class="code docutils literal notranslate"><span class="pre">Then</span></code> part is of one
-type and the <code class="code docutils literal notranslate"><span class="pre">Else</span></code> part is of another type? We have some choices to
-make here –</p>
+<p>… but how would we type a conditional expression <code class="code docutils literal notranslate"><span class="pre">if(Cond,Then,Else)</span></code> ?
+What if the <code class="code docutils literal notranslate"><span class="pre">Then</span></code> part is of one type and the <code class="code docutils literal notranslate"><span class="pre">Else</span></code> part is of
+another type? We have some choices to make here –</p>
 <ol class="arabic simple">
 <li><p>We can constrain the expression to be such that the <code class="code docutils literal notranslate"><span class="pre">Then</span></code> and
 <code class="code docutils literal notranslate"><span class="pre">Else</span></code> parts must be of the same type. This is a common strategy
@@ -227,7 +226,7 @@ what should we be passing in in place of the variables <code class="code docutil
 <code class="code docutils literal notranslate"><span class="pre">XTy2</span></code>, <code class="code docutils literal notranslate"><span class="pre">BTy1</span></code> and <code class="code docutils literal notranslate"><span class="pre">BTy2</span></code>?</p>
 <p>We know that the type of an expression of the form
 <code class="code docutils literal notranslate"><span class="pre">fun(X,Xty,B,Bty)</span></code> is <code class="code docutils literal notranslate"><span class="pre">fun(XTy,BTy)</span></code>. We can therefore
-consider – <code class="code docutils literal notranslate"><span class="pre">XTy1</span> <span class="pre">=</span> <span class="pre">fun(_,</span> <span class="pre">XTy2,</span> <span class="pre">BTy2)</span></code>. Since we’re “applying”
+consider – <code class="code docutils literal notranslate"><span class="pre">XTy1</span> <span class="pre">=</span> <span class="pre">fun(XTy2,</span> <span class="pre">BTy2)</span></code>. Since we’re “applying”
 <code class="code docutils literal notranslate"><span class="pre">X</span></code> to itself, we also have <code class="code docutils literal notranslate"><span class="pre">XTy2</span> <span class="pre">=</span> <span class="pre">fun(XTy2,</span> <span class="pre">BTy2)</span></code>. So
 we’re justified in saying <code class="code docutils literal notranslate"><span class="pre">XTy1</span> <span class="pre">=</span> <span class="pre">XTy2</span></code> and similarly
 <code class="code docutils literal notranslate"><span class="pre">BTy1</span> <span class="pre">=</span> <span class="pre">BTy2</span></code>. So let’s use that to simplify our expression –</p>

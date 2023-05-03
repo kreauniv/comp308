@@ -59,7 +59,7 @@ A few observations are in order -
 
     .. code-block:: prolog
 
-        binoptype(A, B) :-
+        binoptype(A, B, num) :-
             exprtype(A, num),
             exprtype(B, num).
 

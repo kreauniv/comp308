@@ -85,7 +85,7 @@ structure that closely mimics our interpreter for the language.</p></li>
 <li><p>The type-checking of <code class="code docutils literal notranslate"><span class="pre">add</span></code>, <code class="code docutils literal notranslate"><span class="pre">sub</span></code> and <code class="code docutils literal notranslate"><span class="pre">mul</span></code> are
 indistinguishable and can be replaced by a common predicate –</p>
 <blockquote>
-<div><div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">binoptype</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="nv">B</span><span class="p">)</span> <span class="p">:-</span>
+<div><div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">binoptype</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">)</span> <span class="p">:-</span>
     <span class="nf">exprtype</span><span class="p">(</span><span class="nv">A</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">),</span>
     <span class="nf">exprtype</span><span class="p">(</span><span class="nv">B</span><span class="p">,</span> <span class="s s-Atom">num</span><span class="p">).</span>
 </pre></div>

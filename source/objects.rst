@@ -66,7 +66,7 @@ questions both answers (closures vs. objects) are correct, and both answers are
 wrong. That was the point of the "Koan".
 
 .. [#lament] I'm so glad this discussion happened on the open internet back then.
-   If this way today and these computer scientists had this discussion on a closed
+   If this were today and these computer scientists had this discussion on a closed
    medium like Facebook, we'll be the poorer for it. -- Srikumar 
 
 In this chapter, we'll examine objects from both approaches, and add a third

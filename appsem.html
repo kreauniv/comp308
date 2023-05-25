@@ -285,9 +285,7 @@ try the other option as an exercise (heheh!).</p>
     <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">pair?</span> <span class="n">expr</span><span class="p">)</span>
         <span class="p">(</span><span class="k">or</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="p">(</span><span class="nb">car</span> <span class="n">expr</span><span class="p">))</span>
             <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">expr</span><span class="p">)))</span>
-        <span class="c1">; Note that if expr itself is var, we don&#39;t treat</span>
-        <span class="c1">; that as &quot;var occurs&quot;, since that is benign self equality.</span>
-        <span class="no">#f</span><span class="p">))</span>
+        <span class="p">(</span><span class="nb">eq?</span> <span class="n">var</span> <span class="n">expr</span><span class="p">)))</span>
 </pre></div>
 </div>
 <p>We now use this to modify our unification procedure to support pairs.</p>
@@ -390,9 +388,7 @@ two functors. We want the fields to match in count. i.e. We’re going to demand
              <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="p">(</span><span class="nb">cdr</span> <span class="n">expr</span><span class="p">)))]</span>
         <span class="p">[(</span><span class="n">valid-fexpr?</span> <span class="n">expr</span><span class="p">)</span>
          <span class="p">(</span><span class="nb">ormap</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="p">(</span><span class="n">occurs?</span> <span class="n">var</span> <span class="n">e</span><span class="p">))</span> <span class="p">(</span><span class="n">FExpr-args</span> <span class="n">expr</span><span class="p">))]</span>
-        <span class="c1">; Note that if expr itself is var, we don&#39;t treat</span>
-        <span class="c1">; that as &quot;var occurs&quot;, since that is benign self equality.</span>
-        <span class="p">[</span><span class="k">else</span> <span class="no">#f</span><span class="p">]))</span>
+        <span class="p">[</span><span class="k">else</span> <span class="p">(</span><span class="nb">eq?</span> <span class="n">var</span> <span class="n">expr</span><span class="p">)]))</span>
 
 <span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">unify</span> <span class="n">A</span> <span class="n">B</span> <span class="n">bset</span><span class="p">)</span>
     <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">av</span> <span class="p">(</span><span class="n">walk</span> <span class="n">A</span> <span class="n">bset</span><span class="p">)]</span>

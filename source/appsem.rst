@@ -294,9 +294,7 @@ try the other option as an exercise (heheh!).
         (if (pair? expr)
             (or (occurs? var (car expr))
                 (occurs? var (cdr expr)))
-            ; Note that if expr itself is var, we don't treat
-            ; that as "var occurs", since that is benign self equality.
-            #f))
+            (eq? var expr)))
 
 We now use this to modify our unification procedure to support pairs.
 
@@ -415,9 +413,7 @@ two functors. We want the fields to match in count. i.e. We're going to demand t
                  (occurs? var (cdr expr)))]
             [(valid-fexpr? expr)
              (ormap (λ (e) (occurs? var e)) (FExpr-args expr))]
-            ; Note that if expr itself is var, we don't treat
-            ; that as "var occurs", since that is benign self equality.
-            [else #f]))
+            [else (eq? var expr)]))
 
     (define (unify A B bset)
         (let ([av (walk A bset)]

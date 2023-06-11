@@ -101,7 +101,7 @@ given below --
     nested pair expression into the REPL, it would've shown you the second form
     in the output. Scheme does not distinguish between the two structures
     internally. Making lists is such a common use of pairs in Scheme that
-    accessing the two pairs of a pair is done using functions named ``first``
+    accessing the two parts of a pair is done using functions named ``first``
     and ``rest`` respectively.
 
 S-expressions

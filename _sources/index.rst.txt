@@ -10,6 +10,7 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   intro
    racket-intro
    lambda
    piclang

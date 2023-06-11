@@ -3,7 +3,7 @@ Welcome note
 
 This course introduces students to common principles underlying various
 programming langauges through the process of constructing an interpreter for a
-language incrementally. It uses the `PLAI second edition`_ and as the base
+language incrementally. It uses the `PLAI second edition`_ as the base
 material and is adapted to suit Krea University students and timeline.
 It is taught using Racket_ ``#lang plai-typed`` as well.
 

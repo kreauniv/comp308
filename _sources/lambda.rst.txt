@@ -822,5 +822,10 @@ We apply this transformation to the inner :rkt:`(g g)` call, turning it into
     in eager mode. Do you understand why?
 
 
-    
+.. admonition:: **Exercise:**
+
+    Perform a similar η-substitution in the expression for the Turing
+    combinator and see if you can get a version of it that works in 
+    eager Racket. Do you encounter any problems? Think through which
+    expression you'll need to substitute.
 

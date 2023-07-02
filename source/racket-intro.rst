@@ -317,7 +317,8 @@ will result in ``5``. It's like ``(eval (quote (+ 2 3)))`` is equivalent to
 This "code that produces and consumes code" is possible due to the language's
 structure called "homoiconicity" - usually meaning the programmer writes code
 in the same structure used to represent the code internally -- in this case,
-using nested lists.
+using nested lists -- and the user's programs can manipulate these structures
+as well.
 
 
 What's in the box?

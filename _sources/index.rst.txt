@@ -13,6 +13,7 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    intro
    racket-intro
    lambda
+   church.rst
    piclang
    machine
    growing

@@ -242,7 +242,7 @@ to Church numerals.</p>
 
 <span class="c1">; Here n is a Church numeral</span>
 <span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">ch-&gt;i</span> <span class="n">n</span><span class="p">)</span>
-  <span class="p">(</span><span class="n">n</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="n">x</span> <span class="mi">1</span><span class="p">))</span> <span class="mi">0</span><span class="p">))</span>
+  <span class="p">((</span><span class="n">n</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="n">x</span> <span class="mi">1</span><span class="p">)))</span> <span class="mi">0</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -312,12 +312,12 @@ and can be written as <code class="docutils literal notranslate"><span class="pr
 <li><p><span class="math notranslate nohighlight">\(m+n\)</span> can be thought of in the same way as for Church numerals, so we
 can write <code class="docutils literal notranslate"><span class="pre">((m</span> <span class="pre">f)</span> <span class="pre">((n</span> <span class="pre">f)</span> <span class="pre">x))</span></code>.</p></li>
 <li><p><span class="math notranslate nohighlight">\(-n\)</span> (i.e. “negation”) is represented by swapping the pair of functions,
-so we get <code class="docutils literal notranslate"><span class="pre">(n</span> <span class="pre">(swap</span> <span class="pre">f)</span> <span class="pre">x)</span></code> as the representation of <span class="math notranslate nohighlight">\(-n\)</span>.</p></li>
+so we get <code class="docutils literal notranslate"><span class="pre">(n</span> <span class="pre">(swap</span> <span class="pre">f))</span></code> as the representation of <span class="math notranslate nohighlight">\(-n\)</span>.</p></li>
 <li><p><span class="math notranslate nohighlight">\(m*n\)</span> is again thought of as “m applications of n applications f”, but
-this time, the “m applications” part needs to receive a “pair” representation,
-and <code class="docutils literal notranslate"><span class="pre">(n</span> <span class="pre">f)</span></code> does not produce a pair value. So we express it as
-<code class="docutils literal notranslate"><span class="pre">(m</span> <span class="pre">(pair</span> <span class="pre">(n</span> <span class="pre">f)</span> <span class="pre">(n</span> <span class="pre">(swap</span> <span class="pre">f)))</span> <span class="pre">x)</span></code>. This lets us deal correctly with various
-sign combinations.</p></li>
+this time, the “m applications” part needs to receive a “pair”
+representation, and <code class="docutils literal notranslate"><span class="pre">(n</span> <span class="pre">f)</span></code> does not produce a pair value. So we express
+it as <code class="docutils literal notranslate"><span class="pre">((m</span> <span class="pre">(pair</span> <span class="pre">(n</span> <span class="pre">f)</span> <span class="pre">(n</span> <span class="pre">(swap</span> <span class="pre">f))))</span> <span class="pre">x)</span></code>. This lets us deal correctly
+with various sign combinations.</p></li>
 </ol>
 <div class="admonition-exercise admonition">
 <p class="admonition-title"><strong>Exercise</strong></p>

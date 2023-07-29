@@ -235,7 +235,7 @@ Converting between Racket and Church numerals
 
     ; Here n is a Church numeral
     (define (ch->i n)
-      (n (λ (x) (+ x 1)) 0))
+      ((n (λ (x) (+ x 1))) 0))
 
 Addition
 ~~~~~~~~
@@ -320,13 +320,13 @@ concept representations --
    can write ``((m f) ((n f) x))``.
 
 4. :math:`-n` (i.e. "negation") is represented by swapping the pair of functions,
-   so we get ``(n (swap f) x)`` as the representation of :math:`-n`.
+   so we get ``(n (swap f))`` as the representation of :math:`-n`.
 
 5. :math:`m*n` is again thought of as "m applications of n applications f", but
-   this time, the "m applications" part needs to receive a "pair" representation,
-   and ``(n f)`` does not produce a pair value. So we express it as
-   ``(m (pair (n f) (n (swap f))) x)``. This lets us deal correctly with various
-   sign combinations.
+   this time, the "m applications" part needs to receive a "pair"
+   representation, and ``(n f)`` does not produce a pair value. So we express
+   it as ``((m (pair (n f) (n (swap f)))) x)``. This lets us deal correctly
+   with various sign combinations.
 
 .. admonition:: **Exercise**
 

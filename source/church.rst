@@ -488,7 +488,7 @@ the transformation! This "fixed point combinator" is called the "Y combinator".
 **Take a moment** to savour that! We now have a function that can take a
 **specification** of a recursive/iterative/repetitive evaluation and actually
 produce a function that does the repetition. We've completed the "mechanical
-transformation" demand we set out to mee!
+transformation" demand we set out to meet!
 
 Now, given a "cheat" function, we can get the actual recursive function
 using ``(Y solve/cheat)``.

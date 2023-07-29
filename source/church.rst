@@ -1,5 +1,5 @@
-Church numerals etc through the lens of β-abstraction
-=====================================================
+Lambda - via β-abstraction
+==========================
 :author: Srikumar K. S.
 :date: 29 July 2023
 
@@ -105,8 +105,8 @@ case can be reduced to functions of one variable like this --
 We'll also "define" identifiers to λ-terms using the usual Racket ``(define
 ...)`` construct.
 
-Pairs
------
+Making pairs
+------------
 
 Our starting point for building the edifice of useful computational objects
 is the absolute basic data structure -- the humble "pair" that associates
@@ -359,8 +359,8 @@ representations ("b" chosen for "Brahmagupta" - see `Church-Brahmagupta numerals
     (b->i (b-mul (i->b -5) (i->b 3)))
     (b->i (b-mul (i->b -5) (i->b -3)))
 
-Recursion
----------
+Understanding recursion
+-----------------------
 
 We have the whole of integers done now. However, we haven't solved the case of
 repetition -- a.k.a. "iteration" -- which in functional terms we express using

@@ -41,6 +41,9 @@ be newline or space character. Both are acceptable.
 
 ; filename :: String
 ; image :: (Vectorof (Vectorof color))
+; Writes the given "image" to the given file.
+; See write-ppn-pixels for details of how the image
+; is pixelized.
 (define (write-image-to-ppm filename image)
   (if (is-valid-image? image)
       (call-with-output-file filename
@@ -84,6 +87,8 @@ be newline or space character. Both are acceptable.
         #t))
   (check 0 (vector-length vec)))
 
+; A color is valid if it is a "color" struct
+; with valid range values for all four components.
 (define (is-valid-color? c)
   (and (color? c)
        (color-value-in-range? (color-a c))
@@ -115,8 +120,7 @@ be newline or space character. Both are acceptable.
     (for-each-row (+ i 1) vec proc)))
 
 (define (write-row row f)
-  (for-each-row 0 row (λ (c)
-                      (write-color c f))))
+  (for-each-row 0 row (λ (c) (write-color c f))))
 
 (define (write-color c f)
   (let ([a (color-a c)])
@@ -133,6 +137,10 @@ be newline or space character. Both are acceptable.
 (define (colorval->int val)
   (floor (inexact->exact (* val 255.99))))
 
+; Our is-valid-image? procedure indicates that
+; all rows have to have the same number of pixels.
+; So we can take the length of the first row to
+; be the width of the image.
 (define (image-width image)
   (vector-length (vector-ref image 0)))
 
@@ -163,6 +171,9 @@ P3
                                       "P3 plain PPM header"
                                       header)]))))
 
+; Produces the contents of the file with
+; # prefixed comments all removed. This makes
+; it easier to parse.
 (define (ppm-strip-comments filename)
   (call-with-input-file filename
       (λ (f)
@@ -181,6 +192,13 @@ P3
       (read-until-eof proc)))
 
 (define (line-without-comments line)
+  ; We're expecting to pick the part of the line before any '#"
+  ; character. If the '#' character happens to be the first in
+  ; the line, then when string-split is called, you can't tell
+  ; whether the first element of the result list occurred
+  ; before or after the '#". So we prepend a space character to
+  ; be able to tell that. Not efficient, but simple for our 
+  ; purposes.
   (let ([parts (string-split (string-append " " line) "#")])
     (if (empty? parts)
         ""
@@ -197,6 +215,9 @@ P3
 |#
 
         
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; UTILITY FUNCTIONS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
            
 (define (read-ppm-header f)
   (let ([tag (read f)])

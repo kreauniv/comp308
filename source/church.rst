@@ -207,23 +207,22 @@ from ``zero`` to ``one`` --
 
     (ch-succ ch-zero) = ch-one
 
-So do we define ``ch-succ``? We want ``(ch-succ n)`` to stand for "n+1
-applications of f to x" or rather one more application of f to x after n
-applications. We can therefore express this as ``(f ((n f) x))``. Beta
-abstracting over ``f`` and ``x`` first gives us the representation of
-"n+1" for a specific n. This is ``(λ (f) (λ (x) (f ((n f) x))))``.
-To generalize over ``n``, we β-abstract over it to get ``ch-succ``.
+So how do we define ``ch-succ``? We want ``(ch-succ n)`` to stand for "n+1
+applications of f to x" or rather "one more application of f to x after n
+applications". We can therefore express this as ``(f ((n f) x))``. Beta
+abstracting over ``f`` and ``x`` first gives us the representation of "n+1" for
+a specific n. This is ``(λ (f) (λ (x) (f ((n f) x))))``. To generalize over
+``n``, we β-abstract over it to get ``ch-succ``.
 
 .. code:: racket
 
     (define ch-succ (λ (n) (λ (f) (λ (x) (f ((n f) x))))))
 
-To play with these concretely in Racket, you can use the
-following functions to convert from Racket's number representation
-to Church numerals.
-
 Converting between Racket and Church numerals
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To play with these concretely in Racket, you can use the following functions to
+convert from Racket's number representation to Church numerals.
 
 .. code:: racket
 
@@ -262,6 +261,20 @@ to think of addition as a binary operator.
     ; Try this out
     (ch->i (ch-add (i->ch 5) (i->ch 3)))
 
+Now, we can't claim to have understood something if we can only explain it in
+one way. Our representation for numbers is pretty abstract now -- in that it is
+talking about applications of an **arbitrary** function to an **arbitrary**
+value. So we can also re-imagine the idea of :math:`m+n` as "m'th successor of
+n" or in other words, "m applications of ``ch-succ`` to n". So :math:`m+n` can
+simply be expressed as ``((m ch-succ) n)``. So indeed, we have, after
+abstracting on ``m`` and ``n`` --
+
+.. code:: racket
+
+    (define ch-add (λ (m n) ((m ch-succ) n)))
+
+... which is an equally valid (and clearer) definition of ``ch-add``. 
+
 Multiplication
 ~~~~~~~~~~~~~~
 
@@ -279,7 +292,7 @@ over ``m`` and ``n`` --
     ; Try this
     (ch->i (ch-mul (i->ch 5) (i->ch 3)))
 
-We also observe that this is ordinary function composition of ``m`` and ``n``.
+We also note that this is ordinary function composition of ``m`` and ``n``.
     
 
 Subtraction
@@ -316,28 +329,30 @@ concept representations --
 2. "predecessor" is one more application of the **second** part of the joint function
    and can be written as ``((f .second) ((n f) x))``.
 
-3. :math:`m+n` can be thought of in the same way as for Church numerals, so we 
-   can write ``((m f) ((n f) x))``.
+3. :math:`m+n` can be thought of in the same way as for Church numerals, so we
+   can write ``((m f) ((n f) x))``. Here, the ``f`` is expected to be an
+   :math:`(f,f^{-1})` pair.
 
 4. :math:`-n` (i.e. "negation") is represented by swapping the pair of functions,
    so we get ``(n (swap f))`` as the representation of :math:`-n`.
 
 5. :math:`m*n` is again thought of as "m applications of n applications f", but
    this time, the "m applications" part needs to receive a "pair"
-   representation, and ``(n f)`` does not produce a pair value. So we express
-   it as ``((m (pair (n f) (n (swap f)))) x)``. This lets us deal correctly
-   with various sign combinations.
+   representation, and ``(n f)`` does not produce a pair value. Furthermore, if
+   ``m`` is positive, we ned to use ``(n f)`` and if it is negative, we need to
+   use :math:`-n` which we know is ``(n (swap f))``. These two are inverses of
+   each other, so the idea of :math:`m*n` is captured by ``(m (pair (n f) (n
+   (swap f))))``. Think a bit more about how that'd play out for various
+   combinations of signs for ``m`` and ``n``.
 
 .. admonition:: **Exercise**
 
     Apply β-abstraction to those terms to define ``b-zero``, ``b-succ``,
     ``b-pred``, ``b-add``, ``b-sub`` and ``b-mul``.
 
-Note that if we have a function and its inverse given as a pair, we 
-create the inverse of this pair by just swapping the two elements.
-
-We also need to define new converters between Racket and these "b" 
-representations ("b" chosen for "Brahmagupta" - see `Church-Brahmagupta numerals`_).
+We also need to define new converters between Racket and these "b"
+representations ("b" chosen for "Brahmagupta" - see `Church-Brahmagupta
+numerals`_).
 
 .. _Church-Brahmagupta numerals: https://sriku.org/posts/church-brahmagupta-numerals/
 

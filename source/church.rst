@@ -304,6 +304,8 @@ over ``m`` and ``n`` --
 .. code:: racket
 
     (define ch-mul (λ (m n) (λ (f) (m (n f)))))
+    ; ... or equivalently simply
+    (define ch-mul compose)
 
     ; Try this
     (ch->i (ch-mul (i->ch 5) (i->ch 3)))

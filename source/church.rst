@@ -377,13 +377,14 @@ numerals`_).
 .. code:: Racket
 
     (define (b->i n)
-      (n (pair add1 sub1) 0))
+      ((n (pair add1 sub1)) 0))
 
     (define (i->b n)
       (if (= n 0)
           b-zero
-          (n (pair b-succ b-pred) b-zero)))
-
+          (if (> n 0)
+            (b-succ (i->b (- n 1)))
+            (b-pred (i->b (+ n 1))))))
 
     ; Try this
     (b->i (i->b -10))

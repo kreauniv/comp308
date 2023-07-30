@@ -219,21 +219,20 @@ from <code class="docutils literal notranslate"><span class="pre">zero</span></c
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">ch-succ</span> <span class="n">ch-zero</span><span class="p">)</span> <span class="nb">=</span> <span class="n">ch-one</span>
 </pre></div>
 </div>
-<p>So do we define <code class="docutils literal notranslate"><span class="pre">ch-succ</span></code>? We want <code class="docutils literal notranslate"><span class="pre">(ch-succ</span> <span class="pre">n)</span></code> to stand for “n+1
-applications of f to x” or rather one more application of f to x after n
-applications. We can therefore express this as <code class="docutils literal notranslate"><span class="pre">(f</span> <span class="pre">((n</span> <span class="pre">f)</span> <span class="pre">x))</span></code>. Beta
-abstracting over <code class="docutils literal notranslate"><span class="pre">f</span></code> and <code class="docutils literal notranslate"><span class="pre">x</span></code> first gives us the representation of
-“n+1” for a specific n. This is <code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(f)</span> <span class="pre">(λ</span> <span class="pre">(x)</span> <span class="pre">(f</span> <span class="pre">((n</span> <span class="pre">f)</span> <span class="pre">x))))</span></code>.
-To generalize over <code class="docutils literal notranslate"><span class="pre">n</span></code>, we β-abstract over it to get <code class="docutils literal notranslate"><span class="pre">ch-succ</span></code>.</p>
+<p>So how do we define <code class="docutils literal notranslate"><span class="pre">ch-succ</span></code>? We want <code class="docutils literal notranslate"><span class="pre">(ch-succ</span> <span class="pre">n)</span></code> to stand for “n+1
+applications of f to x” or rather “one more application of f to x after n
+applications”. We can therefore express this as <code class="docutils literal notranslate"><span class="pre">(f</span> <span class="pre">((n</span> <span class="pre">f)</span> <span class="pre">x))</span></code>. Beta
+abstracting over <code class="docutils literal notranslate"><span class="pre">f</span></code> and <code class="docutils literal notranslate"><span class="pre">x</span></code> first gives us the representation of “n+1” for
+a specific n. This is <code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(f)</span> <span class="pre">(λ</span> <span class="pre">(x)</span> <span class="pre">(f</span> <span class="pre">((n</span> <span class="pre">f)</span> <span class="pre">x))))</span></code>. To generalize over
+<code class="docutils literal notranslate"><span class="pre">n</span></code>, we β-abstract over it to get <code class="docutils literal notranslate"><span class="pre">ch-succ</span></code>.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">ch-succ</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="n">f</span> <span class="p">((</span><span class="n">n</span> <span class="n">f</span><span class="p">)</span> <span class="n">x</span><span class="p">))))))</span>
 </pre></div>
 </div>
-<p>To play with these concretely in Racket, you can use the
-following functions to convert from Racket’s number representation
-to Church numerals.</p>
 </div>
 <div class="section" id="converting-between-racket-and-church-numerals">
 <h3>Converting between Racket and Church numerals<a class="headerlink" href="#converting-between-racket-and-church-numerals" title="Permalink to this headline">¶</a></h3>
+<p>To play with these concretely in Racket, you can use the following functions to
+convert from Racket’s number representation to Church numerals.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Here n is a Racket numeral</span>
 <span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">i-&gt;ch</span> <span class="n">n</span><span class="p">)</span>
   <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">=</span> <span class="n">n</span> <span class="mi">0</span><span class="p">)</span>
@@ -266,6 +265,17 @@ to think of addition as a binary operator.</p>
 <span class="p">(</span><span class="n">ch-&gt;i</span> <span class="p">(</span><span class="n">ch-add</span> <span class="p">(</span><span class="n">i-&gt;ch</span> <span class="mi">5</span><span class="p">)</span> <span class="p">(</span><span class="n">i-&gt;ch</span> <span class="mi">3</span><span class="p">)))</span>
 </pre></div>
 </div>
+<p>Now, we can’t claim to have understood something if we can only explain it in
+one way. Our representation for numbers is pretty abstract now – in that it is
+talking about applications of an <strong>arbitrary</strong> function to an <strong>arbitrary</strong>
+value. So we can also re-imagine the idea of <span class="math notranslate nohighlight">\(m+n\)</span> as “m’th successor of
+n” or in other words, “m applications of <code class="docutils literal notranslate"><span class="pre">ch-succ</span></code> to n”. So <span class="math notranslate nohighlight">\(m+n\)</span> can
+simply be expressed as <code class="docutils literal notranslate"><span class="pre">((m</span> <span class="pre">ch-succ)</span> <span class="pre">n)</span></code>. So indeed, we have, after
+abstracting on <code class="docutils literal notranslate"><span class="pre">m</span></code> and <code class="docutils literal notranslate"><span class="pre">n</span></code> –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">ch-add</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">m</span> <span class="n">n</span><span class="p">)</span> <span class="p">((</span><span class="n">m</span> <span class="n">ch-succ</span><span class="p">)</span> <span class="n">n</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>… which is an equally valid (and clearer) definition of <code class="docutils literal notranslate"><span class="pre">ch-add</span></code>.</p>
 </div>
 <div class="section" id="multiplication">
 <h3>Multiplication<a class="headerlink" href="#multiplication" title="Permalink to this headline">¶</a></h3>
@@ -281,7 +291,7 @@ over <code class="docutils literal notranslate"><span class="pre">m</span></code
 <span class="p">(</span><span class="n">ch-&gt;i</span> <span class="p">(</span><span class="n">ch-mul</span> <span class="p">(</span><span class="n">i-&gt;ch</span> <span class="mi">5</span><span class="p">)</span> <span class="p">(</span><span class="n">i-&gt;ch</span> <span class="mi">3</span><span class="p">)))</span>
 </pre></div>
 </div>
-<p>We also observe that this is ordinary function composition of <code class="docutils literal notranslate"><span class="pre">m</span></code> and <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
+<p>We also note that this is ordinary function composition of <code class="docutils literal notranslate"><span class="pre">m</span></code> and <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
 </div>
 <div class="section" id="subtraction">
 <h3>Subtraction<a class="headerlink" href="#subtraction" title="Permalink to this headline">¶</a></h3>
@@ -310,24 +320,27 @@ stood for a negative number.)</p></li>
 <li><p>“predecessor” is one more application of the <strong>second</strong> part of the joint function
 and can be written as <code class="docutils literal notranslate"><span class="pre">((f</span> <span class="pre">.second)</span> <span class="pre">((n</span> <span class="pre">f)</span> <span class="pre">x))</span></code>.</p></li>
 <li><p><span class="math notranslate nohighlight">\(m+n\)</span> can be thought of in the same way as for Church numerals, so we
-can write <code class="docutils literal notranslate"><span class="pre">((m</span> <span class="pre">f)</span> <span class="pre">((n</span> <span class="pre">f)</span> <span class="pre">x))</span></code>.</p></li>
+can write <code class="docutils literal notranslate"><span class="pre">((m</span> <span class="pre">f)</span> <span class="pre">((n</span> <span class="pre">f)</span> <span class="pre">x))</span></code>. Here, the <code class="docutils literal notranslate"><span class="pre">f</span></code> is expected to be an
+<span class="math notranslate nohighlight">\((f,f^{-1})\)</span> pair.</p></li>
 <li><p><span class="math notranslate nohighlight">\(-n\)</span> (i.e. “negation”) is represented by swapping the pair of functions,
 so we get <code class="docutils literal notranslate"><span class="pre">(n</span> <span class="pre">(swap</span> <span class="pre">f))</span></code> as the representation of <span class="math notranslate nohighlight">\(-n\)</span>.</p></li>
 <li><p><span class="math notranslate nohighlight">\(m*n\)</span> is again thought of as “m applications of n applications f”, but
 this time, the “m applications” part needs to receive a “pair”
-representation, and <code class="docutils literal notranslate"><span class="pre">(n</span> <span class="pre">f)</span></code> does not produce a pair value. So we express
-it as <code class="docutils literal notranslate"><span class="pre">((m</span> <span class="pre">(pair</span> <span class="pre">(n</span> <span class="pre">f)</span> <span class="pre">(n</span> <span class="pre">(swap</span> <span class="pre">f))))</span> <span class="pre">x)</span></code>. This lets us deal correctly
-with various sign combinations.</p></li>
+representation, and <code class="docutils literal notranslate"><span class="pre">(n</span> <span class="pre">f)</span></code> does not produce a pair value. Furthermore, if
+<code class="docutils literal notranslate"><span class="pre">m</span></code> is positive, we ned to use <code class="docutils literal notranslate"><span class="pre">(n</span> <span class="pre">f)</span></code> and if it is negative, we need to
+use <span class="math notranslate nohighlight">\(-n\)</span> which we know is <code class="docutils literal notranslate"><span class="pre">(n</span> <span class="pre">(swap</span> <span class="pre">f))</span></code>. These two are inverses of
+each other, so the idea of <span class="math notranslate nohighlight">\(m*n\)</span> is captured by <code class="docutils literal notranslate"><span class="pre">(m</span> <span class="pre">(pair</span> <span class="pre">(n</span> <span class="pre">f)</span> <span class="pre">(n</span>
+<span class="pre">(swap</span> <span class="pre">f))))</span></code>. Think a bit more about how that’d play out for various
+combinations of signs for <code class="docutils literal notranslate"><span class="pre">m</span></code> and <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p></li>
 </ol>
 <div class="admonition-exercise admonition">
 <p class="admonition-title"><strong>Exercise</strong></p>
 <p>Apply β-abstraction to those terms to define <code class="docutils literal notranslate"><span class="pre">b-zero</span></code>, <code class="docutils literal notranslate"><span class="pre">b-succ</span></code>,
 <code class="docutils literal notranslate"><span class="pre">b-pred</span></code>, <code class="docutils literal notranslate"><span class="pre">b-add</span></code>, <code class="docutils literal notranslate"><span class="pre">b-sub</span></code> and <code class="docutils literal notranslate"><span class="pre">b-mul</span></code>.</p>
 </div>
-<p>Note that if we have a function and its inverse given as a pair, we
-create the inverse of this pair by just swapping the two elements.</p>
 <p>We also need to define new converters between Racket and these “b”
-representations (“b” chosen for “Brahmagupta” - see <a class="reference external" href="https://sriku.org/posts/church-brahmagupta-numerals/">Church-Brahmagupta numerals</a>).</p>
+representations (“b” chosen for “Brahmagupta” - see <a class="reference external" href="https://sriku.org/posts/church-brahmagupta-numerals/">Church-Brahmagupta
+numerals</a>).</p>
 <div class="highlight-Racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">b-&gt;i</span> <span class="n">n</span><span class="p">)</span>
   <span class="p">(</span><span class="n">n</span> <span class="p">(</span><span class="n">pair</span> <span class="nb">add1</span> <span class="nb">sub1</span><span class="p">)</span> <span class="mi">0</span><span class="p">))</span>
 

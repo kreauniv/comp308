@@ -355,13 +355,14 @@ combinations of signs for <code class="docutils literal notranslate"><span class
 representations (“b” chosen for “Brahmagupta” - see <a class="reference external" href="https://sriku.org/posts/church-brahmagupta-numerals/">Church-Brahmagupta
 numerals</a>).</p>
 <div class="highlight-Racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">b-&gt;i</span> <span class="n">n</span><span class="p">)</span>
-  <span class="p">(</span><span class="n">n</span> <span class="p">(</span><span class="n">pair</span> <span class="nb">add1</span> <span class="nb">sub1</span><span class="p">)</span> <span class="mi">0</span><span class="p">))</span>
+  <span class="p">((</span><span class="n">n</span> <span class="p">(</span><span class="n">pair</span> <span class="nb">add1</span> <span class="nb">sub1</span><span class="p">))</span> <span class="mi">0</span><span class="p">))</span>
 
 <span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">i-&gt;b</span> <span class="n">n</span><span class="p">)</span>
   <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">=</span> <span class="n">n</span> <span class="mi">0</span><span class="p">)</span>
       <span class="n">b-zero</span>
-      <span class="p">(</span><span class="n">n</span> <span class="p">(</span><span class="n">pair</span> <span class="n">b-succ</span> <span class="n">b-pred</span><span class="p">)</span> <span class="n">b-zero</span><span class="p">)))</span>
-
+      <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">&gt;</span> <span class="n">n</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">b-succ</span> <span class="p">(</span><span class="n">i-&gt;b</span> <span class="p">(</span><span class="nb">-</span> <span class="n">n</span> <span class="mi">1</span><span class="p">)))</span>
+        <span class="p">(</span><span class="n">b-pred</span> <span class="p">(</span><span class="n">i-&gt;b</span> <span class="p">(</span><span class="nb">+</span> <span class="n">n</span> <span class="mi">1</span><span class="p">))))))</span>
 
 <span class="c1">; Try this</span>
 <span class="p">(</span><span class="n">b-&gt;i</span> <span class="p">(</span><span class="n">i-&gt;b</span> <span class="mi">-10</span><span class="p">))</span>

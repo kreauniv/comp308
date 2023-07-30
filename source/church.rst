@@ -261,6 +261,22 @@ to think of addition as a binary operator.
     ; Try this out
     (ch->i (ch-add (i->ch 5) (i->ch 3)))
 
+Taking advantage of the ``compose`` function defined as --
+
+.. code:: racket
+
+    (define compose (λ (f g) (λ (x) (f (g x)))))
+
+, we see that the above ``ch-add`` definition can be re-expressed in slightly
+more abstracted form as --
+
+.. code:: racket
+
+    (define ch-add (λ (m n) (λ (f) (compose (m f) (n f)))))
+
+This form brings out some of the symmetry between ``m`` and ``n`` in the
+operation, even though ``compose`` is a non-commutative operation in general.
+
 Now, we can't claim to have understood something if we can only explain it in
 one way. Our representation for numbers is pretty abstract now -- in that it is
 talking about applications of an **arbitrary** function to an **arbitrary**

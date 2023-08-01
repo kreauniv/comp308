@@ -25,8 +25,12 @@
 ; to the given file. The file must not already exist.
 (: render-to-file (-> String Picture Coord Coord Coord Coord Positive-Integer Positive-Integer Any))
 (define (render-to-file filename picture x1 y1 x2 y2 nx ny)
-  (let ([image (render picture x1 y1 x2 y2 nx ny)])
-    (write-image-to-ppm filename image)))
+  (if (not (file-exists? filename))
+      (let ([image (render picture x1 y1 x2 y2 nx ny)])
+        (write-image-to-ppm filename image))
+      (raise-argument-error 'file-exists
+                            "File with given name should not exist"
+                            filename)))
 
 
 ; Produces a 2D matrix of color values for the given
@@ -39,11 +43,6 @@
                             "View rectangle coordinates must be bottom-left top-right"
                             (list x1 y1 x2 y2)))
   
-  (when (or (<= nx 0) (<= ny 0))
-    (raise-argument-error 'render
-                          "Required image must be at least one pixel in size"
-                          (list nx ny)))
-
   (let ([dx (/ (- x2 x1) nx)]
         [dy (/ (- y2 y1) ny)])
     (mk-image nx ny

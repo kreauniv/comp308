@@ -1,17 +1,16 @@
 #lang typed/racket
 
+(require "./color.rkt")
 (require "./picture-io.rkt")
 (require rackunit)
 (require math/flonum)
 
 (provide render-to-file picture-from-file background)
+(provide Picture)
 
 (define-type Coord Float)
 (define-type ColorComp Float)
 (define-type Picture (-> Coord Coord (color ColorComp)))
-
-(: background (color ColorComp))
-(define background (color 0.0 0.0 0.0 0.0))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

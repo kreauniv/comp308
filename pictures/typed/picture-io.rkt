@@ -28,16 +28,12 @@ be newline or space character. Both are acceptable.
 
 |#
 
+(require "./color.rkt")
 (provide write-image-to-ppm read-image-from-ppm)
 (provide color Image)
 (provide (struct-out color)) ; Also exports functions like color-r, color-g etc.
 (provide (struct-out Image))
 (provide color-at mk-image premultiply-color)
-
-(struct (t) color ([a : t]
-                   [r : t]
-                   [g : t]
-                   [b : t]))
 
 (struct (t) Image ([width : Positive-Integer]
                    [height : Positive-Integer]
@@ -58,55 +54,11 @@ be newline or space character. Both are acceptable.
               (+ (* r (Image-width im)) c)))
 
 
-(: byte-color? (-> Any Boolean : (color Byte)))
-(define (byte-color? c)
-  (and (color? c)
-       (byte? (color-a c))
-       (byte? (color-r c))
-       (byte? (color-g c))
-       (byte? (color-b c))
-       #t))
-
-(: unit-color? (-> Any Boolean : (color Float)))
-(define (unit-color? c)
-  (and (color? c)
-       (flonum? (color-a c))
-       (flonum? (color-r c))
-       (flonum? (color-g c))
-       (flonum? (color-b c))
-       #t))
-
 (: quantize-image (-> (Image Number) (Image Byte)))
 (define (quantize-image im)
   (Image (Image-width im)
          (Image-height im)
          (vector-map quantize-color (Image-pixels im))))
-
-(: premultiply-color (-> (color Float) (color Float)))
-(define (premultiply-color c)
-  (let ([a (color-a c)])
-    (color a
-           (* a (color-r c))
-           (* a (color-g c))
-           (* a (color-b c)))))
-
-(: quantize-color (-> (color Number) (color Byte)))
-(define (quantize-color c)
-  (cond
-    ([byte-color? c] c)
-    ([unit-color? c]
-     (let ([pc (premultiply-color c)])
-       (color 255
-              (quantize-color-component (color-r c))
-              (quantize-color-component (color-g c))
-              (quantize-color-component (color-b c)))))
-    (else (raise-argument-error 'unknown-color
-                                "Either (color Byte) or (color Float)"
-                                c))))
-
-(: quantize-color-component (-> Float Byte))
-(define (quantize-color-component c)
-  (assert (exact-floor (* 255.99 c)) byte?))
 
 (: write-image-to-ppm (All (t) (-> String (Image t) Any)))
 (define (write-image-to-ppm filename image)

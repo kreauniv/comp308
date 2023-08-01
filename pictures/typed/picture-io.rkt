@@ -40,17 +40,17 @@ be newline or space character. Both are acceptable.
                    [b : t]))
 
 (struct (t) Image ([width : Positive-Integer]
-                    [height : Positive-Integer]
-                    [pixels : (Vectorof (color t))]))
+                   [height : Positive-Integer]
+                   [pixels : (Vectorof (color t))]))
 
 (: mk-image (All (t) (-> Positive-Integer Positive-Integer (-> Index Index (color t)) (Image t))))
 (define (mk-image width height func)
   (Image width height
-          (build-vector (* width height)
-                        (λ ([i : Index])
-                          (let ([r (quotient i width)]
-                                [c (remainder i width)])
-                            (func r c))))))
+         (build-vector (* width height)
+                       (λ ([i : Index])
+                         (let ([r (quotient i width)]
+                               [c (remainder i width)])
+                           (func r c))))))
 
 (: color-at (All (t) (-> (Image t) Index Index (color t))))
 (define (color-at im r c)
@@ -79,8 +79,8 @@ be newline or space character. Both are acceptable.
 (: quantize-image (-> (Image Number) (Image Byte)))
 (define (quantize-image im)
   (Image (Image-width im)
-          (Image-height im)
-          (vector-map quantize-color (Image-pixels im))))
+         (Image-height im)
+         (vector-map quantize-color (Image-pixels im))))
 
 (: premultiply-color (-> (color Flonum) (color Flonum)))
 (define (premultiply-color c)
@@ -129,7 +129,7 @@ be newline or space character. Both are acceptable.
 (define (write-ppm-pixels image f)
   (for-each-pixel image (λ ([r : Index] [c : Index] [col : (color t)])
                           (when (= c 0)
-                              (write-string "\n" f))
+                            (write-string "\n" f))
                           (write-color col f))))
 
 (: for-each-pixel (All (t) (-> (Image t) (-> Index Index (color t) Any) Any)))
@@ -181,13 +181,13 @@ P3
 (: read-image-from-ppm (-> String (Image Flonum)))
 (define (read-image-from-ppm filename)
   (call-with-input-string (ppm-strip-comments filename)
-    (λ ([f : Input-Port])
-      (match (read-ppm-header f)
-        [(list 'P3 width height maxval)
-         (read-ppm-pixels width height maxval f)]
-        [header (raise-argument-error 'read-image-from-ppm
-                                      "P3 plain PPM header"
-                                      header)]))))
+                          (λ ([f : Input-Port])
+                            (match (read-ppm-header f)
+                              [(list 'P3 width height maxval)
+                               (read-ppm-pixels width height maxval f)]
+                              [header (raise-argument-error 'read-image-from-ppm
+                                                            "P3 plain PPM header"
+                                                            header)]))))
 
 ; Produces the contents of the file with
 ; # prefixed comments all removed. This makes
@@ -195,15 +195,15 @@ P3
 (: ppm-strip-comments (-> String String))
 (define (ppm-strip-comments filename)
   (call-with-input-file filename
-      (λ ([f : Input-Port])
-        (call-with-output-string
-         (λ ([s : Output-Port])
-           (read-until-eof (λ ()
-                             (let ([line (read-line f)])
-                               (if (eof-object? line)
-                                   eof
-                                   (begin (write-string (line-without-comments line) s)
-                                          (write-string "\n" s)))))))))))
+    (λ ([f : Input-Port])
+      (call-with-output-string
+       (λ ([s : Output-Port])
+         (read-until-eof (λ ()
+                           (let ([line (read-line f)])
+                             (if (eof-object? line)
+                                 eof
+                                 (begin (write-string (line-without-comments line) s)
+                                        (write-string "\n" s)))))))))))
 
 (: read-until-eof (-> (-> Any) EOF))
 (define (read-until-eof proc)

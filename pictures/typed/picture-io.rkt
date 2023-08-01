@@ -67,7 +67,7 @@ be newline or space character. Both are acceptable.
        (byte? (color-b c))
        #t))
 
-(: unit-color? (-> Any Boolean : (color Flonum)))
+(: unit-color? (-> Any Boolean : (color Float)))
 (define (unit-color? c)
   (and (color? c)
        (flonum? (color-a c))
@@ -82,7 +82,7 @@ be newline or space character. Both are acceptable.
          (Image-height im)
          (vector-map quantize-color (Image-pixels im))))
 
-(: premultiply-color (-> (color Flonum) (color Flonum)))
+(: premultiply-color (-> (color Float) (color Float)))
 (define (premultiply-color c)
   (let ([a (color-a c)])
     (color a
@@ -101,10 +101,10 @@ be newline or space character. Both are acceptable.
               (quantize-color-component (color-g c))
               (quantize-color-component (color-b c)))))
     (else (raise-argument-error 'unknown-color
-                                "Either (color Byte) or (color Flonum)"
+                                "Either (color Byte) or (color Float)"
                                 c))))
 
-(: quantize-color-component (-> Flonum Byte))
+(: quantize-color-component (-> Float Byte))
 (define (quantize-color-component c)
   (assert (exact-floor (* 255.99 c)) byte?))
 
@@ -149,7 +149,7 @@ be newline or space character. Both are acceptable.
     ([byte-color? c] (write-quantized-color c f))
     ([unit-color? c] (write-unit-color c f))
     (else (raise-argument-error 'unknown-color
-                                "Expected (color Byte) or (color Flonum)"
+                                "Expected (color Byte) or (color Float)"
                                 c))))
          
 (: write-quantized-color (-> (color Byte) Output-Port Any))
@@ -161,7 +161,7 @@ be newline or space character. Both are acceptable.
   (write (color-b c) f)
   (write-string " " f))
 
-(: write-unit-color (-> (color Flonum) Output-Port Any))
+(: write-unit-color (-> (color Float) Output-Port Any))
 (define (write-unit-color c f)
   (write-quantized-color (quantize-color c) f))
 
@@ -178,7 +178,7 @@ P3
 
 ; -> (Vectorof (Vectorof color))
 ; (is-image-valid? result)
-(: read-image-from-ppm (-> String (Image Flonum)))
+(: read-image-from-ppm (-> String (Image Float)))
 (define (read-image-from-ppm filename)
   (call-with-input-string (ppm-strip-comments filename)
                           (λ ([f : Input-Port])
@@ -278,13 +278,13 @@ P3
         v
         (assert v exact-integer?))))
 
-(: read-ppm-pixels (-> Positive-Integer Positive-Integer Positive-Integer Input-Port (Image Flonum)))
+(: read-ppm-pixels (-> Positive-Integer Positive-Integer Positive-Integer Input-Port (Image Float)))
 (define (read-ppm-pixels width height maxval f)
   (mk-image width height
             (λ ([r : Index] [c : Index])
               (read-color maxval f))))
 
-(: read-color (-> Integer Input-Port (color Flonum)))
+(: read-color (-> Integer Input-Port (color Float)))
 (define (read-color maxval f)
   (let ([r (read-exact-integer f)]
         [g (read-exact-integer f)]

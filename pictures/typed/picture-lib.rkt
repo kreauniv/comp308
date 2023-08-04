@@ -13,10 +13,10 @@
 
 (provide mix same-color?)
 (provide (all-from-out "./picture-render.rkt"))
-(provide circle disc box rectangle square
+(provide circle disc filled-box rectangle square
          translate rotate scale affine
          colorize opacity crop
-         overlay twirl)
+         overlay twirl premultiply)
 
 #|
 Below is a simple vocabulary for generating and composing images
@@ -88,8 +88,8 @@ should pass once you've implemented the function.
 ; This should produce a white rectangle of given width
 ; height centered around the origin. The inside of the
 ; "box" must be white and the outside must be "background".
-(: box (-> Float Float Picture))
-(define (box width height)
+(: filled-box (-> Float Float Picture))
+(define (filled-box width height)
   (let ([hw (* 0.5 width)]
         [hh (* 0.5 height)])
   (λ (x y)
@@ -98,9 +98,9 @@ should pass once you've implemented the function.
         background))))
 
 (test-case "box"
-           (check same-color? ((box 2.0 1.0) 1.1 0.6) background "Box must be centered around origin")
-           (check same-color? ((box 2.0 1.0) -1.1 -0.6) background "Box must be centered around origin")
-           (check same-color? ((box 2.0 1.0) 0.0 0.0) white "Box must be white in the middle"))
+           (check same-color? ((filled-box 2.0 1.0) 1.1 0.6) background "Box must be centered around origin")
+           (check same-color? ((filled-box 2.0 1.0) -1.1 -0.6) background "Box must be centered around origin")
+           (check same-color? ((filled-box 2.0 1.0) 0.0 0.0) white "Box must be white in the middle"))
 
 ; This should produce a rectangle of given thickness.
 ; Only a region of the given thickness *around* the given
@@ -208,16 +208,16 @@ should pass once you've implemented the function.
 ; with the RGB values from the given color, while maintaining the same transparency.
 ; Think about what you'd want/like to have if the given picture has colour values
 ; that are only partially transparent (or partially opaque).
-(: colorize (-> (color Float) Picture Picture))
-(define (colorize gc picture)
+(: colorize (-> Float Float Float Float Picture Picture))
+(define (colorize a r g b picture)
   (λ (x y)
     (let ([c (picture x y)])
       (let ([f (color-a c)]
             [g (- 1.0 (color-a c))])
         (color (color-a c)
-               (+ (* f (color-r gc)) (* g (color-r c)))
-               (+ (* f (color-g gc)) (* g (color-g c)))
-               (+ (* f (color-b gc)) (* g (color-b c))))))))
+               (+ (* f r) (* g (color-r c)))
+               (+ (* f g) (* g (color-g c)))
+               (+ (* f b) (* g (color-b c))))))))
 
 ; This multiplies the opacity (alpha) of the picture
 ; by the given factor a. If a is < 1, then it makes it more
@@ -267,3 +267,7 @@ should pass once you've implemented the function.
       (overlay (rotate (* n angle) picture)
                (opacity alpha (twirl (- n 1) angle alpha picture)))))
 
+(: premultiply (-> Picture Picture))
+(define (premultiply pic)
+  (λ (x y)
+    (premultiply-color (pic x y))))

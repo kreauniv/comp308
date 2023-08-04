@@ -4,7 +4,7 @@
 (provide byte-color? unit-color?)
 (provide premultiply-color
          quantize-color-component
-         quantize-color)
+         quantize-color hexcolor)
 (provide white red green blue black background)
 
 (struct (t) color ([a : t]
@@ -67,3 +67,13 @@
     (else (raise-argument-error 'unknown-color
                                 "Either (color Byte) or (color Float)"
                                 c))))
+
+(: hexcolor (-> Positive-Integer (color Float)))
+(define (hexcolor n)
+  (let ([b (remainder n 256)]
+        [g (remainder (quotient n 256) 256)]
+        [r (remainder (quotient n (* 256 256)) 256)])
+    (color 1.0
+           (/ (exact->inexact r) 256.0)
+           (/ (exact->inexact g) 256.0)
+           (/ (exact->inexact b) 256.0))))

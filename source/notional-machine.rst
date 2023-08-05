@@ -4,9 +4,9 @@ Notional machine
 :date: 5 Aug 2023
 
 .. note:: This section contains notes for the same content as the previous
-   section, except that it is presented in the context of what students in the
-   2023 July batch had worked on up to this point. It also takes a more "gentle"
-   approach to the topic.
+   section :doc:`machine`, except that it is presented in the context of what
+   students in the 2023 July batch had worked on up to this point. It also
+   takes a more "gentle" approach to the topic.
 
 A "notional machine" offers a mental model of how computation happens in a
 machine. These are useful as concrete artifacts that we study using anaytical

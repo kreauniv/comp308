@@ -9,8 +9,8 @@ Notional machine
    takes a more "gentle" approach to the topic.
 
 A "notional machine" offers a mental model of how computation happens in a
-machine. These are useful as concrete artifacts that we study using anaytical
-tools we're building up.
+machine. Making these machines explicit as programs gives us concrete artifacts
+that we can study as we build up our programming language.
 
 We've so far built an interpreter that relies on Racket's semantics to do its
 job. In this session, we'll be diving into what these semantics are and lifting

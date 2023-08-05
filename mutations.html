@@ -377,8 +377,8 @@ to <code class="docutils literal notranslate"><span class="pre">[DECIMAL-NUMBER-
 <dt><code class="docutils literal notranslate"><span class="pre">[DECIMAL-PT]</span></code></dt><dd><p>We set <span class="math notranslate nohighlight">\(D \leftarrow 0\)</span> and move to <code class="docutils literal notranslate"><span class="pre">[DIGIT-AFTER-DECIMAL-PT]</span></code>.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">[DIGIT-AFTER-DECIMAL-PT]</span></code></dt><dd><p>If the next character is a decimal digit
-<span class="math notranslate nohighlight">\(d\)</span>, we update <span class="math notranslate nohighlight">\(D \leftarrow D+1\)</span> and update <span class="math notranslate nohighlight">\(N \leftarrow
-N+\text{value}(d)\times 10^{-D}\)</span>, and move to state
+<span class="math notranslate nohighlight">\(d\)</span>, we update <span class="math notranslate nohighlight">\(D \leftarrow D+1\)</span> and update
+<span class="math notranslate nohighlight">\(N \leftarrow N+\text{value}(d)\times 10^{-D}\)</span>, and move to state
 <code class="docutils literal notranslate"><span class="pre">[DIGIT-AFTER-DECIMAL-PT]</span></code>. If the next character is anything other than a
 decimal digit, we return the character to the stream and move to the
 <code class="docutils literal notranslate"><span class="pre">[DECIMAL-NUMBER-COMPLETE]</span></code> state.</p>

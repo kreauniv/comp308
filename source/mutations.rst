@@ -398,8 +398,8 @@ for such numbers in terms of 6 states as follows --
 
 ``[DIGIT-AFTER-DECIMAL-PT]``
     If the next character is a decimal digit
-    :math:`d`, we update :math:`D \leftarrow D+1` and update :math:`N \leftarrow
-    N+\text{value}(d)\times 10^{-D}`, and move to state
+    :math:`d`, we update :math:`D \leftarrow D+1` and update 
+    :math:`N \leftarrow N+\text{value}(d)\times 10^{-D}`, and move to state
     ``[DIGIT-AFTER-DECIMAL-PT]``. If the next character is anything other than a
     decimal digit, we return the character to the stream and move to the
     ``[DECIMAL-NUMBER-COMPLETE]`` state.

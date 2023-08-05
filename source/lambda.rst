@@ -592,13 +592,12 @@ with an unknown like this. Yup - we'll β-abstract over :rkt:`sqrt/rec`!
                  xk
                  (f n (* 0.5 (+ xk (/ n xk))) eps)))))
 
-Now, we can see how :math:`\text{sqrt/rec} = (\text{cheat}\ \text{sqrt/rec})`,
-provided we know :rkt:`sqrt/rec` already (hence the name "cheat"). To find
-out :rkt:`sqrt/rec` given :rkt:`cheat`, we need to "solve" the above equation.
-Because applying :rkt:`cheat` to :rkt:`sqrt/rec` produces the same function,
-:rkt:`sqrt/rec` is called the "fixed point" of :rkt:`cheat`. In mathematics,
-a fixed point of a function :math:`f(x)` is a value :math:`x` such that
-:math:`x = f(x)`. 
+Now, we can see how :rkt:`sqrt/rec = (cheat sqrt/rec)`, provided we know
+:rkt:`sqrt/rec` already (hence the name "cheat"). To find out :rkt:`sqrt/rec`
+given :rkt:`cheat`, we need to "solve" the above equation. Because applying
+:rkt:`cheat` to :rkt:`sqrt/rec` produces the same function, :rkt:`sqrt/rec` is
+called the "fixed point" of :rkt:`cheat`. In mathematics, a fixed point of a
+function :math:`f(x)` is a value :math:`x` such that :math:`x = f(x)`. 
 
 However, our :rkt:`cheat` function is not of much use though it captures the
 essentials of the algorithm. We called it "cheat" because to get the

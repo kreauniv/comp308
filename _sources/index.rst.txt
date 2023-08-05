@@ -13,9 +13,10 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    intro
    racket-intro
    lambda
-   church.rst
+   church
    piclang
    machine
+   notional-machine
    growing
    fun
    stacks-and-scope

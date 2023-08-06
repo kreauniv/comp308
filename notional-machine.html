@@ -295,7 +295,10 @@ our computer’s “storage”, let’s make them all explicit.</p>
 <span class="p">(</span><span class="k">struct</span> <span class="n">SOverlay</span> <span class="p">()</span>
     <span class="kd">#:transparent</span><span class="p">)</span>
 
-<span class="p">(</span><span class="n">define-type</span> <span class="n">Instruction</span> <span class="p">(</span><span class="n">U</span> <span class="n">SCircle</span> <span class="n">SColorize</span> <span class="n">STranslate</span> <span class="n">SOverlay</span><span class="p">))</span>
+<span class="p">(</span><span class="n">define-type</span> <span class="n">Instruction</span> <span class="p">(</span><span class="n">U</span> <span class="n">SCircle</span>
+                            <span class="n">SColorize</span>
+                            <span class="n">STranslate</span>
+                            <span class="n">SOverlay</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -479,7 +482,11 @@ storage.</p>
 <span class="c1">; We&#39;ll also have to augment our instruction set to permit</span>
 <span class="c1">; this new construct.</span>
 
-<span class="p">(</span><span class="n">define-type</span> <span class="n">Instruction</span> <span class="p">(</span><span class="n">U</span> <span class="n">SCircle</span> <span class="n">SColorize</span> <span class="n">STranslate</span> <span class="n">SOverlay</span> <span class="n">SDefine</span><span class="p">))</span>
+<span class="p">(</span><span class="n">define-type</span> <span class="n">Instruction</span> <span class="p">(</span><span class="n">U</span> <span class="n">SCircle</span>
+                            <span class="n">SColorize</span>
+                            <span class="n">STranslate</span>
+                            <span class="n">SOverlay</span>
+                            <span class="n">SDefine</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Now, how will we use this defined identifier to construct other pictures?
@@ -489,7 +496,12 @@ the storage. So all we need to add is a way to lookup the picture associated
 with an identifier and place the picture into our storage, to be picked
 up by subsequent instructions. This is a simple enough instruction.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">SUse</span> <span class="p">([</span><span class="n">id</span> <span class="n">:</span> <span class="n">Identifier</span><span class="p">]))</span>
-<span class="p">(</span><span class="n">define-type</span> <span class="n">Instruction</span> <span class="p">(</span><span class="n">U</span> <span class="n">SCircle</span> <span class="n">SColorize</span> <span class="n">STranslate</span> <span class="n">SOverlay</span> <span class="n">SDefine</span> <span class="n">SUse</span><span class="p">))</span>
+<span class="p">(</span><span class="n">define-type</span> <span class="n">Instruction</span> <span class="p">(</span><span class="n">U</span> <span class="n">SCircle</span>
+                            <span class="n">SColorize</span>
+                            <span class="n">STranslate</span>
+                            <span class="n">SOverlay</span>
+                            <span class="n">SDefine</span>
+                            <span class="n">SUse</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>We also need to augment our storage with a new component – something that can
@@ -500,7 +512,7 @@ storage linearly for the first occurrence of the value we’re interested in
 and pick that up. So we’ll modify the getter functions accordingly.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Note that we&#39;re binding an *evaluated* picture here.</span>
 <span class="p">(</span><span class="k">struct</span> <span class="n">Binding</span> <span class="p">([</span><span class="n">id</span> <span class="n">:</span> <span class="n">Identifier</span><span class="p">]</span>
-                 <span class="p">[</span><span class="n">pic</span> <span class="n">:</span> <span class="n">Picture</span><span class="p">]))</span>
+                 <span class="p">[</span><span class="n">value</span> <span class="n">:</span> <span class="n">Picture</span><span class="p">]))</span>
 
 <span class="p">(</span><span class="n">define-type</span> <span class="n">Datum</span> <span class="p">(</span><span class="n">U</span> <span class="n">Picture</span> <span class="n">Binding</span><span class="p">))</span>
 <span class="p">(</span><span class="n">define-type</span> <span class="n">Storage</span> <span class="p">(</span><span class="n">Listof</span> <span class="n">Datum</span><span class="p">))</span>

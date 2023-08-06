@@ -588,17 +588,7 @@ making and using definitions as follows -
     (: process-instruction (-> Storage Instruction Storage))
     (define (process-instruction storage instruction)
         (match instruction
-            [(SCircle radius thickness)
-             (store (circle radius thickness) storage)]
-            [(SColorize a r g b)
-             (let ([input (take1 storage)])
-                (store (colorize a r g b (first input)) (second input)))]
-            [(STranslate dx dy)
-             (let ([input (take1 storage)])
-                (store (translate dx dy (first input)) (second input)))]
-            [(SOverlay)
-             (let ([input (take2 storage)])
-                (store (overlay (first input) (second input)) (third input)))]
+            ; Definitions for SCircle etc.
             [(SDefine id)
              (let ([input (take1 storage)])
                 (store (Binding id (first input)) (second input)))]
@@ -635,4 +625,69 @@ of "optimization".
     two values would the rest of the instructions end up using? How would we
     recall the earlier binding if we wanted that? Is there any meaning to
     asking for that in the context of our language?
+
+Blocks
+------
+
+We can now capture the result of a computation and reuse it with other
+combinators. However, we don't yet have a mechanism to encapsulate computations
+that we might want to perform repeatedly. Such a facility will give us some
+additional abstraction power, though still weak in a number of ways.
+
+An interesting way to look at this addition is that we have a Racket-level
+``run-machine`` function that can process a sequence of instructions.
+That sounds like pretty much what we want for our facility. In other words,
+we're taking what we have available at Racket-level and making it available
+within **our language**. We'll see many instances of this thinking when
+developing our language.
+
+A "block" is a sequence of instructions that we'd like to be able to create,
+store and "run". So we need to augment our store to hold Block type values, and
+define new instructions to make blocks and to run a block picked from storage.
+Note that :rkt:`SDefine` and :rkt:`SUse` would also be expected to work with
+blocks in addition to :rkt:`Picture` values.
+
+.. code:: racket
+
+    (struct Block ([instructions : (Listof Instruction)]))
+
+    (define-type Value (U Picture Block))
+
+    ; Note that we're binding an *evaluated* picture here.
+    (struct Binding ([id : Identifier]
+                     [value : Value]))
+
+    (define-type Datum (U Value Binding))
+    (define-type Storage (Listof Datum))
+
+    (struct SBlock ([instructions : (Listof Instruction)]))
+    (struct SRun ())
+
+    (define-type Instruction (U SCircle 
+                                SColorize 
+                                STranslate 
+                                SOverlay 
+                                SDefine 
+                                SUse
+                                SBlock
+                                SRun))
+
+    (: process-instruction (-> Storage Instruction Storage))
+    (define (process-instruction storage instruction)
+        (match instruction
+            ; Definitions for SCircle etc. up to SDefine and SUse
+            [(SBlock instructions)
+             (store (Block instructions) storage)]
+            [(SRun)
+             (let ([b (take1 storage)])
+                (run-machine (second b) (Block-instructions (first b))))]))
+
+
+.. admonition:: **Exercise**
+
+    It looks like we're done? Are we? Think through what the newly introduced
+    :rkt:`Block` object ends up providing us. Try different combinations and
+    compare what meaning you'd **want** to attribute to the program and whether
+    our machine actually implements **that** meaning or something else.
+
 

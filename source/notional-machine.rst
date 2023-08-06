@@ -627,3 +627,12 @@ sure it does in this case, but only a tiny bit because much of the computation
 in our case is spent not evaluating pictures, but in rendering pictures to
 images. As we saw with :rkt:`compiler.rkt`, addressing that is a different kind
 of "optimization".
+
+.. admonition:: **Exercise**
+
+    Study the consequences of how we've implemented identifier binding and
+    lookup. In particular, supposing we bind one identifier twice, which of the
+    two values would the rest of the instructions end up using? How would we
+    recall the earlier binding if we wanted that? Is there any meaning to
+    asking for that in the context of our language?
+

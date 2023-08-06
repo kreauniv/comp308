@@ -555,17 +555,7 @@ making and using definitions as follows -</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">:</span> <span class="n">process-instruction</span> <span class="p">(</span><span class="k">-&gt;</span> <span class="n">Storage</span> <span class="n">Instruction</span> <span class="n">Storage</span><span class="p">))</span>
 <span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">process-instruction</span> <span class="n">storage</span> <span class="n">instruction</span><span class="p">)</span>
     <span class="p">(</span><span class="k">match</span> <span class="n">instruction</span>
-        <span class="p">[(</span><span class="n">SCircle</span> <span class="n">radius</span> <span class="n">thickness</span><span class="p">)</span>
-         <span class="p">(</span><span class="n">store</span> <span class="p">(</span><span class="n">circle</span> <span class="n">radius</span> <span class="n">thickness</span><span class="p">)</span> <span class="n">storage</span><span class="p">)]</span>
-        <span class="p">[(</span><span class="n">SColorize</span> <span class="n">a</span> <span class="n">r</span> <span class="n">g</span> <span class="n">b</span><span class="p">)</span>
-         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">input</span> <span class="p">(</span><span class="n">take1</span> <span class="n">storage</span><span class="p">)])</span>
-            <span class="p">(</span><span class="n">store</span> <span class="p">(</span><span class="n">colorize</span> <span class="n">a</span> <span class="n">r</span> <span class="n">g</span> <span class="n">b</span> <span class="p">(</span><span class="nb">first</span> <span class="n">input</span><span class="p">))</span> <span class="p">(</span><span class="nb">second</span> <span class="n">input</span><span class="p">)))]</span>
-        <span class="p">[(</span><span class="n">STranslate</span> <span class="n">dx</span> <span class="n">dy</span><span class="p">)</span>
-         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">input</span> <span class="p">(</span><span class="n">take1</span> <span class="n">storage</span><span class="p">)])</span>
-            <span class="p">(</span><span class="n">store</span> <span class="p">(</span><span class="n">translate</span> <span class="n">dx</span> <span class="n">dy</span> <span class="p">(</span><span class="nb">first</span> <span class="n">input</span><span class="p">))</span> <span class="p">(</span><span class="nb">second</span> <span class="n">input</span><span class="p">)))]</span>
-        <span class="p">[(</span><span class="n">SOverlay</span><span class="p">)</span>
-         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">input</span> <span class="p">(</span><span class="n">take2</span> <span class="n">storage</span><span class="p">)])</span>
-            <span class="p">(</span><span class="n">store</span> <span class="p">(</span><span class="n">overlay</span> <span class="p">(</span><span class="nb">first</span> <span class="n">input</span><span class="p">)</span> <span class="p">(</span><span class="nb">second</span> <span class="n">input</span><span class="p">))</span> <span class="p">(</span><span class="nb">third</span> <span class="n">input</span><span class="p">)))]</span>
+        <span class="c1">; Definitions for SCircle etc.</span>
         <span class="p">[(</span><span class="n">SDefine</span> <span class="n">id</span><span class="p">)</span>
          <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">input</span> <span class="p">(</span><span class="n">take1</span> <span class="n">storage</span><span class="p">)])</span>
             <span class="p">(</span><span class="n">store</span> <span class="p">(</span><span class="n">Binding</span> <span class="n">id</span> <span class="p">(</span><span class="nb">first</span> <span class="n">input</span><span class="p">))</span> <span class="p">(</span><span class="nb">second</span> <span class="n">input</span><span class="p">)))]</span>
@@ -602,6 +592,65 @@ recall the earlier binding if we wanted that? Is there any meaning to
 asking for that in the context of our language?</p>
 </div>
 </div>
+<div class="section" id="blocks">
+<h2>Blocks<a class="headerlink" href="#blocks" title="Permalink to this headline">¶</a></h2>
+<p>We can now capture the result of a computation and reuse it with other
+combinators. However, we don’t yet have a mechanism to encapsulate computations
+that we might want to perform repeatedly. Such a facility will give us some
+additional abstraction power, though still weak in a number of ways.</p>
+<p>An interesting way to look at this addition is that we have a Racket-level
+<code class="docutils literal notranslate"><span class="pre">run-machine</span></code> function that can process a sequence of instructions.
+That sounds like pretty much what we want for our facility. In other words,
+we’re taking what we have available at Racket-level and making it available
+within <strong>our language</strong>. We’ll see many instances of this thinking when
+developing our language.</p>
+<p>A “block” is a sequence of instructions that we’d like to be able to create,
+store and “run”. So we need to augment our store to hold Block type values, and
+define new instructions to make blocks and to run a block picked from storage.
+Note that <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">SDefine</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">SUse</span></span></code> would also be expected to work with
+blocks in addition to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Picture</span></span></code> values.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">Block</span> <span class="p">([</span><span class="n">instructions</span> <span class="n">:</span> <span class="p">(</span><span class="n">Listof</span> <span class="n">Instruction</span><span class="p">)]))</span>
+
+<span class="p">(</span><span class="n">define-type</span> <span class="n">Value</span> <span class="p">(</span><span class="n">U</span> <span class="n">Picture</span> <span class="n">Block</span><span class="p">))</span>
+
+<span class="c1">; Note that we&#39;re binding an *evaluated* picture here.</span>
+<span class="p">(</span><span class="k">struct</span> <span class="n">Binding</span> <span class="p">([</span><span class="n">id</span> <span class="n">:</span> <span class="n">Identifier</span><span class="p">]</span>
+                 <span class="p">[</span><span class="n">value</span> <span class="n">:</span> <span class="n">Value</span><span class="p">]))</span>
+
+<span class="p">(</span><span class="n">define-type</span> <span class="n">Datum</span> <span class="p">(</span><span class="n">U</span> <span class="n">Value</span> <span class="n">Binding</span><span class="p">))</span>
+<span class="p">(</span><span class="n">define-type</span> <span class="n">Storage</span> <span class="p">(</span><span class="n">Listof</span> <span class="n">Datum</span><span class="p">))</span>
+
+<span class="p">(</span><span class="k">struct</span> <span class="n">SBlock</span> <span class="p">([</span><span class="n">instructions</span> <span class="n">:</span> <span class="p">(</span><span class="n">Listof</span> <span class="n">Instruction</span><span class="p">)]))</span>
+<span class="p">(</span><span class="k">struct</span> <span class="n">SRun</span> <span class="p">())</span>
+
+<span class="p">(</span><span class="n">define-type</span> <span class="n">Instruction</span> <span class="p">(</span><span class="n">U</span> <span class="n">SCircle</span>
+                            <span class="n">SColorize</span>
+                            <span class="n">STranslate</span>
+                            <span class="n">SOverlay</span>
+                            <span class="n">SDefine</span>
+                            <span class="n">SUse</span>
+                            <span class="n">SBlock</span>
+                            <span class="n">SRun</span><span class="p">))</span>
+
+<span class="p">(</span><span class="n">:</span> <span class="n">process-instruction</span> <span class="p">(</span><span class="k">-&gt;</span> <span class="n">Storage</span> <span class="n">Instruction</span> <span class="n">Storage</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">process-instruction</span> <span class="n">storage</span> <span class="n">instruction</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">match</span> <span class="n">instruction</span>
+        <span class="c1">; Definitions for SCircle etc. up to SDefine and SUse</span>
+        <span class="p">[(</span><span class="n">SBlock</span> <span class="n">instructions</span><span class="p">)</span>
+         <span class="p">(</span><span class="n">store</span> <span class="p">(</span><span class="n">Block</span> <span class="n">instructions</span><span class="p">)</span> <span class="n">storage</span><span class="p">)]</span>
+        <span class="p">[(</span><span class="n">SRun</span><span class="p">)</span>
+         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">b</span> <span class="p">(</span><span class="n">take1</span> <span class="n">storage</span><span class="p">)])</span>
+            <span class="p">(</span><span class="n">run-machine</span> <span class="p">(</span><span class="nb">second</span> <span class="n">b</span><span class="p">)</span> <span class="p">(</span><span class="n">Block-instructions</span> <span class="p">(</span><span class="nb">first</span> <span class="n">b</span><span class="p">))))]))</span>
+</pre></div>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>It looks like we’re done? Are we? Think through what the newly introduced
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Block</span></span></code> object ends up providing us. Try different combinations and
+compare what meaning you’d <strong>want</strong> to attribute to the program and whether
+our machine actually implements <strong>that</strong> meaning or something else.</p>
+</div>
+</div>
 </div>
 
 
@@ -636,6 +685,7 @@ asking for that in the context of our language?</p>
 <li class="toctree-l2"><a class="reference internal" href="#instruction-processor">Instruction processor</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#reflections">Reflections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#introducing-identifiers">Introducing identifiers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#blocks">Blocks</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>

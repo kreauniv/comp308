@@ -16,7 +16,7 @@ We've so far built an interpreter that relies on Racket's semantics to do its
 job. In this session, we'll be diving into what these semantics are and lifting
 the hood to peek under the machinery a bit.
 
-First - the base definitions we need -
+First the base definitions we need --
 
 .. code:: racket
 
@@ -31,13 +31,13 @@ First - the base definitions we need -
                     [thickness : Float])
       #:transparent)
     (struct (t) Overlay ([pic1 : t]
-                         [pic2 : t]))
+                         [pic2 : t])
       #:transparent)
     (struct (t) Colorize ([a : Float]
                           [r : Float]
                           [g : Float]
                           [b : Float]
-                          [pic : t]))
+                          [pic : t])
       #:transparent)
     (struct (t) Affine ([mxx : Float]
                         [mxy : Float]
@@ -45,13 +45,13 @@ First - the base definitions we need -
                         [myy : Float]
                         [dx : Float]
                         [dy : Float]
-                        [pic : t]))
+                        [pic : t])
       #:transparent)
 
     ; Sugar form
     (struct (t) Translate ([dx : Float]
                            [dy : Float]
-                           [pic : t]))
+                           [pic : t])
       #:transparent)
 
     (define-type PicSugar (U Circle
@@ -71,12 +71,12 @@ First - the base definitions we need -
         [(Circle radius thickness)
          (circle radius thickness)]
         [(Affine mxx mxy myx myy dx dy picexpr2)
-     (affine mxx mxy myx myy dx dy (interpret-picexpr picexpr2))]
-    [(Overlay picexpr1 picexpr2)
-     (overlay (interpret-picexpr picexpr1)
-              (interpret-picexpr picexpr2))]
-    [(Colorize a r g b pic)
-     (colorize a r g b (interpret-picexpr pic))]))
+         (affine mxx mxy myx myy dx dy (interpret-picexpr picexpr2))]
+        [(Overlay picexpr1 picexpr2)
+         (overlay (interpret-picexpr picexpr1)
+                  (interpret-picexpr picexpr2))]
+        [(Colorize a r g b pic)
+         (colorize a r g b (interpret-picexpr pic))]))
 
     ; Note that the desugar operation is the same whether the result
     ; is fed into the interpreter or the compiler.
@@ -90,7 +90,7 @@ First - the base definitions we need -
         [(Overlay picexpr1 picexpr2)
          (Overlay (desugar picexpr1) (desugar picexpr2))]
         [(Circle radius thickness)
-     (Circle radius thickness)]))
+         (Circle radius thickness)]))
 
 We'll also define a sample "picture expression" that we can use
 as an aid to think through how we want to compute the result
@@ -262,7 +262,7 @@ need to worry about any others.
             (error "Empty storage")
             (list (first storage) (rest storage))))
 
-    (: take2 (-> Storage (List Picture Picture Storage))))
+    (: take2 (-> Storage (List Picture Picture Storage)))
     (define (take2 storage)
         (let ([v1 (take1 storage)])
             (let ([v2 (take1 (second v1))])

@@ -27,31 +27,31 @@ First - the base definitions we need -
     (require racket/match)
 
     ; Sugar free
-    (struct Circle [[radius : Float]
-                    [thickness : Float]]
+    (struct Circle ([radius : Float]
+                    [thickness : Float])
       #:transparent)
-    (struct (t) Overlay [[pic1 : t]
-                         [pic2 : t]]
+    (struct (t) Overlay ([pic1 : t]
+                         [pic2 : t]))
       #:transparent)
-    (struct (t) Colorize [[a : Float]
+    (struct (t) Colorize ([a : Float]
                           [r : Float]
                           [g : Float]
                           [b : Float]
-                          [pic : t]]
+                          [pic : t]))
       #:transparent)
-    (struct (t) Affine [[mxx : Float]
+    (struct (t) Affine ([mxx : Float]
                         [mxy : Float]
                         [myx : Float]
                         [myy : Float]
                         [dx : Float]
                         [dy : Float]
-                        [pic : t]]
+                        [pic : t]))
       #:transparent)
 
     ; Sugar form
-    (struct (t) Translate [[dx : Float]
+    (struct (t) Translate ([dx : Float]
                            [dy : Float]
-                           [pic : t]]
+                           [pic : t]))
       #:transparent)
 
     (define-type PicSugar (U Circle
@@ -256,21 +256,17 @@ need to worry about any others.
     (define (store pic storage)
         (cons pic storage))
 
-    (: get1 (-> Storage Picture))
-    (define (get1 storage)
-        (first storage))
+    (: take1 (-> Storage (List Picture Storage)))
+    (define (take1 storage)
+        (if (empty? storage)
+            (error "Empty storage")
+            (list (first storage) (rest storage))))
 
-    (: get2 (-> Storage (List Picture Picture)))
-    (define (get2 Storage)
-        (list (first storage) (second storage)))
-
-    (: forget1 (-> Storage Storage))
-    (define (forget1 storage)
-        (rest storage))
-
-    (: forget2 (-> Storage Storage))
-    (define (forget2 storage)
-        (rest (rest storage)))
+    (: take2 (-> Storage (List Picture Picture Storage))))
+    (define (take2 storage)
+        (let ([v1 (take1 storage)])
+            (let ([v2 (take1 (second v1))])
+                (list (first v1) (first v2) (second v2)))))
 
 Now that we're clear about both the nature of our "instructions" and
 our computer's "storage", let's make them all explicit.
@@ -339,17 +335,17 @@ to do, for each type of instruction, is the three steps we saw earlier -
     (: process-instruction (-> Storage Instruction Storage))
     (define (process-instruction storage instruction)
         (match instruction
-            [(Circle radius thickness)
+            [(SCircle radius thickness)
              (store (circle radius thickness) storage)]
-            [(Colorize a r g b)
-             (let ([input (get1 storage)])
-                (store (colorize a r g b input) (forget1 storage)))]
-            [(Translate dx dy)
-             (let ([input (get1 storage)])
-                (store (translate dx dy input) (forget1 storage)))]
-            [(Overlay)
-             (let ([input (get2 storage)])
-                (store (overlay (first input) (second input)) (forget2 storage)))]))
+            [(SColorize a r g b)
+             (let ([input (take1 storage)])
+                (store (colorize a r g b (first input)) (second input)))]
+            [(STranslate dx dy)
+             (let ([input (take1 storage)])
+                (store (translate dx dy (first input)) (second input)))]
+            [(SOverlay)
+             (let ([input (take2 storage)])
+                (store (overlay (first input) (second input)) (third input)))]))
 
 
 So how do we invoke this machine to produce the same picture we computed
@@ -364,7 +360,7 @@ earlier using ``picexpr`` and ``interpret-picexpr``?
                            (SCircle 1.5 0.1)
                            (SColorize 1.0 0.0 0.0 1.0)
                            (STranslate 0.5 0.0)
-                           (SOverlay)))
+                           (SOverlay))))
 
 What our "machine" does with the given "program" is the following --
 
@@ -482,3 +478,140 @@ recursion is equivalent to doing the following in Javascript -
         return total;
     }
 
+Introducing identifiers
+-----------------------
+
+We're now ready to dip our toes into permitting some degree of abstraction in
+our "picture expressions". We now have a machine that performs a *sequence* of
+instructions while threading a "storage mechanism" through the steps. We can
+now support simple reuse of computation by associating identifiers with
+computed results so they can be reused when needed. What we'll be doing here is
+not the most powerful "core" approach, but since it will introduce a few
+mechanisms we'll need later on, it serves as a useful intermediat step.
+
+We'll define a new term that lets us associate an identifier with a picture
+expression, with the expectation that the picture computation will be performed
+and the resultant picture associated with the identifier in our storage. Note
+that we actually don't need to include an expression to compute to determine
+what the id needs to be bound do. We can simply pick up that value from our
+storage.
+
+.. code:: racket
+
+    (define-type Identifier Symbol)
+    (struct SDefine ([id : Identifier]))
+
+    ; We'll also have to augment our instruction set to permit
+    ; this new construct.
+
+    (define-type Instruction (U SCircle SColorize STranslate SOverlay SDefine))
+
+Now, how will we use this defined identifier to construct other pictures?
+Recall that an instruction like :rkt:`(Colorize a r g b)` will fetch the
+input picture from storage, colorize it and place the result back into
+the storage. So all we need to add is a way to lookup the picture associated
+with an identifier and place the picture into our storage, to be picked
+up by subsequent instructions. This is a simple enough instruction.
+
+.. code:: racket
+
+    (struct SUse ([id : Identifier]))
+    (define-type Instruction (U SCircle SColorize STranslate SOverlay SDefine SUse))
+
+We also need to augment our storage with a new component -- something that can
+let us associate identifiers with values and lets us look it up. For simplicity,
+we'll reuse the same list structure of our storage, except that we'll augment
+what we can put into it with a new "Binding" type. We'll search through the
+storage linearly for the first occurrence of the value we're interested in
+and pick that up. So we'll modify the getter functions accordingly.
+
+.. code:: racket
+
+    ; Note that we're binding an *evaluated* picture here.
+    (struct Binding ([id : Identifier]
+                     [pic : Picture]))
+
+    (define-type Datum (U Picture Binding))
+    (define-type Storage (Listof Datum))
+
+    (: new-storage (-> Storage))
+    (define (new-storage) empty)
+
+    (: store (-> Datum Storage Storage))
+    (define (store datum storage)
+        (cons datum storage))
+
+    (: take1 (-> Storage (List Picture Storage)))
+    (define (take1 storage)
+        (if (empty? storage)
+            (error "Empty storage")
+            (let ([top (first storage)])
+                (if (Binding? top)
+                    ; Keep bindings while dropping values from storage.
+                    (let ([v (take1 (rest storage))])
+                        (list (first v) (cons top (second v))))
+                    (list top (rest storage))))))
+
+Since we defined :rkt:`take2` in terms of :rkt:`take1`, its definition remains
+the same since it was defined independent of the internal structure of Storage.
+We also need a function to lookup a bound identifier from the storage.
+
+.. code:: racket
+
+    (: lookup (-> Storage Identifier Picture))
+    (define (lookup storage id)
+        (if (empty? storage)
+            (raise-user-error 'unbound-identifier "Identifier '~s' is not defined" id)
+            (let ([v (first storage)])
+                (if (and (Binding? v)
+                         (equal? (Binding-id v) id))
+                    (Binding-value v)
+                    (lookup (rest storage) id)))))
+
+Using these two, we can modify our :rkt:`process-instruction` to account for
+making and using definitions as follows -
+
+.. code:: racket
+
+    (: process-instruction (-> Storage Instruction Storage))
+    (define (process-instruction storage instruction)
+        (match instruction
+            [(SCircle radius thickness)
+             (store (circle radius thickness) storage)]
+            [(SColorize a r g b)
+             (let ([input (take1 storage)])
+                (store (colorize a r g b (first input)) (second input)))]
+            [(STranslate dx dy)
+             (let ([input (take1 storage)])
+                (store (translate dx dy (first input)) (second input)))]
+            [(SOverlay)
+             (let ([input (take2 storage)])
+                (store (overlay (first input) (second input)) (third input)))]
+            [(SDefine id)
+             (let ([input (take1 storage)])
+                (store (Binding id (first input)) (second input)))]
+            [(SUse id)
+             (store (lookup storage id) storage)]))
+
+With these two additions, we can now have some degree of reuse
+when constructing pictures using our "language".
+
+.. code:: racket
+
+    (define result 
+        (run-machine (new-storage)
+                     (list (SCircle 0.75 0.1)
+                           (SDefine 'pic) ; After this, the pic in storage is dropped.
+                           (SUse 'pic)    ; ... so we need to add it back.
+                           (SColorize 1.0 1.0 0.0 0.0)
+                           (SUse 'pic)
+                           (SColorize 1.0 0.0 0.0 1.0)
+                           (STranslate 0.5 0.0)
+                           (SOverlay))))
+
+We can now compute a picture once and reuse it in as many parts as we want to.
+Usually, such reuse of computations results in a bit of efficiency gain and
+sure it does in this case, but only a tiny bit because much of the computation
+in our case is spent not evaluating pictures, but in rendering pictures to
+images. As we saw with :rkt:`compiler.rkt`, addressing that is a different kind
+of "optimization".

@@ -690,4 +690,52 @@ blocks in addition to :rkt:`Picture` values.
     compare what meaning you'd **want** to attribute to the program and whether
     our machine actually implements **that** meaning or something else.
 
+Reuse versus encapsulation
+--------------------------
+
+.. note:: Think through the "exercises" before reading further. Spoilers ahead.
+
+We've taken a couple of steps to "improving" our notional machine and its
+instruction set with facilities to help with "reuse". However, focusing on
+"reuse" alone ends up leaving us with many gaps in our design that are,
+broadly, detrimental to a general purpose programming language. Here are some.
+
+The way we defined our :rkt:`SBlock` instruction and the corresponding
+:rkt:`Block` value and the :rkt:`SRun` instruction, a block is free to consume
+from and produce values into our storage. Not only that, it is also free to
+lookup any identifiers from our storage as well as add new bindings to it. Once
+a block completes "running", an identifier that was earlier bound to a value
+:math:`a` may end up being bound to another value :math:`b` afterwards.
+
+.. admonition:: **Exercise**
+
+    Think about whether that behaviour is a "feature" or a "bug" in our
+    language? Think about how you would compose two such "block" computations.
+    Can a block create any "temporary bindings" within its instruction
+    sequence? If it can, can it do so with a guarantee of non-interference with
+    other blocks?
+
+While "reuse" is a reasonable expectation of a programming language, a more
+important and powerful expectation is "composeability of abstractions", which
+entails facilities for "encapsulating computations". 
+
+An abstraction involves leaving out details not relevant in some particular
+context. For example, an abstract notion of "addition" can be "there is a zero
+which serves as identity, a + b is of the same type as a and b, and a + b = b +
+a". In that case, we leave out the specifics of **how** to add, and indeed
+we've not said anything about "numbers" at all!
+
+So in designing an encapsulation facility in a language, we need mechanisms to
+hide "irrelevant details" like what temporary variables a block may introduce
+for the purpose of its computation so that blocks of computation can be
+composed without having to reason about each situation on a case by case basis.
+
+λ-calculus already provides us with a powerful encapsulation mechanism --
+functions -- and an algebra around them. The implication of the α-renaming and
+β-reduction rules is that a λ-term fully encapsulates the computation it
+expresses so that it can be composed with other λ-terms consistently.
+
+So our next stop will be to add functions to our language, proper.
+
+
 

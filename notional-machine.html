@@ -12,6 +12,7 @@
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Growing the language" href="growing.html" />
@@ -651,6 +652,48 @@ compare what meaning you’d <strong>want</strong> to attribute to the program a
 our machine actually implements <strong>that</strong> meaning or something else.</p>
 </div>
 </div>
+<div class="section" id="reuse-versus-encapsulation">
+<h2>Reuse versus encapsulation<a class="headerlink" href="#reuse-versus-encapsulation" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Think through the “exercises” before reading further. Spoilers ahead.</p>
+</div>
+<p>We’ve taken a couple of steps to “improving” our notional machine and its
+instruction set with facilities to help with “reuse”. However, focusing on
+“reuse” alone ends up leaving us with many gaps in our design that are,
+broadly, detrimental to a general purpose programming language. Here are some.</p>
+<p>The way we defined our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">SBlock</span></span></code> instruction and the corresponding
+<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Block</span></span></code> value and the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">SRun</span></span></code> instruction, a block is free to consume
+from and produce values into our storage. Not only that, it is also free to
+lookup any identifiers from our storage as well as add new bindings to it. Once
+a block completes “running”, an identifier that was earlier bound to a value
+<span class="math notranslate nohighlight">\(a\)</span> may end up being bound to another value <span class="math notranslate nohighlight">\(b\)</span> afterwards.</p>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Think about whether that behaviour is a “feature” or a “bug” in our
+language? Think about how you would compose two such “block” computations.
+Can a block create any “temporary bindings” within its instruction
+sequence? If it can, can it do so with a guarantee of non-interference with
+other blocks?</p>
+</div>
+<p>While “reuse” is a reasonable expectation of a programming language, a more
+important and powerful expectation is “composeability of abstractions”, which
+entails facilities for “encapsulating computations”.</p>
+<p>An abstraction involves leaving out details not relevant in some particular
+context. For example, an abstract notion of “addition” can be “there is a zero
+which serves as identity, a + b is of the same type as a and b, and a + b = b +
+a”. In that case, we leave out the specifics of <strong>how</strong> to add, and indeed
+we’ve not said anything about “numbers” at all!</p>
+<p>So in designing an encapsulation facility in a language, we need mechanisms to
+hide “irrelevant details” like what temporary variables a block may introduce
+for the purpose of its computation so that blocks of computation can be
+composed without having to reason about each situation on a case by case basis.</p>
+<p>λ-calculus already provides us with a powerful encapsulation mechanism –
+functions – and an algebra around them. The implication of the α-renaming and
+β-reduction rules is that a λ-term fully encapsulates the computation it
+expresses so that it can be composed with other λ-terms consistently.</p>
+<p>So our next stop will be to add functions to our language, proper.</p>
+</div>
 </div>
 
 
@@ -686,6 +729,7 @@ our machine actually implements <strong>that</strong> meaning or something else.
 <li class="toctree-l2"><a class="reference internal" href="#reflections">Reflections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#introducing-identifiers">Introducing identifiers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#blocks">Blocks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reuse-versus-encapsulation">Reuse versus encapsulation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>

@@ -626,8 +626,8 @@ of "optimization".
     recall the earlier binding if we wanted that? Is there any meaning to
     asking for that in the context of our language?
 
-Blocks
-------
+Blocks of instructions
+----------------------
 
 We can now capture the result of a computation and reuse it with other
 combinators. However, we don't yet have a mechanism to encapsulate computations

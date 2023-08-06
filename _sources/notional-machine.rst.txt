@@ -487,7 +487,7 @@ instructions while threading a "storage mechanism" through the steps. We can
 now support simple reuse of computation by associating identifiers with
 computed results so they can be reused when needed. What we'll be doing here is
 not the most powerful "core" approach, but since it will introduce a few
-mechanisms we'll need later on, it serves as a useful intermediat step.
+mechanisms we'll need later on, it serves as a useful intermediate step.
 
 We'll define a new term that lets us associate an identifier with a picture
 expression, with the expectation that the picture computation will be performed

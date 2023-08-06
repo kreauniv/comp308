@@ -55,78 +55,78 @@ that we can study as we build up our programming language.</p>
 <p>We’ve so far built an interpreter that relies on Racket’s semantics to do its
 job. In this session, we’ll be diving into what these semantics are and lifting
 the hood to peek under the machinery a bit.</p>
-<p>First - the base definitions we need -</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span>#lang typed/racket
+<p>First the base definitions we need –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="kn">#lang </span><span class="nn">typed/racket</span>
 
-(require &quot;color.rkt&quot;)
-(require &quot;picture-lib.rkt&quot;)
-(require racket/match)
+<span class="p">(</span><span class="k">require</span> <span class="s2">&quot;color.rkt&quot;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">require</span> <span class="s2">&quot;picture-lib.rkt&quot;</span><span class="p">)</span>
+<span class="p">(</span><span class="k">require</span> <span class="n">racket/match</span><span class="p">)</span>
 
-; Sugar free
-(struct Circle ([radius : Float]
-                [thickness : Float])
-  #:transparent)
-(struct (t) Overlay ([pic1 : t]
-                     [pic2 : t]))
-  #:transparent)
-(struct (t) Colorize ([a : Float]
-                      [r : Float]
-                      [g : Float]
-                      [b : Float]
-                      [pic : t]))
-  #:transparent)
-(struct (t) Affine ([mxx : Float]
-                    [mxy : Float]
-                    [myx : Float]
-                    [myy : Float]
-                    [dx : Float]
-                    [dy : Float]
-                    [pic : t]))
-  #:transparent)
+<span class="c1">; Sugar free</span>
+<span class="p">(</span><span class="k">struct</span> <span class="n">Circle</span> <span class="p">([</span><span class="n">radius</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
+                <span class="p">[</span><span class="n">thickness</span> <span class="n">:</span> <span class="n">Float</span><span class="p">])</span>
+  <span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span> <span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="n">Overlay</span> <span class="p">([</span><span class="n">pic1</span> <span class="n">:</span> <span class="n">t</span><span class="p">]</span>
+                     <span class="p">[</span><span class="n">pic2</span> <span class="n">:</span> <span class="n">t</span><span class="p">])</span>
+  <span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span> <span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="n">Colorize</span> <span class="p">([</span><span class="n">a</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
+                      <span class="p">[</span><span class="n">r</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
+                      <span class="p">[</span><span class="n">g</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
+                      <span class="p">[</span><span class="n">b</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
+                      <span class="p">[</span><span class="n">pic</span> <span class="n">:</span> <span class="n">t</span><span class="p">])</span>
+  <span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span> <span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="n">Affine</span> <span class="p">([</span><span class="n">mxx</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
+                    <span class="p">[</span><span class="n">mxy</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
+                    <span class="p">[</span><span class="n">myx</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
+                    <span class="p">[</span><span class="n">myy</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
+                    <span class="p">[</span><span class="n">dx</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
+                    <span class="p">[</span><span class="n">dy</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
+                    <span class="p">[</span><span class="n">pic</span> <span class="n">:</span> <span class="n">t</span><span class="p">])</span>
+  <span class="kd">#:transparent</span><span class="p">)</span>
 
-; Sugar form
-(struct (t) Translate ([dx : Float]
-                       [dy : Float]
-                       [pic : t]))
-  #:transparent)
+<span class="c1">; Sugar form</span>
+<span class="p">(</span><span class="k">struct</span> <span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="n">Translate</span> <span class="p">([</span><span class="n">dx</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
+                       <span class="p">[</span><span class="n">dy</span> <span class="n">:</span> <span class="n">Float</span><span class="p">]</span>
+                       <span class="p">[</span><span class="n">pic</span> <span class="n">:</span> <span class="n">t</span><span class="p">])</span>
+  <span class="kd">#:transparent</span><span class="p">)</span>
 
-(define-type PicSugar (U Circle
-                         (Overlay PicSugar)
-                         (Colorize PicSugar)
-                         (Affine PicSugar)
-                         (Translate PicSugar)))
+<span class="p">(</span><span class="n">define-type</span> <span class="n">PicSugar</span> <span class="p">(</span><span class="n">U</span> <span class="n">Circle</span>
+                         <span class="p">(</span><span class="n">Overlay</span> <span class="n">PicSugar</span><span class="p">)</span>
+                         <span class="p">(</span><span class="n">Colorize</span> <span class="n">PicSugar</span><span class="p">)</span>
+                         <span class="p">(</span><span class="n">Affine</span> <span class="n">PicSugar</span><span class="p">)</span>
+                         <span class="p">(</span><span class="n">Translate</span> <span class="n">PicSugar</span><span class="p">)))</span>
 
-(define-type PicCore (U Circle
-                        (Overlay PicCore)
-                        (Colorize PicCore)
-                        (Affine PicCore)))
+<span class="p">(</span><span class="n">define-type</span> <span class="n">PicCore</span> <span class="p">(</span><span class="n">U</span> <span class="n">Circle</span>
+                        <span class="p">(</span><span class="n">Overlay</span> <span class="n">PicCore</span><span class="p">)</span>
+                        <span class="p">(</span><span class="n">Colorize</span> <span class="n">PicCore</span><span class="p">)</span>
+                        <span class="p">(</span><span class="n">Affine</span> <span class="n">PicCore</span><span class="p">)))</span>
 
-(: interpret-picexpr (-&gt; PicCore Picture))
-(define (interpret-picexpr picexpr)
-  (match picexpr
-    [(Circle radius thickness)
-     (circle radius thickness)]
-    [(Affine mxx mxy myx myy dx dy picexpr2)
- (affine mxx mxy myx myy dx dy (interpret-picexpr picexpr2))]
-[(Overlay picexpr1 picexpr2)
- (overlay (interpret-picexpr picexpr1)
-          (interpret-picexpr picexpr2))]
-[(Colorize a r g b pic)
- (colorize a r g b (interpret-picexpr pic))]))
+<span class="p">(</span><span class="n">:</span> <span class="n">interpret-picexpr</span> <span class="p">(</span><span class="k">-&gt;</span> <span class="n">PicCore</span> <span class="n">Picture</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">interpret-picexpr</span> <span class="n">picexpr</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">match</span> <span class="n">picexpr</span>
+    <span class="p">[(</span><span class="n">Circle</span> <span class="n">radius</span> <span class="n">thickness</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">circle</span> <span class="n">radius</span> <span class="n">thickness</span><span class="p">)]</span>
+    <span class="p">[(</span><span class="n">Affine</span> <span class="n">mxx</span> <span class="n">mxy</span> <span class="n">myx</span> <span class="n">myy</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">picexpr2</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">affine</span> <span class="n">mxx</span> <span class="n">mxy</span> <span class="n">myx</span> <span class="n">myy</span> <span class="n">dx</span> <span class="n">dy</span> <span class="p">(</span><span class="n">interpret-picexpr</span> <span class="n">picexpr2</span><span class="p">))]</span>
+    <span class="p">[(</span><span class="n">Overlay</span> <span class="n">picexpr1</span> <span class="n">picexpr2</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">overlay</span> <span class="p">(</span><span class="n">interpret-picexpr</span> <span class="n">picexpr1</span><span class="p">)</span>
+              <span class="p">(</span><span class="n">interpret-picexpr</span> <span class="n">picexpr2</span><span class="p">))]</span>
+    <span class="p">[(</span><span class="n">Colorize</span> <span class="n">a</span> <span class="n">r</span> <span class="n">g</span> <span class="n">b</span> <span class="n">pic</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">colorize</span> <span class="n">a</span> <span class="n">r</span> <span class="n">g</span> <span class="n">b</span> <span class="p">(</span><span class="n">interpret-picexpr</span> <span class="n">pic</span><span class="p">))]))</span>
 
-; Note that the desugar operation is the same whether the result
-; is fed into the interpreter or the compiler.
-(: desugar (-&gt; PicSugar PicCore))
-(define (desugar picexpr)
-  (match picexpr
-    [(Translate dx dy picexpr2)
-     (Affine 1.0 0.0 0.0 1.0 dx dy (desugar picexpr2))]
-    [(Colorize a r g b picexpr2)
-     (Colorize a r g b (desugar picexpr2))]
-    [(Overlay picexpr1 picexpr2)
-     (Overlay (desugar picexpr1) (desugar picexpr2))]
-    [(Circle radius thickness)
- (Circle radius thickness)]))
+<span class="c1">; Note that the desugar operation is the same whether the result</span>
+<span class="c1">; is fed into the interpreter or the compiler.</span>
+<span class="p">(</span><span class="n">:</span> <span class="n">desugar</span> <span class="p">(</span><span class="k">-&gt;</span> <span class="n">PicSugar</span> <span class="n">PicCore</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picexpr</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">match</span> <span class="n">picexpr</span>
+    <span class="p">[(</span><span class="n">Translate</span> <span class="n">dx</span> <span class="n">dy</span> <span class="n">picexpr2</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">Affine</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">1.0</span> <span class="n">dx</span> <span class="n">dy</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picexpr2</span><span class="p">))]</span>
+    <span class="p">[(</span><span class="n">Colorize</span> <span class="n">a</span> <span class="n">r</span> <span class="n">g</span> <span class="n">b</span> <span class="n">picexpr2</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">Colorize</span> <span class="n">a</span> <span class="n">r</span> <span class="n">g</span> <span class="n">b</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picexpr2</span><span class="p">))]</span>
+    <span class="p">[(</span><span class="n">Overlay</span> <span class="n">picexpr1</span> <span class="n">picexpr2</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">Overlay</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picexpr1</span><span class="p">)</span> <span class="p">(</span><span class="n">desugar</span> <span class="n">picexpr2</span><span class="p">))]</span>
+    <span class="p">[(</span><span class="n">Circle</span> <span class="n">radius</span> <span class="n">thickness</span><span class="p">)</span>
+     <span class="p">(</span><span class="n">Circle</span> <span class="n">radius</span> <span class="n">thickness</span><span class="p">)]))</span>
 </pre></div>
 </div>
 <p>We’ll also define a sample “picture expression” that we can use
@@ -254,26 +254,26 @@ element of the list we’re using to represent our storage. When we want to stor
 something, we’ll extend our list at the head with the new value. In our case,
 the only types of values we’re dealing with are <code class="docutils literal notranslate"><span class="pre">Picture</span></code> values, so we don’t
 need to worry about any others.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span>(define-type Storage (Listof Picture))
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">define-type</span> <span class="n">Storage</span> <span class="p">(</span><span class="n">Listof</span> <span class="n">Picture</span><span class="p">))</span>
 
-(: new-storage (-&gt; Storage))
-(define (new-storage) empty)
+<span class="p">(</span><span class="n">:</span> <span class="n">new-storage</span> <span class="p">(</span><span class="k">-&gt;</span> <span class="n">Storage</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">new-storage</span><span class="p">)</span> <span class="nb">empty</span><span class="p">)</span>
 
-(: store (-&gt; Picture Storage Storage))
-(define (store pic storage)
-    (cons pic storage))
+<span class="p">(</span><span class="n">:</span> <span class="n">store</span> <span class="p">(</span><span class="k">-&gt;</span> <span class="n">Picture</span> <span class="n">Storage</span> <span class="n">Storage</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">store</span> <span class="n">pic</span> <span class="n">storage</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">cons</span> <span class="n">pic</span> <span class="n">storage</span><span class="p">))</span>
 
-(: take1 (-&gt; Storage (List Picture Storage)))
-(define (take1 storage)
-    (if (empty? storage)
-        (error &quot;Empty storage&quot;)
-        (list (first storage) (rest storage))))
+<span class="p">(</span><span class="n">:</span> <span class="n">take1</span> <span class="p">(</span><span class="k">-&gt;</span> <span class="n">Storage</span> <span class="p">(</span><span class="n">List</span> <span class="n">Picture</span> <span class="n">Storage</span><span class="p">)))</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">take1</span> <span class="n">storage</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">storage</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">error</span> <span class="s2">&quot;Empty storage&quot;</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">list</span> <span class="p">(</span><span class="nb">first</span> <span class="n">storage</span><span class="p">)</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">storage</span><span class="p">))))</span>
 
-(: take2 (-&gt; Storage (List Picture Picture Storage))))
-(define (take2 storage)
-    (let ([v1 (take1 storage)])
-        (let ([v2 (take1 (second v1))])
-            (list (first v1) (first v2) (second v2)))))
+<span class="p">(</span><span class="n">:</span> <span class="n">take2</span> <span class="p">(</span><span class="k">-&gt;</span> <span class="n">Storage</span> <span class="p">(</span><span class="n">List</span> <span class="n">Picture</span> <span class="n">Picture</span> <span class="n">Storage</span><span class="p">)))</span>
+<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">take2</span> <span class="n">storage</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">v1</span> <span class="p">(</span><span class="n">take1</span> <span class="n">storage</span><span class="p">)])</span>
+        <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">v2</span> <span class="p">(</span><span class="n">take1</span> <span class="p">(</span><span class="nb">second</span> <span class="n">v1</span><span class="p">))])</span>
+            <span class="p">(</span><span class="nb">list</span> <span class="p">(</span><span class="nb">first</span> <span class="n">v1</span><span class="p">)</span> <span class="p">(</span><span class="nb">first</span> <span class="n">v2</span><span class="p">)</span> <span class="p">(</span><span class="nb">second</span> <span class="n">v2</span><span class="p">)))))</span>
 </pre></div>
 </div>
 <p>Now that we’re clear about both the nature of our “instructions” and

@@ -290,7 +290,10 @@ our computer's "storage", let's make them all explicit.
     (struct SOverlay ()
         #:transparent)
 
-    (define-type Instruction (U SCircle SColorize STranslate SOverlay))
+    (define-type Instruction (U SCircle 
+                                SColorize 
+                                STranslate 
+                                SOverlay))
 
 Instruction processor
 ---------------------
@@ -504,7 +507,11 @@ storage.
     ; We'll also have to augment our instruction set to permit
     ; this new construct.
 
-    (define-type Instruction (U SCircle SColorize STranslate SOverlay SDefine))
+    (define-type Instruction (U SCircle 
+                                SColorize 
+                                STranslate 
+                                SOverlay 
+                                SDefine))
 
 Now, how will we use this defined identifier to construct other pictures?
 Recall that an instruction like :rkt:`(Colorize a r g b)` will fetch the
@@ -516,7 +523,12 @@ up by subsequent instructions. This is a simple enough instruction.
 .. code:: racket
 
     (struct SUse ([id : Identifier]))
-    (define-type Instruction (U SCircle SColorize STranslate SOverlay SDefine SUse))
+    (define-type Instruction (U SCircle 
+                                SColorize 
+                                STranslate 
+                                SOverlay 
+                                SDefine 
+                                SUse))
 
 We also need to augment our storage with a new component -- something that can
 let us associate identifiers with values and lets us look it up. For simplicity,
@@ -529,7 +541,7 @@ and pick that up. So we'll modify the getter functions accordingly.
 
     ; Note that we're binding an *evaluated* picture here.
     (struct Binding ([id : Identifier]
-                     [pic : Picture]))
+                     [value : Picture]))
 
     (define-type Datum (U Picture Binding))
     (define-type Storage (Listof Datum))

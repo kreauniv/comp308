@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Objects - the Self way &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=cb25574f" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b30c7235"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Generators" href="generators.html" />
+    <link rel="prev" title="Objects" href="objects.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="objects-the-self-way">
+<h1>Objects - the Self way<a class="headerlink" href="#objects-the-self-way" title="Permalink to this heading">¶</a></h1>
+<p>The <a class="reference internal" href="objects.html"><span class="doc">previous section on objects</span></a> treated objects by building up
+an object system by representing an object using a closure that dispatches on
+its first argument. While this is instructive, object systems are never done
+this way in practice for various reasons.</p>
+<p>In particular, languages such as Self, Smalltalk, Javascript take on a
+philosophy of “<strong>everything</strong> is an object” and “anything that happens, does so
+by means of <strong>passing a message to an object</strong>”. In this section, we’ll see
+what it takes to have an object system like Javascript and Self – called
+a “prototype based object system”.</p>
+<section id="prototypes-versus-classes">
+<h2>Prototypes versus classes<a class="headerlink" href="#prototypes-versus-classes" title="Permalink to this heading">¶</a></h2>
+<p>The notion of “class” is common in many “object oriented” programming languages
+such as C++, Java and Smalltalk. <a class="footnote-reference brackets" href="#ak" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> In these languages, “classes” play the role
+of “object factories” - they may families of objects with similar kinds of properties
+and behaviour. In these langauges, a “class” can therefore be thought of as a “type”
+of an object.</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="ak" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Alan Kay, the famous computer scientist behind the creation of the Smalltalk
+programming language, once said “I invented the term ‘object oriented programming’
+and I did not have C++ in mind”.</p>
+</aside>
+</aside>
+<p>One issue with such “classes and inheritance” based OOP languages is that an
+over-reliance on inheritance leads to an inflexible tangle of code as a system
+evolves into a large program. Though some design methods exist to help deal
+with this, the problem is particularly acute when we do not know the domain
+we’re modeling in adequate detail when we start out and we need to figure
+things out along the way. For this reason, the language Self (itself based on
+Smalltalk’s ideas) eschewed classes in favour of more flexible “prototypes”. An
+object in Self can “borrow” properties from a designated prototype and can
+delegate some message handling to its prototype. This is the model adopted
+(more or less) in Javascript. In such “prototype based” object systems,
+<a class="footnote-reference brackets" href="#cbos" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> an object behaves the “same” as its prototype in some regards and
+“overrides” some properties nad behaviours depending on its unique
+characteristics. Furthermore, one object can serve as a prototype for many
+other objects. Since “objects” are runtime entities, <a class="footnote-reference brackets" href="#ctclasses" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a> this
+relationship between an object and its prototype is a dynamic relationship.</p>
+<p>This is what we’ll model using plain <code class="code highlight racket docutils literal highlight-racket"><span class="kn">#lang </span><span class="nn">racket</span></code> in this chapter.</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="cbos" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>… as opposed to “class based object systems”.</p>
+</aside>
+<aside class="footnote brackets" id="ctclasses" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
+<p>… whereas classes can be compile-time entities.</p>
+</aside>
+</aside>
+</section>
+<section id="what-are-objects-in-javascript">
+<h2>What are objects in Javascript?<a class="headerlink" href="#what-are-objects-in-javascript" title="Permalink to this heading">¶</a></h2>
+<p>Javascript provides the following functionalities for its objects, which we’ll
+try to replicate in Racket.</p>
+<section id="getting-a-property-of-an-object">
+<h3>Getting a property of an object<a class="headerlink" href="#getting-a-property-of-an-object" title="Permalink to this heading">¶</a></h3>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">object</span><span class="p">.</span><span class="nx">property_name</span>
+</pre></div>
+</div>
+<p>Given a property identified by a name, you can get the property of an object
+using the above “dot syntax” in Javascript. If an object itself does not have
+such a property, the runtime will search up the “prototype chain” of the object
+until it gets a value or else it produces an <code class="docutils literal notranslate"><span class="pre">undefined</span></code> value.</p>
+</section>
+<section id="modifying-a-property-of-an-object">
+<h3>Modifying a property of an object<a class="headerlink" href="#modifying-a-property-of-an-object" title="Permalink to this heading">¶</a></h3>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">object</span><span class="p">.</span><span class="nx">property_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">new_value</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>In the above syntax, a new value is assigned as the property of the object,
+against the specified property name. It is important to note that post such an
+assignment, if object itself gains such a property if it didn’t have it
+earlier, even if its prototype did have a value for this property.</p>
+</section>
+<section id="invoke-a-method">
+<h3>Invoke a method<a class="headerlink" href="#invoke-a-method" title="Permalink to this heading">¶</a></h3>
+<div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">object</span><span class="p">.</span><span class="nx">method_name</span><span class="p">(</span><span class="nx">arg1</span><span class="p">,</span><span class="w"> </span><span class="nx">arg2</span><span class="p">,</span><span class="w"> </span><span class="p">...)</span>
+</pre></div>
+</div>
+<p>In Javascript, as with most languages with object systems (except Erlang), the
+idea of “message passing” is treated as  “method lookup and invocation”, which
+means <strong>synchronous</strong> function call. In the general case though, “message
+passing” could be asynchronous, which means a reply may or may not be
+delivered, instantaneously or later on.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">object.method_name</span></code> part in the above Javascript syntax denotes
+retrieving an method <strong>function</strong> <code class="docutils literal notranslate"><span class="pre">method</span></code> from the prototype chain. This
+function is then called as though it were <code class="docutils literal notranslate"><span class="pre">method(object,</span> <span class="pre">arg1,</span> <span class="pre">arg2,</span> <span class="pre">...)</span></code>. <a class="footnote-reference brackets" href="#call" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="call" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">4</a><span class="fn-bracket">]</span></span>
+<p>In Javascript, this is done using <code class="docutils literal notranslate"><span class="pre">method.call(object,</span> <span class="pre">arg1,</span> <span class="pre">arg2,</span> <span class="pre">...)</span></code>
+if the programmers wants to invoke a method function, and the “object” argument
+is made available implicitly within the body bound to the identifier <code class="docutils literal notranslate"><span class="pre">this</span></code>.</p>
+</aside>
+</aside>
+<div class="admonition-constraint admonition">
+<p class="admonition-title"><strong>Constraint:</strong></p>
+<p>Once we have our object system’s core, we’ll place the constraint that
+<strong>anything</strong> we do <strong>must</strong> happen via a message send to an object.</p>
+</div>
+</section>
+</section>
+<section id="the-basic-structure-of-objects">
+<h2>The basic structure of objects<a class="headerlink" href="#the-basic-structure-of-objects" title="Permalink to this heading">¶</a></h2>
+<p>Taking the cue from the previous section, we conceive an object as having a set
+of properties and a reference to a “prototype”. We’ll model the “set of properties”
+as a simple list of name-value associations. An important thing to note is that
+objects are all about state management and so we’ll need all of these to be mutable.</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="o">#</span><span class="nv">lang</span><span class="w"> </span><span class="nv">typed/racket</span>
+
+<span class="p">(</span><span class="nf">struct</span><span class="w"> </span><span class="nv">Prop</span><span class="w"> </span><span class="p">(</span><span class="nf">name</span><span class="w"> </span><span class="nv">value</span><span class="w"> </span><span class="nv">attributes</span><span class="p">)</span><span class="w"> </span><span class="kd">#:mutable</span><span class="p">)</span>
+<span class="p">(</span><span class="nf">struct</span><span class="w"> </span><span class="nv">Obj</span><span class="w"> </span><span class="p">(</span><span class="nf">properties</span><span class="w"> </span><span class="nv">prototype</span><span class="p">)</span><span class="w"> </span><span class="kd">#:mutable</span><span class="p">)</span>
+
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">lookup</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="nv">props</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nf">empty?</span><span class="w"> </span><span class="nv">props</span><span class="p">)</span>
+<span class="w">        </span><span class="no">#f</span>
+<span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">equal?</span><span class="w"> </span><span class="p">(</span><span class="nf">Prop-name</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="nv">props</span><span class="p">))</span><span class="w"> </span><span class="nv">name</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="nv">props</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="nf">lookup</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="p">(</span><span class="nf">rest</span><span class="w"> </span><span class="nv">props</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>In the above scheme, <code class="code highlight racket docutils literal highlight-racket"><span class="n">Prop</span></code> is a triple consisting of a <code class="code highlight racket docutils literal highlight-racket"><span class="n">name</span></code> symbol,
+a <code class="code highlight racket docutils literal highlight-racket"><span class="n">value</span></code> associated with that symbol and a list of attributes which are
+themselves <code class="code highlight racket docutils literal highlight-racket"><span class="n">Prop</span></code> structures.</p>
+<p>Also <code class="code highlight racket docutils literal highlight-racket"><span class="n">Obj</span></code> is a tuple of <code class="code highlight racket docutils literal highlight-racket"><span class="n">properties</span></code> which is a list of <code class="code highlight racket docutils literal highlight-racket"><span class="n">Prop</span></code>
+and <code class="code highlight racket docutils literal highlight-racket"><span class="n">prototype</span></code> which is itself an <code class="code highlight racket docutils literal highlight-racket"><span class="n">Obj</span></code>.</p>
+<p>Now, we need to model the three basic operations on objects provided
+by Javascript. Let’s do them one by one. First up is <code class="code highlight racket docutils literal highlight-racket"><span class="n">get</span></code>, which is
+expected to retrieve the value associated with a given property name, and if
+the object itself does not have such a property, look it up in the prototype
+chain.</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">obj</span><span class="w"> </span><span class="nv">propname</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">p</span><span class="w"> </span><span class="p">(</span><span class="nf">lookup</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="p">(</span><span class="nf">Obj-properties</span><span class="w"> </span><span class="nv">obj</span><span class="p">))])</span>
+<span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="nv">p</span>
+<span class="w">            </span><span class="p">(</span><span class="nf">Prop-value</span><span class="w"> </span><span class="nv">p</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="p">(</span><span class="nf">Obj-prototype</span><span class="w"> </span><span class="nv">obj</span><span class="p">)</span><span class="w"> </span><span class="nv">propname</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>Next up is <code class="code highlight racket docutils literal highlight-racket"><span class="nb">set</span></code> which should associate the given property name with
+the given value for <strong>the given object</strong>. Note that it can’t use <code class="code highlight racket docutils literal highlight-racket"><span class="n">get</span></code>
+above for the lookup since it might then end up modifying a prototype’s
+property, which we won’t want to.</p>
+<div class="admonition-think-now admonition">
+<p class="admonition-title"><strong>Think now</strong>:</p>
+<p>So what if the prototype’s property gets modified?</p>
+</div>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">obj</span><span class="w"> </span><span class="nv">propname</span><span class="w"> </span><span class="nv">val</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">p</span><span class="w"> </span><span class="p">(</span><span class="nf">lookup</span><span class="w"> </span><span class="nv">name</span><span class="w"> </span><span class="p">(</span><span class="nf">Obj-properties</span><span class="w"> </span><span class="nv">obj</span><span class="p">))])</span>
+<span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="nv">p</span>
+<span class="w">            </span><span class="p">(</span><span class="nf">set-Prop-value!</span><span class="w"> </span><span class="nv">p</span><span class="w"> </span><span class="nv">val</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="nf">set-Obj-properties!</span><span class="w"> </span><span class="nv">obj</span>
+<span class="w">                                 </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="p">(</span><span class="nf">Prop</span><span class="w"> </span><span class="nv">propname</span><span class="w"> </span><span class="nv">val</span><span class="w"> </span><span class="nv">empty</span><span class="p">)</span>
+<span class="w">                                       </span><span class="p">(</span><span class="nf">Obj-properties</span><span class="w"> </span><span class="nv">obj</span><span class="p">))))</span>
+<span class="w">        </span><span class="nv">obj</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The last major piece is the “message passing”. We’ll call this “send” and denote
+it using the <code class="code highlight racket docutils literal highlight-racket"><span class="n">!</span></code> symbol for brevity … and also to suggest that all message sends
+could potentially change state.</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">obj</span><span class="w"> </span><span class="nv">selector</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">methodfn</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">obj</span><span class="w"> </span><span class="nv">selector</span><span class="p">)])</span>
+<span class="w">        </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="nv">methodfn</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="nv">obj</span><span class="w"> </span><span class="nv">args</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>It is kind of amazing that we’ve covered nearly all of the object mechanism in Javascript
+at the foundation level now! What remains (and that’s not trivial still) is to build
+the object system around these primitives. We’ll need to establish many conventions along
+the way to make that happen and also “bootstrap” the object hierarchy.</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">make</span><span class="w"> </span><span class="nv">proto</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="nf">Obj</span><span class="w"> </span><span class="nv">empty</span><span class="w"> </span><span class="nv">proto</span><span class="p">))</span>
+
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">maker</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">obj</span><span class="w"> </span><span class="p">(</span><span class="nf">make</span><span class="w"> </span><span class="nv">maker</span><span class="p">)])</span>
+<span class="w">        </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="nv">!</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="nv">obj</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="ss">&#39;init</span><span class="w"> </span><span class="nv">args</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>The above <code class="code highlight racket docutils literal highlight-racket"><span class="k">new</span></code> procedure mimics what happens in the Javascript “new” operator
+which is used like <code class="docutils literal notranslate"><span class="pre">new</span> <span class="pre">Something(arg1,</span> <span class="pre">arg2,</span> <span class="pre">...)</span></code> to manufacture new objects
+from the given “constructor function” named <code class="docutils literal notranslate"><span class="pre">Something</span></code>. In essence, what it does
+is two steps -</p>
+<ol class="arabic simple">
+<li><p>Allocates space for the object, initializing its prototype chain.</p></li>
+<li><p>Calls its <code class="code highlight racket docutils literal highlight-racket"><span class="k">init</span></code> method with the given args.</p></li>
+</ol>
+<p>Our implementation of <code class="code highlight racket docutils literal highlight-racket"><span class="k">new</span></code> models both these steps explicitly – with the allocation
+step handled by <code class="code highlight racket docutils literal highlight-racket"><span class="n">make</span></code> and the initialization step by the <code class="code highlight racket docutils literal highlight-racket"><span class="o">&#39;</span><span class="ss">init</span></code> message send.</p>
+</section>
+<section id="creating-the-object-system">
+<h2>Creating the object system<a class="headerlink" href="#creating-the-object-system" title="Permalink to this heading">¶</a></h2>
+<p>With the foundations in place, we now need actual objects to use as prototypes
+when making new objects. We also need to live by our maxim that everything we do
+must be done by message passing after we’ve created the basic object system.</p>
+<p>To start with, we need to answer the question of what exists at the end of all
+prototype chains. Given an object, when you pick out its prototype and then its
+prototype and so on, where does that process end? In Javascript, that ends with the
+<code class="docutils literal notranslate"><span class="pre">Object</span></code> object.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Yeah. Terminology  in object oriented systems gets rather confusing
+to keep in head correctly. Objects may have classes and these classes may
+themselves be objects, and so on. We’ll spare ourselves that confusion for
+the moment as we work through this.</p>
+</div>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="nv">Object</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">O</span><span class="w"> </span><span class="p">(</span><span class="nf">make</span><span class="w"> </span><span class="no">#f</span><span class="p">)])</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set-Obj-prototype!</span><span class="w"> </span><span class="nv">O</span><span class="w"> </span><span class="nv">O</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">O</span><span class="w"> </span><span class="ss">&#39;proto</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span>
+<span class="w">                          </span><span class="p">(</span><span class="nf">Obj-prototype</span><span class="w"> </span><span class="nv">self</span><span class="p">)))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">O</span><span class="w"> </span><span class="ss">&#39;init</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span>
+<span class="w">                        </span><span class="nv">self</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">O</span><span class="w"> </span><span class="ss">&#39;display</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span>
+<span class="w">                            </span><span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="s">&quot;Object&quot;</span><span class="p">)))</span>
+<span class="w">        </span><span class="nv">O</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>What we’ve done here is a “bootstrapping” step. We’ve made an object bound to
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">Object</span></code> whose prototype is itself. We can now make all objects using
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">Object</span></code> as their prototypes. Note that we’ve endowed all objects with the
+ability to retrieve their “prototype” objects for reference anywhere we need it,
+and we can now do that within our object system using a message send.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While we’ve so far stuck to the Javascript object model of a
+prototype based object system, we deviate from that in the sections below in
+the interest of keeping our system minimal, and to also illustrate
+approaches used in other object systems such as Smalltalk which take the
+constraints of “everything is an object” and “everything happens via message
+passing” far more seriously than Javascript does. Javascript, in this sense,
+is closer to Scheme than it is to something like Self.</p>
+</div>
+<p>Let’s start with a simple one for the primitive entities we’ll need in our
+object system - numbers, strings, booleans and code blocks.</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="nv">Num</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">N</span><span class="w"> </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Object</span><span class="p">)])</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">N</span><span class="w"> </span><span class="ss">&#39;init</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">val</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="w"> </span><span class="nv">val</span><span class="p">)</span>
+<span class="w">                        </span><span class="nv">self</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">N</span><span class="w"> </span><span class="ss">&#39;display</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span>
+<span class="w">                            </span><span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">))</span>
+<span class="w">                            </span><span class="nv">self</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">N</span><span class="w"> </span><span class="ss">&#39;+</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">n</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)</span>
+<span class="w">                                </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">n</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)))))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">N</span><span class="w"> </span><span class="ss">&#39;*</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">n</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)</span>
+<span class="w">                                </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">n</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)))))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">N</span><span class="w"> </span><span class="ss">&#39;-</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">n</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)</span>
+<span class="w">                                </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">n</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)))))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">N</span><span class="w"> </span><span class="ss">&#39;/</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">n</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)</span>
+<span class="w">                                </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">n</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)))))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">N</span><span class="w"> </span><span class="ss">&#39;sqrt</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)))))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">N</span><span class="w"> </span><span class="ss">&#39;square</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span>
+<span class="w">                            </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">x</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)])</span>
+<span class="w">                                </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="nv">x</span><span class="p">)))))</span>
+<span class="w">        </span><span class="nv">N</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>In the above definition of <code class="code highlight racket docutils literal highlight-racket"><span class="n">Num</span></code>, which uses the <code class="code highlight racket docutils literal highlight-racket"><span class="n">Object</span></code>
+as its prototype, we use a convention that the <code class="code highlight racket docutils literal highlight-racket"><span class="n">_value</span></code> property
+stores a native Racket numeric value rather than an object – using the
+<code class="code highlight racket docutils literal highlight-racket"><span class="k">_</span></code> prefix to remind us of that. In general though, we want to stay
+within the object system, but we can do that only once we have the common
+primitive types we need for ordinary programming.</p>
+<p>Next up is booleans. It might look like we need to make an object named
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">Bool</span></code> or something which has some properties. However, that isn’t
+of much use since we need to consider what we need to be able to do with
+booleans – i.e. implement conditionals. So similar to how we modeled
+booleans in lambda calculus as selector functions, we can define two new
+prototypes for <code class="code highlight racket docutils literal highlight-racket"><span class="n">True</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">False</span></code> that will serve as the boolean
+values in our system.</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="nv">True</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">T</span><span class="w"> </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Object</span><span class="p">)])</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">T</span><span class="w"> </span><span class="ss">&#39;and</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">b</span><span class="p">)</span><span class="w"> </span><span class="nv">b</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">T</span><span class="w"> </span><span class="ss">&#39;or</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">b</span><span class="p">)</span><span class="w"> </span><span class="nv">True</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">T</span><span class="w"> </span><span class="ss">&#39;not</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span><span class="w"> </span><span class="nv">False</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">T</span><span class="w"> </span><span class="ss">&#39;display</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="s">&quot;True&quot;</span><span class="p">)</span><span class="w"> </span><span class="nv">self</span><span class="p">))</span>
+<span class="w">        </span><span class="nv">T</span><span class="p">))</span>
+
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="nv">False</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">F</span><span class="w"> </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Object</span><span class="p">)])</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">F</span><span class="w"> </span><span class="ss">&#39;and</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">b</span><span class="p">)</span><span class="w"> </span><span class="nv">False</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">F</span><span class="w"> </span><span class="ss">&#39;or</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">b</span><span class="p">)</span><span class="w"> </span><span class="nv">b</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">F</span><span class="w"> </span><span class="ss">&#39;not</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span><span class="w"> </span><span class="nv">True</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">F</span><span class="w"> </span><span class="ss">&#39;display</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="s">&quot;False&quot;</span><span class="p">)</span><span class="w"> </span><span class="nv">self</span><span class="p">))</span>
+<span class="w">        </span><span class="nv">F</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We also need a way to encapsulate blocks of code as objects. We have a choice
+at hand – we can either express such a block of code as a data structure that
+is wrapped as an object, or we can fall back on an ordinary Racket function
+wrapped as an object. Since you already know how to design such a “code as data
+structure” and implement such an interpreter for it, we’ll take the latter
+simpler route. So what can we do with a block? We can “execute” it. By that, we
+mean we’ll take the Racket function stored as the “block“‘s value and call it
+with some arguments. Under normal circumstances, an ordinary Racket function
+will do, but in this case, we’ll need the ability to do premature returns from
+our code blocks, because we may have blocks within blocks and the return path
+could be non-linear. To meet that, we need to pass an explicit <code class="code highlight racket docutils literal highlight-racket"><span class="n">return</span></code>
+argument to the function when invoking it so that such premature returns can be
+done. We know how to construct such a <code class="code highlight racket docutils literal highlight-racket"><span class="n">return</span></code> argument – we use
+<code class="code highlight racket docutils literal highlight-racket"><span class="nb">call/cc</span></code>.</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="nv">Block</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">B</span><span class="w"> </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Object</span><span class="p">)])</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">B</span><span class="w"> </span><span class="ss">&#39;init</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">fn</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="w"> </span><span class="nv">fn</span><span class="p">)</span>
+<span class="w">                        </span><span class="nv">self</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">B</span><span class="w"> </span><span class="ss">&#39;display</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="s">&quot;Block&quot;</span><span class="p">)</span><span class="w"> </span><span class="nv">self</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">B</span><span class="w"> </span><span class="ss">&#39;exec</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">(</span><span class="nb">call/cc</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">return</span><span class="p">)</span>
+<span class="w">                                    </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)</span>
+<span class="w">                                           </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="nv">return</span><span class="w"> </span><span class="nv">args</span><span class="p">))))))</span>
+<span class="w">        </span><span class="nv">B</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="conditional-execution">
+<h2>Conditional execution<a class="headerlink" href="#conditional-execution" title="Permalink to this heading">¶</a></h2>
+<p>All that is fine, but how do we do things like <code class="code highlight racket docutils literal highlight-racket"><span class="k">if</span></code> or equivalently
+<code class="code highlight racket docutils literal highlight-racket"><span class="k">cond</span></code> within our object system without again resorting to Racket
+Blocks give us immense flexibilty there and we can maybe think of putting
+<code class="code highlight racket docutils literal highlight-racket"><span class="k">if</span></code> expressions within these blocks, but that would be cheating.
+We’d be relying too much on Racket’s facilities and not really making our
+point that we can do everything we need to within our object system.</p>
+<p>Indeed, this is possible with the way we’ve define <code class="code highlight racket docutils literal highlight-racket"><span class="n">Block</span></code> and our
+booleans. We need to add new methods to them.</p>
+<p>To execute a block conditional on a boolean value, we’ll send an <code class="code highlight racket docutils literal highlight-racket"><span class="n">if-true</span></code>
+message to the boolean object passing a block as argument. If the message is
+sent to <code class="code highlight racket docutils literal highlight-racket"><span class="n">True</span></code>, the block should be evaluated, but if it is sent to
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">False</span></code>, ir shouldn’t be.</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">True</span><span class="w"> </span><span class="ss">&#39;if-true</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">block</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">block</span><span class="w"> </span><span class="ss">&#39;exec</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">True</span><span class="w"> </span><span class="ss">&#39;if-false</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">block</span><span class="p">)</span><span class="w"> </span><span class="nv">self</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">True</span><span class="w"> </span><span class="ss">&#39;ifelse</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">trueblock</span><span class="w"> </span><span class="nv">falseblock</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">trueblock</span><span class="w"> </span><span class="ss">&#39;exec</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">False</span><span class="w"> </span><span class="ss">&#39;if-true</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">block</span><span class="p">)</span><span class="w"> </span><span class="nv">self</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">False</span><span class="w"> </span><span class="ss">&#39;if-false</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">block</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">block</span><span class="w"> </span><span class="ss">&#39;exec</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">False</span><span class="w"> </span><span class="ss">&#39;ifelse</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">trueblock</span><span class="w"> </span><span class="nv">falseblock</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">falseblock</span><span class="w"> </span><span class="ss">&#39;exec</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>So now, if we have a boolean value (i.e. <code class="code highlight racket docutils literal highlight-racket"><span class="n">True</span></code> or <code class="code highlight racket docutils literal highlight-racket"><span class="n">False</span></code>) bound to an
+identifier <code class="code highlight racket docutils literal highlight-racket"><span class="n">c</span></code> and we wish to execute a block <code class="code highlight racket docutils literal highlight-racket"><span class="n">blk</span></code> depending on whether
+the boolean is true, all we need to do is <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">!</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">if-true</span><span class="w"> </span><span class="n">blk</span><span class="p">)</span></code>.</p>
+</section>
+<section id="loops">
+<h2>Loops<a class="headerlink" href="#loops" title="Permalink to this heading">¶</a></h2>
+<p>Now that we have blocks that know how to execute themselves and produce object
+results, we can use this framework to implement a while loop like this –</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">condblock</span><span class="w"> </span><span class="ss">&#39;while-true</span><span class="w"> </span><span class="nv">bodyblock</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>… in which we expect the <code class="code highlight racket docutils literal highlight-racket"><span class="n">condblock</span></code> to be evaluated repeatedly and
+as long as it is true, we’ll continue to execute <code class="code highlight racket docutils literal highlight-racket"><span class="n">bodyblock</span></code>. This is
+simple to implement as a feature of the <code class="code highlight racket docutils literal highlight-racket"><span class="n">Block</span></code> object.</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">Block</span><span class="w"> </span><span class="ss">&#39;while-true</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">body</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">c</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;exec</span><span class="p">)])</span>
+<span class="w">            </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">c</span><span class="w"> </span><span class="ss">&#39;if-true</span><span class="w"> </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Block</span>
+<span class="w">                            </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">return</span><span class="p">)</span>
+<span class="w">                                </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">body</span><span class="w"> </span><span class="ss">&#39;exec</span><span class="p">)</span>
+<span class="w">                                </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;while-true</span><span class="w"> </span><span class="nv">body</span><span class="p">)))))))</span>
+</pre></div>
+</div>
+<p>Granted, this is pretty inefficient, creating a new <code class="code highlight racket docutils literal highlight-racket"><span class="n">Block</span></code> object
+for every loop iteration, but we put up with that to stay true to our
+commitment of doing everything with objects and message passing.</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="ss">&#39;&lt;</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">n</span><span class="p">)</span>
+<span class="w">                </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">&lt;</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">n</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">))</span>
+<span class="w">                    </span><span class="nv">True</span>
+<span class="w">                    </span><span class="nv">False</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="ss">&#39;=</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">n</span><span class="p">)</span>
+<span class="w">                </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">equal?</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">n</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">))</span>
+<span class="w">                    </span><span class="nv">True</span>
+<span class="w">                    </span><span class="nv">False</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="ss">&#39;&lt;=</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">n</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;&lt;</span><span class="w"> </span><span class="nv">n</span><span class="p">)</span><span class="w"> </span><span class="ss">&#39;or</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;=</span><span class="w"> </span><span class="nv">n</span><span class="p">))))</span>
+<span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="ss">&#39;&gt;=</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">n</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;&lt;</span><span class="w"> </span><span class="nv">n</span><span class="p">)</span><span class="w"> </span><span class="ss">&#39;not</span><span class="p">)))</span>
+<span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="ss">&#39;succ</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)</span><span class="w"> </span><span class="mi">1</span><span class="p">))))</span>
+<span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="ss">&#39;pred</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)</span><span class="w"> </span><span class="mi">1</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="ss">&#39;times-do</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">block</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span>
+<span class="w">           </span><span class="ss">&#39;if-true</span>
+<span class="w">           </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Block</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">return</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">block</span><span class="w"> </span><span class="ss">&#39;exec</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;pred</span><span class="p">)</span><span class="w"> </span><span class="ss">&#39;times-do</span><span class="w"> </span><span class="nv">block</span><span class="p">))))))</span>
+</pre></div>
+</div>
+<p>You can now see how the whole system can start working together
+and how to create the other “primitive” object types we’ll need
+for regular programming such as strings.</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="nv">String</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">S</span><span class="w"> </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Object</span><span class="p">)])</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">S</span><span class="w"> </span><span class="ss">&#39;init</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">str</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="w"> </span><span class="nv">str</span><span class="p">)</span>
+<span class="w">                        </span><span class="nv">self</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">S</span><span class="w"> </span><span class="ss">&#39;display</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span>
+<span class="w">                            </span><span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">))))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">S</span><span class="w"> </span><span class="ss">&#39;concat</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">str</span><span class="p">)</span>
+<span class="w">                            </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">String</span><span class="w"> </span><span class="p">(</span><span class="nb">string-append</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)</span>
+<span class="w">                                                       </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">str</span><span class="w"> </span><span class="ss">&#39;_value</span><span class="p">)))))</span>
+
+<span class="w">        </span><span class="c1">; Add your own methods too.</span>
+<span class="w">        </span><span class="nv">S</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Let’s now define an aggregate object called <code class="code highlight racket docutils literal highlight-racket"><span class="n">Point</span></code> that holds two
+numbers – the x/y coordinates of the point – as an illustration./</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="nv">Point</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">P</span><span class="w"> </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Object</span><span class="p">)])</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">P</span><span class="w"> </span><span class="ss">&#39;init</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">x</span><span class="w"> </span><span class="nv">y</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;x</span><span class="w"> </span><span class="nv">x</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;y</span><span class="w"> </span><span class="nv">y</span><span class="p">)</span>
+<span class="w">                        </span><span class="nv">self</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">P</span><span class="w"> </span><span class="ss">&#39;dist</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">p</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;x</span><span class="p">)</span><span class="w"> </span><span class="ss">&#39;-</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">p</span><span class="w"> </span><span class="ss">&#39;x</span><span class="p">))</span><span class="w"> </span><span class="ss">&#39;square</span><span class="p">)</span>
+<span class="w">                              </span><span class="ss">&#39;+</span>
+<span class="w">                              </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;y</span><span class="p">)</span><span class="w"> </span><span class="ss">&#39;-</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">p</span><span class="w"> </span><span class="ss">&#39;y</span><span class="p">))</span><span class="w"> </span><span class="ss">&#39;square</span><span class="p">))</span>
+<span class="w">                            </span><span class="ss">&#39;sqrt</span><span class="p">)))</span>
+<span class="w">        </span><span class="nv">P</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Note that the <code class="code highlight racket docutils literal highlight-racket"><span class="n">x</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">y</span></code> properties are expected to hold <strong>objects</strong>
+and not Racket primitive numbers. We can finally live within our object system!
+We’ll now extend the functionality provided by <code class="code highlight racket docutils literal highlight-racket"><span class="n">Point</span></code> to make a mathematical
+“vector” that knows how to calculate its own length.</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="nv">Vec</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">V</span><span class="w"> </span><span class="p">(</span><span class="nf">make</span><span class="w"> </span><span class="nv">Point</span><span class="p">)])</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">V</span><span class="w"> </span><span class="ss">&#39;length</span>
+<span class="w">            </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span>
+<span class="w">                </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;x</span><span class="p">)</span><span class="w"> </span><span class="ss">&#39;square</span><span class="p">)</span>
+<span class="w">                      </span><span class="ss">&#39;+</span>
+<span class="w">                      </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">get</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;y</span><span class="p">)</span><span class="w"> </span><span class="ss">&#39;square</span><span class="p">))</span>
+<span class="w">                   </span><span class="ss">&#39;sqrt</span><span class="p">)))</span>
+<span class="w">        </span><span class="nv">V</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Now we can do <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">!</span><span class="w"> </span><span class="p">(</span><span class="n">!</span><span class="w"> </span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Vec</span><span class="w"> </span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Num</span><span class="w"> </span><span class="mf">3.0</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Num</span><span class="w"> </span><span class="mf">4.0</span><span class="p">))</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">length</span><span class="p">)</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">display</span><span class="p">)</span></code> to get
+<code class="code highlight racket docutils literal highlight-racket"><span class="mf">5.0</span></code> printed out. We could’ve also defined the <code class="code highlight racket docutils literal highlight-racket"><span class="n">Vec</span></code> like this –</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="nv">Vec</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="nv">V</span><span class="w"> </span><span class="p">(</span><span class="nf">make</span><span class="w"> </span><span class="nv">Point</span><span class="p">)])</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">V</span><span class="w"> </span><span class="ss">&#39;length</span>
+<span class="w">            </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="p">)</span>
+<span class="w">                </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;dist</span><span class="w"> </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Vec</span><span class="w"> </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="mf">0.0</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="mf">0.0</span><span class="p">)))))</span>
+<span class="w">        </span><span class="nv">V</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="observations">
+<h2>Observations<a class="headerlink" href="#observations" title="Permalink to this heading">¶</a></h2>
+<ol class="arabic">
+<li><p>Note that we’ve augmented the various core classes with new functionality
+<strong>after</strong> we created them. This means any object created that uses one of
+these objects as its prototype will automatically “inherit” the newly added
+functionality. Not all object systems permit this kind of extension, but
+all prototype-based object systems do.</p></li>
+<li><p>Taking the example of the <code class="code highlight racket docutils literal highlight-racket"><span class="o">&#39;</span><span class="ss">times-do</span></code> method, we see that we could’ve
+also defined that as a method on a <code class="code highlight racket docutils literal highlight-racket"><span class="n">Block</span></code> object like shown below –</p>
+<blockquote>
+<div><div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">Block</span><span class="w"> </span><span class="ss">&#39;times-do</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">self</span><span class="w"> </span><span class="nv">num</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">num</span><span class="w"> </span><span class="ss">&#39;&gt;</span><span class="w"> </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Num</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span>
+<span class="w">           </span><span class="ss">&#39;if-true</span>
+<span class="w">           </span><span class="p">(</span><span class="nf">new</span><span class="w"> </span><span class="nv">Block</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="nf">return</span><span class="p">)</span>
+<span class="w">                         </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;exec</span><span class="p">)</span>
+<span class="w">                         </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">self</span><span class="w"> </span><span class="ss">&#39;times-do</span><span class="w"> </span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">num</span><span class="w"> </span><span class="ss">&#39;pred</span><span class="p">)))))))</span>
+</pre></div>
+</div>
+<p>How do we decide which of the two approaches to take, from a designer’s
+perspective?</p>
+<p>This is one of the issues that plagues <strong>all</strong> “object oriented” systems.
+Since we can only choose a method based on one selector, we’re <strong>forced</strong>
+to make a choice about which object to place the method implementation for
+that selector in, even if there is no such clear choice suggested by the
+domain. In this sense, object systems create some artificial asymmetries in
+theory. However, in practice, it turns out you can do a lot even given this
+ambiguity and as long as the methods are documented well, programmers don’t
+have much trouble using the object system.</p>
+<p>In the case of <code class="code highlight racket docutils literal highlight-racket"><span class="n">times-do</span></code> however, the language suggests a message
+structure like <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">!</span><span class="w"> </span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Num</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">times-do</span><span class="w"> </span><span class="n">...block...</span><span class="p">)</span></code>.</p>
+</div></blockquote>
+</li>
+<li><p>Since we now have the ability to make new objects using an existing object
+as its “recipe” (as embodied in the implementation of the <code class="code highlight racket docutils literal highlight-racket"><span class="o">&#39;</span><span class="ss">init</span></code>
+method), these base objects such as <code class="code highlight racket docutils literal highlight-racket"><span class="n">Num</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">True</span></code> could be
+called “classes”.</p></li>
+<li><p>It is a useful exercise to try and redo the above code in <code class="code highlight racket docutils literal highlight-racket"><span class="kn">#lang </span><span class="nn">typed/racket</span></code>.
+That way, you can use the Racket type system to enforce our constraints of
+“everything is an object” and “everything happens through message passing”
+that we imposed on ourselves. Well, it is hard to do the latter thoroughly,
+but it is still worth the effort to clarify the object system built above.
+You’ll have to carefully maintain a separation between the object system and
+Racket-primitive values, unlike what we’ve assumed we can do here.</p>
+<blockquote>
+<div><div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong>:</p>
+<p>Reimplement this object system using <code class="code highlight racket docutils literal highlight-racket"><span class="kn">#lang </span><span class="nn">typed/racket</span></code>.</p>
+</div>
+</div></blockquote>
+</li>
+<li><p>If you looked carefully at our <code class="code highlight racket docutils literal highlight-racket"><span class="n">Vec</span></code>, you’ll notice that the second
+implementation of <code class="code highlight racket docutils literal highlight-racket"><span class="nb">length</span></code> method makes use of the fact that both
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">Vec</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">Point</span></code> have the coordinates available in the <code class="code highlight racket docutils literal highlight-racket"><span class="n">x</span></code>
+and <code class="code highlight racket docutils literal highlight-racket"><span class="n">y</span></code> fields to borrow the <code class="code highlight racket docutils literal highlight-racket"><span class="n">dist</span></code> implementation to calculate
+<code class="code highlight racket docutils literal highlight-racket"><span class="nb">length</span></code>. i.e. a <code class="code highlight racket docutils literal highlight-racket"><span class="n">Vec</span></code> is usable as a <code class="code highlight racket docutils literal highlight-racket"><span class="n">Point</span></code> because both
+have similar properties. This is referred to in some languages (such as
+Ruby) as “duck typing” – taken from “if it looks like a duck and quacks
+like a duck, it <strong>is</strong> a duck”.</p></li>
+</ol>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Comp308: Principles of Programming Languages</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
+<li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="church.html">Lambda - via β-abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notional-machine.html">Notional machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun.html">Functions and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stacks-and-scope.html">Stacks and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun-in-piclang.html">Functions in PicLang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mutations.html">Mutations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="control.html">Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="errornot.html">On the choice between “error” and “do something reasonable” in design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="objects.html">Objects</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Objects - the Self way</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prototypes-versus-classes">Prototypes versus classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-are-objects-in-javascript">What are objects in Javascript?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-basic-structure-of-objects">The basic structure of objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-the-object-system">Creating the object system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conditional-execution">Conditional execution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loops">Loops</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#observations">Observations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appsem.html">Alternative application semantics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="types.html">Types: Checking some program invariants statically</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="objects.html" title="previous chapter">Objects</a></li>
+      <li>Next: <a href="generators.html" title="next chapter">Generators</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2022, Srikumar K. S..
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/objects-self.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

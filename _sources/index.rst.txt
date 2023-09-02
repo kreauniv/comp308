@@ -25,6 +25,7 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    control
    errornot 
    objects
+   objects-self
    generators
    appsem
    types

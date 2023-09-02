@@ -1,17 +1,16 @@
-
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>Types: Checking some program invariants statically &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=cb25574f" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b30c7235"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Alternative application semantics" href="appsem.html" />
@@ -31,8 +30,8 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="types-checking-some-program-invariants-statically">
-<h1>Types: Checking some program invariants statically<a class="headerlink" href="#types-checking-some-program-invariants-statically" title="Permalink to this headline">¶</a></h1>
+  <section id="types-checking-some-program-invariants-statically">
+<h1>Types: Checking some program invariants statically<a class="headerlink" href="#types-checking-some-program-invariants-statically" title="Permalink to this heading">¶</a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This section was written after the fact. We did types in class but
@@ -46,8 +45,8 @@ of our programs that can be checked before we run them. We’ll use
 Prolog here because it simplifies the discussion. We’ll also restrict
 ourselves to talking about the “arithmetic expressions” language and
 leave extensions to your own efforts.</p>
-<div class="section" id="pure-arithmetic-expressions">
-<h2>Pure arithmetic expressions<a class="headerlink" href="#pure-arithmetic-expressions" title="Permalink to this headline">¶</a></h2>
+<section id="pure-arithmetic-expressions">
+<h2>Pure arithmetic expressions<a class="headerlink" href="#pure-arithmetic-expressions" title="Permalink to this heading">¶</a></h2>
 <p>First off, if we only talk about arithmetic expressions sans function
 application, there is little for us to check, since every expression
 we can compose using our <code class="code docutils literal notranslate"><span class="pre">add</span></code>, <code class="code docutils literal notranslate"><span class="pre">sub</span></code> and <code class="code docutils literal notranslate"><span class="pre">mul</span></code> operations
@@ -95,9 +94,9 @@ indistinguishable and can be replaced by a common predicate –</p>
 and <code class="code docutils literal notranslate"><span class="pre">B</span></code> terms must evaluate to numbers.</p>
 </li>
 </ol>
-</div>
-<div class="section" id="when-we-introduce-functions">
-<h2>When we introduce functions<a class="headerlink" href="#when-we-introduce-functions" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="when-we-introduce-functions">
+<h2>When we introduce functions<a class="headerlink" href="#when-we-introduce-functions" title="Permalink to this heading">¶</a></h2>
 <p>Things get interesting when we introduce functions and function
 application in our language. As we know, this adds three new terms
 to our language –</p>
@@ -165,9 +164,9 @@ our identifiers to <strong>type</strong> terms in contrast to using the
 environment to bind identifiers to values when we interpret the
 expression.</p></li>
 </ol>
-</div>
-<div class="section" id="typing-conditional-expressions">
-<h2>Typing conditional expressions<a class="headerlink" href="#typing-conditional-expressions" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="typing-conditional-expressions">
+<h2>Typing conditional expressions<a class="headerlink" href="#typing-conditional-expressions" title="Permalink to this heading">¶</a></h2>
 <p>When we introduce booleans, comparisons and conditionals into our
 language, our type system needs to correspondingly grow.</p>
 <div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">exprtype</span><span class="p">(</span><span class="k">_</span><span class="p">,</span> <span class="s s-Atom">true</span><span class="p">,</span> <span class="s s-Atom">bool</span><span class="p">).</span>
@@ -214,9 +213,9 @@ we’ll take the simpler route here initially until we understand more.</p>
     <span class="nf">exprtype</span><span class="p">(</span><span class="nv">Env</span><span class="p">,</span> <span class="nv">Else</span><span class="p">,</span> <span class="nv">Ty</span><span class="p">).</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="recursive-functions">
-<h2>Recursive functions<a class="headerlink" href="#recursive-functions" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="recursive-functions">
+<h2>Recursive functions<a class="headerlink" href="#recursive-functions" title="Permalink to this heading">¶</a></h2>
 <p>Consider the expression –</p>
 <div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="nf">apply</span><span class="p">(</span><span class="nf">fun</span><span class="p">(</span><span class="s s-Atom">x</span><span class="p">,</span> <span class="nv">XTy1</span><span class="p">,</span> <span class="nf">apply</span><span class="p">(</span><span class="nf">id</span><span class="p">(</span><span class="s s-Atom">x</span><span class="p">),</span> <span class="nf">id</span><span class="p">(</span><span class="s s-Atom">x</span><span class="p">)),</span> <span class="nv">BTy1</span><span class="p">),</span> <span class="nf">fun</span><span class="p">(</span><span class="s s-Atom">x</span><span class="p">,</span> <span class="nv">XTy2</span><span class="p">,</span> <span class="nf">apply</span><span class="p">(</span><span class="nf">id</span><span class="p">(</span><span class="s s-Atom">x</span><span class="p">),</span> <span class="nf">id</span><span class="p">(</span><span class="s s-Atom">x</span><span class="p">)),</span> <span class="nv">BTy2</span><span class="p">))</span>
 </pre></div>
@@ -277,9 +276,9 @@ the recursive function may refer to the function itself by name.</p>
 <p>This is certainly not a general notion of recursion, but is useful enough for
 many cases such as looping and we’re now not relying on Prolog’s ability
 to solve that recursive unification for us.</p>
-</div>
-<div class="section" id="types-and-mutation">
-<h2>Types and mutation<a class="headerlink" href="#types-and-mutation" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="types-and-mutation">
+<h2>Types and mutation<a class="headerlink" href="#types-and-mutation" title="Permalink to this heading">¶</a></h2>
 <p>Introducing sequenced computation in our language and a corresponding notion
 of “mutation of variables” would introduce an additional complexity to
 our type system.</p>
@@ -293,9 +292,9 @@ different branches of a conditional.</p>
 <p>A simple way this is resolved in statically typed languages is to say that an
 identifier has to have a fixed type in its scope and therefore cause the above
 sequencing operation to fail the type check.</p>
-</div>
-<div class="section" id="type-soundness">
-<h2>Type soundness<a class="headerlink" href="#type-soundness" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="type-soundness">
+<h2>Type soundness<a class="headerlink" href="#type-soundness" title="Permalink to this heading">¶</a></h2>
 <p>Our type checker predicate <code class="code docutils literal notranslate"><span class="pre">exprtype</span></code> is making a prediction about what
 will happen when we run our program on actual values. How do we know this
 function does not lie? – i.e. how do we know that if our type checker tells us
@@ -321,9 +320,9 @@ assumption about a set of known exceptional conditions that can occur, such as
 program non-termination, runtime check failures and such. Therefore soundness
 goes along with consideration for such exceptional conditions that a programmer
 needs to accept can occur.</p>
-</div>
-<div class="section" id="a-taste-of-type-inference">
-<h2>A taste of type inference<a class="headerlink" href="#a-taste-of-type-inference" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="a-taste-of-type-inference">
+<h2>A taste of type inference<a class="headerlink" href="#a-taste-of-type-inference" title="Permalink to this heading">¶</a></h2>
 <p>So far, in our language, we’ve given the types of arguments and results of
 our functions explicitly and checked these against usage. Specifying types
 explicitly like this is good discipline, but we can let the computer do much
@@ -386,9 +385,9 @@ Where can such a type inference fail? Is it possible for more than one
 solution to the goal search to turn up? How and when? Would this goal
 search process terminate always?</p>
 </div>
-</div>
-<div class="section" id="parametric-polymorphism">
-<h2>Parametric polymorphism<a class="headerlink" href="#parametric-polymorphism" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="parametric-polymorphism">
+<h2>Parametric polymorphism<a class="headerlink" href="#parametric-polymorphism" title="Permalink to this heading">¶</a></h2>
 <p>Consider a function that always evaluates to the number <code class="code docutils literal notranslate"><span class="pre">42</span></code> in our language.
 We could write such a function as <code class="code docutils literal notranslate"><span class="pre">fun(x,</span> <span class="pre">num,</span> <span class="pre">num(42),</span> <span class="pre">num)</span></code>. However,
 since it is a “constant”, we don’t really care about the type of the argument.
@@ -403,15 +402,15 @@ functions like <code class="code docutils literal notranslate"><span class="pre"
 a sequence without caring about what specific type they are, as long as some
 structural constraints are met. For <code class="code docutils literal notranslate"><span class="pre">map</span></code>, for example, we say that
 it has the type -</p>
-<div class="highlight-haskell notranslate"><div class="highlight"><pre><span></span><span class="nf">map</span> <span class="ow">::</span> <span class="p">(</span><span class="n">a</span> <span class="ow">-&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="ow">-&gt;</span> <span class="kt">Listof</span> <span class="n">a</span> <span class="ow">-&gt;</span> <span class="kt">Listof</span> <span class="n">b</span>
+<div class="highlight-haskell notranslate"><div class="highlight"><pre><span></span><span class="nf">map</span><span class="w"> </span><span class="ow">::</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="ow">-&gt;</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="ow">-&gt;</span><span class="w"> </span><span class="kt">Listof</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="ow">-&gt;</span><span class="w"> </span><span class="kt">Listof</span><span class="w"> </span><span class="n">b</span>
 </pre></div>
 </div>
 <p>… where <code class="code docutils literal notranslate"><span class="pre">a</span></code> and <code class="code docutils literal notranslate"><span class="pre">b</span></code> are “type variables”. Parametric polymorphism
 combined with type inference can be a very powerful way to check correctness of
 our programs and makes for a rich language.</p>
 <p>… to be continued …</p>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -430,7 +429,7 @@ our programs and makes for a rich language.</p>
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
@@ -445,6 +444,7 @@ our programs and makes for a rich language.</p>
 <li class="toctree-l1"><a class="reference internal" href="fun-in-piclang.html">Functions in PicLang</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mutations.html">Mutations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="control.html">Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="errornot.html">On the choice between “error” and “do something reasonable” in design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="objects.html">Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appsem.html">Alternative application semantics</a></li>
@@ -473,12 +473,12 @@ our programs and makes for a rich language.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -495,7 +495,7 @@ our programs and makes for a rich language.</p>
       &copy;2022, Srikumar K. S..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

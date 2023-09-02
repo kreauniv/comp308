@@ -1,17 +1,16 @@
-
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>Functions in PicLang &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=cb25574f" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b30c7235"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Mutations" href="mutations.html" />
@@ -32,9 +31,9 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="functions-in-piclang">
-<h1>Functions in PicLang<a class="headerlink" href="#functions-in-piclang" title="Permalink to this headline">¶</a></h1>
-<p>Having seen how to implement proper lexical scoping in our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code>
+  <section id="functions-in-piclang">
+<h1>Functions in PicLang<a class="headerlink" href="#functions-in-piclang" title="Permalink to this heading">¶</a></h1>
+<p>Having seen how to implement proper lexical scoping in our <code class="code highlight racket docutils literal highlight-racket"><span class="n">stack-machine</span></code>
 in the section <a class="reference internal" href="stacks-and-scope.html"><span class="doc">Stacks and scope</span></a>, we’re now well placed to do that within
 our expression interpreter for PicLang.</p>
 <p>We’re going to need corresponding notions of “blocks” in this language
@@ -42,48 +41,48 @@ and the notion of “do” as well. We’ll also have to have our interpreter
 keep track of bindings as we go along, so we can eliminate the whole
 substitution process and replace it with a single pass interpreter that
 does effectively the same (and correctly).</p>
-<p>We’ll call the equivalent of a “block” a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> in PicLang, defined
+<p>We’ll call the equivalent of a “block” a <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunC</span></code> in PicLang, defined
 as below –</p>
-<div class="highlight-racket notranslate" id="index-0"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">FunC</span> <span class="p">(</span><span class="n">argname</span> <span class="n">expr</span><span class="p">))</span>
+<div class="highlight-racket notranslate" id="index-0"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">FunC</span><span class="w"> </span><span class="p">(</span><span class="n">argname</span><span class="w"> </span><span class="n">expr</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>We’ll call the equivalent of the <code class="code highlight racket docutils literal notranslate"><span class="keyword"><span class="pre">do</span></span></code> instruction <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> here.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="p">(</span><span class="n">ApplyC</span> <span class="p">(</span><span class="n">funexpr</span> <span class="n">valexpr</span><span class="p">)))</span>
+<p>We’ll call the equivalent of the <code class="code highlight racket docutils literal highlight-racket"><span class="k">do</span></code> instruction <code class="code highlight racket docutils literal highlight-racket"><span class="n">ApplyC</span></code> here.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="p">(</span><span class="n">ApplyC</span><span class="w"> </span><span class="p">(</span><span class="n">funexpr</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)))</span>
 </pre></div>
 </div>
-<p>An important thing to note is that we’re now considering <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> and
-<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> terms to be valid <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">PicExprC</span></span></code> terms. While we can expect
-<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> to produce pictures, evaluating <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> clearly does not
-produce a picture. Just as the <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">block</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">def</span></span> <span class="name"><span class="pre">x</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="keyword"><span class="pre">…</span></span><span class="punctuation"><span class="pre">)</span></span></code> instruction produces
-a <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">Block</span></span></code> object on the stack in our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stack-machine</span></span></code>, we’ll take a
-<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> expression to produce a … “function value”.</p>
-<p>This means we need to expand the notion of what our PicLang <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">interpret</span></span></code>
+<p>An important thing to note is that we’re now considering <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunC</span></code> and
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">ApplyC</span></code> terms to be valid <code class="code highlight racket docutils literal highlight-racket"><span class="n">PicExprC</span></code> terms. While we can expect
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">ApplyC</span></code> to produce pictures, evaluating <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunC</span></code> clearly does not
+produce a picture. Just as the <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">block</span><span class="w"> </span><span class="p">(</span><span class="n">def</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="k">...</span><span class="p">)</span></code> instruction produces
+a <code class="code highlight racket docutils literal highlight-racket"><span class="n">Block</span></code> object on the stack in our <code class="code highlight racket docutils literal highlight-racket"><span class="n">stack-machine</span></code>, we’ll take a
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">FunC</span></code> expression to produce a … “function value”.</p>
+<p>This means we need to expand the notion of what our PicLang <code class="code highlight racket docutils literal highlight-racket"><span class="n">interpret</span></code>
 function can return to include such function values. Incidentally, we’ve now
-expanded the scope of what <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> can produce to include function values
+expanded the scope of what <code class="code highlight racket docutils literal highlight-racket"><span class="n">ApplyC</span></code> can produce to include function values
 too. In other words, we’ve in two strokes admitted first class functions into
 our language!</p>
-<p>We’ll now formalize the return type of <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">interp</span></span></code> using a type
-consisting of a set of “value terms” - denoted by the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">V</span></span></code> suffix.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span> <span class="n">PicV</span> <span class="p">(</span><span class="n">pic</span><span class="p">))</span>
-<span class="p">(</span><span class="k">struct</span> <span class="n">FunV</span> <span class="p">(</span><span class="n">argname</span> <span class="n">bindings</span> <span class="n">expr</span><span class="p">))</span>
+<p>We’ll now formalize the return type of <code class="code highlight racket docutils literal highlight-racket"><span class="n">interp</span></code> using a type
+consisting of a set of “value terms” - denoted by the <code class="code highlight racket docutils literal highlight-racket"><span class="n">V</span></code> suffix.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">PicV</span><span class="w"> </span><span class="p">(</span><span class="n">pic</span><span class="p">))</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">FunV</span><span class="w"> </span><span class="p">(</span><span class="n">argname</span><span class="w"> </span><span class="n">bindings</span><span class="w"> </span><span class="n">expr</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="section" id="no-more-subst">
-<h2>No more subst<a class="headerlink" href="#no-more-subst" title="Permalink to this headline">¶</a></h2>
+<section id="no-more-subst">
+<h2>No more subst<a class="headerlink" href="#no-more-subst" title="Permalink to this heading">¶</a></h2>
 <p id="index-1">Next comes a very important change to the interpreter. The substitution process
 walks the expression tree once and then our interpreter does it again. These
 two are also tied by the fact that they both use the same expression tree
 structure (i.e. the “abstract syntax tree”).</p>
-<p>The only job of the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">subst</span></span></code> function was to replace the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">IdC</span></span></code> terms
+<p>The only job of the <code class="code highlight racket docutils literal highlight-racket"><span class="n">subst</span></code> function was to replace the <code class="code highlight racket docutils literal highlight-racket"><span class="n">IdC</span></code> terms
 with their corresponding values. So if we’re keeping track of “current
 bindings” as we’re evaluating a (sub) expression, then we no longer need a
-separate <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">subst</span></span></code> function. Our interpreter can do that job on its own,
-since it can lookup the value that is expected to go in the <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">IdC</span></span> <span class="name"><span class="pre">sym</span></span><span class="punctuation"><span class="pre">)</span></span></code>
+separate <code class="code highlight racket docutils literal highlight-racket"><span class="n">subst</span></code> function. Our interpreter can do that job on its own,
+since it can lookup the value that is expected to go in the <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">IdC</span><span class="w"> </span><span class="n">sym</span><span class="p">)</span></code>
 term’s place and treat that as the result of “interpreting” that term. This
 would effectively perform a “substitution”.</p>
-</div>
-<div class="section" id="interpreter-with-bindings">
-<h2>Interpreter with bindings<a class="headerlink" href="#interpreter-with-bindings" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="interpreter-with-bindings">
+<h2>Interpreter with bindings<a class="headerlink" href="#interpreter-with-bindings" title="Permalink to this heading">¶</a></h2>
 <p>What we’ve been loosely calling a “set of bindings” where “binding” refers to a
 name-value pair association has a name – the “environment”. We need some
 practice to translate “environment” in our minds to a data structure that
@@ -97,30 +96,30 @@ a standard term used in this context within interpreters.</p>
 <p>Here is the modified interpreter …</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; bindings takes on the same list of two-element lists</span>
 <span class="c1">; structure we used in stack-machine.</span>
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">interp</span> <span class="n">picexprC</span> <span class="n">bindings</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">match</span> <span class="n">picexprC</span>
-        <span class="c1">; ...</span>
-        <span class="p">[(</span><span class="n">FunC</span> <span class="n">argname</span> <span class="n">expr</span><span class="p">)</span>
-         <span class="c1">; Store away the definition time bindings</span>
-         <span class="c1">; along with the FunV value structure.</span>
-         <span class="c1">;             v------ One more field compared to FunC</span>
-         <span class="p">(</span><span class="n">FunV</span> <span class="n">argname</span> <span class="n">bindings</span> <span class="n">expr</span><span class="p">)]</span>
-        <span class="p">[(</span><span class="n">ApplyC</span> <span class="n">funexpr</span> <span class="n">valexpr</span><span class="p">)</span>
-         <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">fun</span> <span class="p">(</span><span class="n">interp</span> <span class="n">funexpr</span> <span class="n">bindings</span><span class="p">)]</span>
-               <span class="p">[</span><span class="n">val</span> <span class="p">(</span><span class="n">interp</span> <span class="n">valexpr</span> <span class="n">bindings</span><span class="p">)])</span>
-            <span class="p">(</span><span class="k">match</span> <span class="n">fun</span>
-                <span class="p">[(</span><span class="n">FunV</span> <span class="n">argname</span> <span class="n">definition-time-bindings</span> <span class="n">expr</span><span class="p">)</span>
-                 <span class="c1">; Now to apply the function, we add a new</span>
-                 <span class="c1">; binding for its argument name and evaluate</span>
-                 <span class="c1">; the body.</span>
-                 <span class="p">(</span><span class="n">interp</span> <span class="n">expr</span> <span class="p">(</span><span class="n">extend-bindings</span> <span class="n">argname</span> <span class="n">val</span> <span class="n">definition-time-bindings</span><span class="p">))]</span>
-                <span class="p">[</span><span class="k">_</span> <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">interp</span>
-                                         <span class="s2">&quot;Function value for application&quot;</span>
-                                         <span class="n">funexpr</span><span class="p">)]))]</span>
-        <span class="p">[(</span><span class="n">IdC</span> <span class="n">id</span><span class="p">)</span>
-         <span class="p">(</span><span class="n">lookup-binding</span> <span class="n">bindings</span> <span class="n">id</span><span class="p">)]</span>
-        <span class="c1">; ...</span>
-        <span class="p">))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">picexprC</span><span class="w"> </span><span class="n">bindings</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">picexprC</span>
+<span class="w">        </span><span class="c1">; ...</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">FunC</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">expr</span><span class="p">)</span>
+<span class="w">         </span><span class="c1">; Store away the definition time bindings</span>
+<span class="w">         </span><span class="c1">; along with the FunV value structure.</span>
+<span class="w">         </span><span class="c1">;             v------ One more field compared to FunC</span>
+<span class="w">         </span><span class="p">(</span><span class="n">FunV</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">bindings</span><span class="w"> </span><span class="n">expr</span><span class="p">)]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">ApplyC</span><span class="w"> </span><span class="n">funexpr</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">fun</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">funexpr</span><span class="w"> </span><span class="n">bindings</span><span class="p">)]</span>
+<span class="w">               </span><span class="p">[</span><span class="n">val</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">valexpr</span><span class="w"> </span><span class="n">bindings</span><span class="p">)])</span>
+<span class="w">            </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">fun</span>
+<span class="w">                </span><span class="p">[(</span><span class="n">FunV</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">definition-time-bindings</span><span class="w"> </span><span class="n">expr</span><span class="p">)</span>
+<span class="w">                 </span><span class="c1">; Now to apply the function, we add a new</span>
+<span class="w">                 </span><span class="c1">; binding for its argument name and evaluate</span>
+<span class="w">                 </span><span class="c1">; the body.</span>
+<span class="w">                 </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">expr</span><span class="w"> </span><span class="p">(</span><span class="n">extend-bindings</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="n">definition-time-bindings</span><span class="p">))]</span>
+<span class="w">                </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="p">(</span><span class="nb">raise-argument-error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">interp</span>
+<span class="w">                                         </span><span class="s2">&quot;Function value for application&quot;</span>
+<span class="w">                                         </span><span class="n">funexpr</span><span class="p">)]))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">IdC</span><span class="w"> </span><span class="n">id</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">lookup-binding</span><span class="w"> </span><span class="n">bindings</span><span class="w"> </span><span class="n">id</span><span class="p">)]</span>
+<span class="w">        </span><span class="c1">; ...</span>
+<span class="w">        </span><span class="p">))</span>
 </pre></div>
 </div>
 <p>We’ve chosen to keep the “bindings” structure abstract by referring to the two things
@@ -130,116 +129,116 @@ actual choice of structure.</p>
 <p class="admonition-title"><strong>Exercise</strong></p>
 <p>Write appropriate test expressions for this revised interpreter to check
 whether the scoping behaviour is indeed lexical. Use any simple representation
-you want to for the “bindings” parameter by implementing the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">extend-bindings</span></span></code>,
-<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">lookup-binding</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">make-empty-bindings</span></span></code> functions.</p>
+you want to for the “bindings” parameter by implementing the <code class="code highlight racket docutils literal highlight-racket"><span class="n">extend-bindings</span></code>,
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">lookup-binding</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">make-empty-bindings</span></code> functions.</p>
 </div>
 <div class="admonition-question admonition">
 <p class="admonition-title"><strong>Question</strong></p>
-<p>Consider the way we’re evaluating <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> terms in the interpreter. We
-store the current state of the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">bindings</span></span></code> argument in the resulting
-<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunV</span></span></code> structure .. which is one of the possible result values of our
-interpreter. Do we need to store <em>all</em> the bindings in the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunV</span></span></code>
+<p>Consider the way we’re evaluating <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunC</span></code> terms in the interpreter. We
+store the current state of the <code class="code highlight racket docutils literal highlight-racket"><span class="n">bindings</span></code> argument in the resulting
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">FunV</span></code> structure .. which is one of the possible result values of our
+interpreter. Do we need to store <em>all</em> the bindings in the <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunV</span></code>
 structure? What are the consequences of storing all the bindings? Can we
 trim it down? If we can, how should we determine the set of bindings to
 trim down to?</p>
 </div>
-</div>
-<div class="section" id="a-standard-library">
-<h2>A standard library<a class="headerlink" href="#a-standard-library" title="Permalink to this headline">¶</a></h2>
-<p>Notice that we’ve gotten rid of the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">fundefs</span></span></code> argument which was a list of
-<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunDefC</span></span></code> terms. Technically, we do not need it any more, as we can pass
-any functions as arguments to an <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> term and refer to it within the
+</section>
+<section id="a-standard-library">
+<h2>A standard library<a class="headerlink" href="#a-standard-library" title="Permalink to this heading">¶</a></h2>
+<p>Notice that we’ve gotten rid of the <code class="code highlight racket docutils literal highlight-racket"><span class="n">fundefs</span></code> argument which was a list of
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">FunDefC</span></code> terms. Technically, we do not need it any more, as we can pass
+any functions as arguments to an <code class="code highlight racket docutils literal highlight-racket"><span class="n">ApplyC</span></code> term and refer to it within the
 value expression of the function term via the argument name. However, doing this
 for even 20 functions is cumbersome.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>What exactly is cumbersome about it? Is it simply that we have to
-nest many <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> terms?</p>
+nest many <code class="code highlight racket docutils literal highlight-racket"><span class="n">ApplyC</span></code> terms?</p>
 </div>
 <p>From a user interface perspective, all we need to do is to provide a starter
 set of bindings to the interpreter that expressions can use. These bindings
-must be mappings from symbols to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunV</span></span></code> terms. However, note that
-our <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunV</span></span></code> terms also have their own list of bindings. The question
+must be mappings from symbols to <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunV</span></code> terms. However, note that
+our <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunV</span></code> terms also have their own list of bindings. The question
 then is “what should these bindings lists be?”.</p>
 <p>We’re calling this initial set of bindings a “standard library” of functions
 that may be useful when writing PicLang expressions. This also means that
 this standard library is also available to the standard library functions
-themselves. So one way to resolve this conundrum is to make these <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunV</span></span></code>
+themselves. So one way to resolve this conundrum is to make these <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunV</span></code>
 values given the standard library! The snake must eat its own tail!</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; definitions is a list of bindings where a &quot;binding&quot; is given</span>
 <span class="c1">; as a list of two values - the first being the symbol to be bound</span>
 <span class="c1">; and the second being the :rkt:`FunC` expression to bind to it.</span>
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">make-standard-library</span> <span class="n">definitions</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">definitions</span><span class="p">)</span>
-        <span class="p">(</span><span class="n">make-empty-bindings</span><span class="p">)</span>
-        <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">def</span> <span class="p">(</span><span class="nb">first</span> <span class="n">definitions</span><span class="p">)])</span>
-            <span class="p">(</span><span class="n">extend-bindings</span>
-                <span class="p">(</span><span class="nb">first</span> <span class="n">def</span><span class="p">)</span>
-                <span class="p">(</span><span class="n">interp</span> <span class="p">(</span><span class="nb">second</span> <span class="n">def</span><span class="p">)</span> <span class="p">(</span><span class="n">make-standard-library</span> <span class="n">definitions</span><span class="p">))</span>
-                <span class="p">(</span><span class="n">make-standard-library</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">definitions</span><span class="p">))))))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">make-standard-library</span><span class="w"> </span><span class="n">definitions</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">empty?</span><span class="w"> </span><span class="n">definitions</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="n">make-empty-bindings</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">def</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="n">definitions</span><span class="p">)])</span>
+<span class="w">            </span><span class="p">(</span><span class="n">extend-bindings</span>
+<span class="w">                </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="n">def</span><span class="p">)</span>
+<span class="w">                </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="p">(</span><span class="nb">second</span><span class="w"> </span><span class="n">def</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">make-standard-library</span><span class="w"> </span><span class="n">definitions</span><span class="p">))</span>
+<span class="w">                </span><span class="p">(</span><span class="n">make-standard-library</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="n">definitions</span><span class="p">))))))</span>
 </pre></div>
 </div>
 <p>There, in all its naïvette, is a fully self referential expression of what we
 actually want to produce. But we <a class="reference internal" href="lambda.html"><span class="doc">kind of know how</span></a> to deal with
 such self reference. Let’s rewrite the above self referential function.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">make-standard-library</span> <span class="n">definitions</span> <span class="n">stdlib</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">empty?</span> <span class="n">definitions</span><span class="p">)</span>
-        <span class="p">(</span><span class="n">make-empty-bindings</span><span class="p">)</span>
-        <span class="p">(</span><span class="k">let</span> <span class="p">([</span><span class="n">def</span> <span class="p">(</span><span class="nb">first</span> <span class="n">definitions</span><span class="p">)])</span>
-            <span class="p">(</span><span class="n">extend-bindings</span>
-                <span class="p">(</span><span class="nb">first</span> <span class="n">def</span><span class="p">)</span>
-                <span class="p">(</span><span class="n">interp</span> <span class="p">(</span><span class="nb">second</span> <span class="n">def</span><span class="p">)</span> <span class="n">stdlib</span><span class="p">)</span>
-                <span class="p">(</span><span class="n">make-standard-library</span> <span class="p">(</span><span class="nb">rest</span> <span class="n">definitions</span><span class="p">)</span> <span class="n">stdlib</span><span class="p">)))))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">make-standard-library</span><span class="w"> </span><span class="n">definitions</span><span class="w"> </span><span class="n">stdlib</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">empty?</span><span class="w"> </span><span class="n">definitions</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="n">make-empty-bindings</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">def</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="n">definitions</span><span class="p">)])</span>
+<span class="w">            </span><span class="p">(</span><span class="n">extend-bindings</span>
+<span class="w">                </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="n">def</span><span class="p">)</span>
+<span class="w">                </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="p">(</span><span class="nb">second</span><span class="w"> </span><span class="n">def</span><span class="p">)</span><span class="w"> </span><span class="n">stdlib</span><span class="p">)</span>
+<span class="w">                </span><span class="p">(</span><span class="n">make-standard-library</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="n">definitions</span><span class="p">)</span><span class="w"> </span><span class="n">stdlib</span><span class="p">)))))</span>
 </pre></div>
 </div>
-<p>Here we’re assuming that our function will be passed the result <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">stdlib</span></span></code>
+<p>Here we’re assuming that our function will be passed the result <code class="code highlight racket docutils literal highlight-racket"><span class="n">stdlib</span></code>
 we’re constructing and it makes use of this to construct its result!! That’s
 something we did earlier as well in <a class="reference internal" href="lambda.html"><span class="doc">Lambda - the everything</span></a>. We
 want to solve for the fixed point in the following “equation”, given a list of
-<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">definitions</span></span></code> -</p>
-<div class="highlight-racket notranslate" id="index-2"><div class="highlight"><pre><span></span><span class="n">stdlib</span> <span class="nb">=</span> <span class="p">(</span><span class="n">make-standard-library</span> <span class="n">definitions</span> <span class="n">stdlib</span><span class="p">)</span>
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">definitions</span></code> -</p>
+<div class="highlight-racket notranslate" id="index-2"><div class="highlight"><pre><span></span><span class="n">stdlib</span><span class="w"> </span><span class="nb">=</span><span class="w"> </span><span class="p">(</span><span class="n">make-standard-library</span><span class="w"> </span><span class="n">definitions</span><span class="w"> </span><span class="n">stdlib</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>If we now rewrite the RHS –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="n">spec</span> <span class="nb">=</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">stdlib</span><span class="p">)</span> <span class="p">(</span><span class="n">make-standard-library</span> <span class="n">definitions</span> <span class="n">stdlib</span><span class="p">))</span>
-<span class="n">stdlib</span> <span class="nb">=</span> <span class="p">(</span><span class="n">spec</span> <span class="n">stdlib</span><span class="p">)</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="n">spec</span><span class="w"> </span><span class="nb">=</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">stdlib</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">make-standard-library</span><span class="w"> </span><span class="n">definitions</span><span class="w"> </span><span class="n">stdlib</span><span class="p">))</span>
+<span class="n">stdlib</span><span class="w"> </span><span class="nb">=</span><span class="w"> </span><span class="p">(</span><span class="n">spec</span><span class="w"> </span><span class="n">stdlib</span><span class="p">)</span>
 
 <span class="c1">; Using the Turing combinator approach ...</span>
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">Θ</span> <span class="n">spec</span><span class="p">)</span> <span class="p">(</span><span class="n">spec</span> <span class="p">(</span><span class="n">Θ</span> <span class="n">spec</span><span class="p">)))</span>
-<span class="n">stdlib</span> <span class="nb">=</span> <span class="p">(</span><span class="n">Θ</span> <span class="n">spec</span><span class="p">)</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">Θ</span><span class="w"> </span><span class="n">spec</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">spec</span><span class="w"> </span><span class="p">(</span><span class="n">Θ</span><span class="w"> </span><span class="n">spec</span><span class="p">)))</span>
+<span class="n">stdlib</span><span class="w"> </span><span class="nb">=</span><span class="w"> </span><span class="p">(</span><span class="n">Θ</span><span class="w"> </span><span class="n">spec</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>We can now apply our “function is called with itself to enable the function to
 call itself” trick to get -</p>
-<div class="highlight-racket notranslate" id="index-3"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">G</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="p">(</span><span class="n">spec</span> <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="p">(((</span><span class="n">f</span> <span class="n">f</span><span class="p">)</span> <span class="n">spec</span><span class="p">)</span> <span class="n">g</span><span class="p">))))))</span>
-<span class="p">(</span><span class="k">define</span> <span class="n">Θ</span> <span class="p">(</span><span class="n">G</span> <span class="n">G</span><span class="p">))</span>
-<span class="p">(</span><span class="k">define</span> <span class="n">stdlib</span> <span class="p">(</span><span class="n">Θ</span> <span class="n">spec</span><span class="p">))</span>
+<div class="highlight-racket notranslate" id="index-3"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">G</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">spec</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">spec</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">g</span><span class="p">)</span><span class="w"> </span><span class="p">(((</span><span class="n">f</span><span class="w"> </span><span class="n">f</span><span class="p">)</span><span class="w"> </span><span class="n">spec</span><span class="p">)</span><span class="w"> </span><span class="n">g</span><span class="p">))))))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">Θ</span><span class="w"> </span><span class="p">(</span><span class="n">G</span><span class="w"> </span><span class="n">G</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">stdlib</span><span class="w"> </span><span class="p">(</span><span class="n">Θ</span><span class="w"> </span><span class="n">spec</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>We’ve used the <span class="target" id="index-4"></span>Turing combinator here to capture the process of
 computing such a “fixed point”. Note that we’ve modified the trick above so it
-would work with eager evaluation strategy instead of the original <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">#lang</span></span>
-<span class="keyword"><span class="pre">lazy</span></span></code> choice. The expression <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="keyword"><span class="pre">λ</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">g</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span> <span class="name"><span class="pre">f</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">spec</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">g</span></span><span class="punctuation"><span class="pre">))</span></span></code> is logically
-equivalent to <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">f</span></span> <span class="name"><span class="pre">f</span></span><span class="punctuation"><span class="pre">)</span></span> <span class="name"><span class="pre">spec</span></span><span class="punctuation"><span class="pre">)</span></span></code> by “<span class="target" id="index-5"></span>η-reduction”, but helps delay
+would work with eager evaluation strategy instead of the original <code class="code highlight racket docutils literal highlight-racket"><span class="n">#lang</span>
+<span class="k">lazy</span></code> choice. The expression <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">g</span><span class="p">)</span><span class="w"> </span><span class="p">(((</span><span class="n">f</span><span class="w"> </span><span class="n">f</span><span class="p">)</span><span class="w"> </span><span class="n">spec</span><span class="p">)</span><span class="w"> </span><span class="n">g</span><span class="p">))</span></code> is logically
+equivalent to <code class="code highlight racket docutils literal highlight-racket"><span class="p">((</span><span class="n">f</span><span class="w"> </span><span class="n">f</span><span class="p">)</span><span class="w"> </span><span class="n">spec</span><span class="p">)</span></code> by “<span class="target" id="index-5"></span>η-reduction”, but helps delay
 the evaluation of the recursive parts by enough so we don’t get stuck in an
 infinite loop.</p>
 <p>But this is still pending a specific representation for “bindings”. Lets do a
 simple one – where the idea is that we capture the meaning of “an environment
 can be used to lookup a value given a name” as a lambda function –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">make-empty-bindings</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">name</span><span class="p">)</span>
-       <span class="p">(</span><span class="nb">raise-argument-error</span> <span class="o">&#39;</span><span class="ss">lookup-binding</span>
-                             <span class="s2">&quot;Valid name&quot;</span>
-                             <span class="n">name</span><span class="p">)))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">make-empty-bindings</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+<span class="w">       </span><span class="p">(</span><span class="nb">raise-argument-error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">lookup-binding</span>
+<span class="w">                             </span><span class="s2">&quot;Valid name&quot;</span>
+<span class="w">                             </span><span class="n">name</span><span class="p">)))</span>
 
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">lookup-binding</span> <span class="n">name</span> <span class="n">bindings</span><span class="p">)</span>
-    <span class="p">(</span><span class="n">bindings</span> <span class="n">name</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">lookup-binding</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="n">bindings</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="n">bindings</span><span class="w"> </span><span class="n">name</span><span class="p">))</span>
 
-<span class="p">(</span><span class="k">define</span> <span class="p">(</span><span class="n">extend-bindings</span> <span class="n">name</span> <span class="n">value</span> <span class="n">bindings</span><span class="p">)</span>
-    <span class="p">(</span><span class="k">λ</span> <span class="p">(</span><span class="n">n</span><span class="p">)</span>
-        <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="nb">equal?</span> <span class="n">n</span> <span class="n">name</span><span class="p">)</span>
-            <span class="n">value</span>
-            <span class="p">(</span><span class="n">lookup-binding</span> <span class="n">n</span> <span class="n">bindings</span><span class="p">))))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">extend-bindings</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">bindings</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">equal?</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="n">name</span><span class="p">)</span>
+<span class="w">            </span><span class="n">value</span>
+<span class="w">            </span><span class="p">(</span><span class="n">lookup-binding</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="n">bindings</span><span class="p">))))</span>
 </pre></div>
 </div>
 <div class="admonition-exercise admonition">
@@ -258,20 +257,20 @@ feature of the language (Racket, not PicLang) that we haven’t used so far?</p>
 <p class="admonition-title"><strong>Question</strong></p>
 <p>An extension to the question in <a class="reference internal" href="stacks-and-scope.html"><span class="doc">Stacks and scope</span></a> – we got an
 additional super power apart from ordinary functions with the approach to
-<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> and <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">IdC</span></span></code> above. Can you recognize it?
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">FunC</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">ApplyC</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">IdC</span></code> above. Can you recognize it?
 You’re so familiar with it by now it probably slipped past you without your
 notice.</p>
 </div>
-</div>
-<div class="section" id="a-superpower">
-<h2>A superpower<a class="headerlink" href="#a-superpower" title="Permalink to this headline">¶</a></h2>
-<p id="index-6">When we interpret a <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">FunC</span></span> <span class="name"><span class="pre">argname</span></span> <span class="name"><span class="pre">fexpr</span></span><span class="punctuation"><span class="pre">)</span></span></code> term within the interpreter and
-produce a <code class="code highlight racket docutils literal notranslate"><span class="punctuation"><span class="pre">(</span></span><span class="name"><span class="pre">FunV</span></span> <span class="name"><span class="pre">argname</span></span> <span class="name"><span class="pre">bindings</span></span> <span class="name"><span class="pre">fexpr</span></span><span class="punctuation"><span class="pre">)</span></span></code> value, we’ve also captured the
-current set of bindings that can give meaning to <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">IdC</span></span></code> references within
-the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">fexpr</span></span></code> part of the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunC</span></span></code> term and stored it away for future
+</section>
+<section id="a-superpower">
+<h2>A superpower<a class="headerlink" href="#a-superpower" title="Permalink to this heading">¶</a></h2>
+<p id="index-6">When we interpret a <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">FunC</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">fexpr</span><span class="p">)</span></code> term within the interpreter and
+produce a <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">FunV</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">bindings</span><span class="w"> </span><span class="n">fexpr</span><span class="p">)</span></code> value, we’ve also captured the
+current set of bindings that can give meaning to <code class="code highlight racket docutils literal highlight-racket"><span class="n">IdC</span></code> references within
+the <code class="code highlight racket docutils literal highlight-racket"><span class="n">fexpr</span></code> part of the <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunC</span></code> term and stored it away for future
 reference – for use when we’re applying the function to a value in an
-<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">ApplyC</span></span></code> term.</p>
-<p>This <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunV</span></span></code> structure is called a “closure”. In the Scheme/LiSP family, we
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">ApplyC</span></code> term.</p>
+<p>This <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunV</span></code> structure is called a “closure”. In the Scheme/LiSP family, we
 usually don’t make it a point to distinguish between “functions” and “closures”
 and freely interchange the two terms. There is no meaningful distinction in
 programs since where functions are acceptable, closures can be passed and vice
@@ -282,12 +281,12 @@ they need to meet.</p>
 <p>For example, you already understand what the following Racket code is expected
 to do .. and what we’ve done is to model how we do it so our understanding of
 the scope implications of making closures is now complete.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span> <span class="n">adder</span> <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">y</span><span class="p">)</span>
-                    <span class="p">(</span><span class="k">lambda</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">(</span><span class="nb">+</span> <span class="n">x</span> <span class="n">y</span><span class="p">))))</span>
-<span class="p">(</span><span class="k">define</span> <span class="n">three-more-than</span> <span class="p">(</span><span class="n">adder</span> <span class="mi">3</span><span class="p">))</span>
-<span class="p">(</span><span class="k">define</span> <span class="n">ten-more-than</span> <span class="p">(</span><span class="n">adder</span> <span class="mi">10</span><span class="p">))</span>
-<span class="p">(</span><span class="nb">display</span> <span class="p">(</span><span class="n">three-more-than</span> <span class="mi">8</span><span class="p">))</span>      <span class="c1">; Prints 11</span>
-<span class="p">(</span><span class="nb">display</span> <span class="p">(</span><span class="n">ten-more-than</span> <span class="mi">8</span><span class="p">))</span>        <span class="c1">; Prints 18</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">adder</span><span class="w"> </span><span class="p">(</span><span class="k">lambda</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">(</span><span class="k">lambda</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">))))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">three-more-than</span><span class="w"> </span><span class="p">(</span><span class="n">adder</span><span class="w"> </span><span class="mi">3</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">ten-more-than</span><span class="w"> </span><span class="p">(</span><span class="n">adder</span><span class="w"> </span><span class="mi">10</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="p">(</span><span class="n">three-more-than</span><span class="w"> </span><span class="mi">8</span><span class="p">))</span><span class="w">      </span><span class="c1">; Prints 11</span>
+<span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="p">(</span><span class="n">ten-more-than</span><span class="w"> </span><span class="mi">8</span><span class="p">))</span><span class="w">        </span><span class="c1">; Prints 18</span>
 </pre></div>
 </div>
 <p>Closures are a powerful feature in any language that provides them. We’ve
@@ -302,18 +301,18 @@ the inefficiency argument no longer holds ground. In particular, compilers for
 Common LiSP and Scheme have long implemented proper lexical closures resulting
 in programs more efficient than the interpreted ones.</p>
 <p>Where does this myth of inefficiency come from?</p>
-<p>A part of it you can see in the way we made the <code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">FunV</span></span></code> object. We just
+<p>A part of it you can see in the way we made the <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunV</span></code> object. We just
 stored away the <strong>entire</strong> definition environment in the object, without any
 consideration for whether the function expression actually uses any values from
 it. One “optimization” here is to scan the function expression, collect the set
 of references that are bound in the definition environment, and make a new
-<code class="code highlight racket docutils literal notranslate"><span class="name"><span class="pre">bindings</span></span></code> field that only keeps the used ones. Here, we’re trading off
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">bindings</span></code> field that only keeps the used ones. Here, we’re trading off
 the computational cost of constructing a closure against the memory cost of
 storing unnecessary bindings. Such optimizations are not essential for us to
 consider in this course as they don’t (and indeed must not) change the meanings
 of our programs.</p>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -332,7 +331,7 @@ of our programs.</p>
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
@@ -353,6 +352,7 @@ of our programs.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="mutations.html">Mutations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="control.html">Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="errornot.html">On the choice between “error” and “do something reasonable” in design</a></li>
 <li class="toctree-l1"><a class="reference internal" href="objects.html">Objects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="appsem.html">Alternative application semantics</a></li>
@@ -372,12 +372,12 @@ of our programs.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -394,7 +394,7 @@ of our programs.</p>
       &copy;2022, Srikumar K. S..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

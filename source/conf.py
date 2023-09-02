@@ -35,7 +35,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.autosectionlabel',
-    'rst2pdf.pdfbuilder'
+    #'rst2pdf.pdfbuilder'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -100,6 +100,6 @@ numfig = True
 
 exclude_patterns = ['excluded/*']
 
-pdf_documents = [('index', u'rst2pdf', u'Sample rst2pdf doc', u'Srikumar K. S.'),]
+#pdf_documents = [('index', u'rst2pdf', u'Sample rst2pdf doc', u'Srikumar K. S.'),]
 
 

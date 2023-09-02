@@ -23,6 +23,7 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    fun-in-piclang
    mutations
    control
+   errornot 
    objects
    generators
    appsem

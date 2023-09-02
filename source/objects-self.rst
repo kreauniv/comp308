@@ -17,7 +17,7 @@ Prototypes versus classes
 
 The notion of "class" is common in many "object oriented" programming languages
 such as C++, Java and Smalltalk. [#ak]_ In these languages, "classes" play the role
-of "object factories" - they may families of objects with similar kinds of properties
+of "object factories" - they make families of objects with similar kinds of properties
 and behaviour. In these langauges, a "class" can therefore be thought of as a "type"
 of an object.
 

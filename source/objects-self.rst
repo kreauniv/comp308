@@ -100,7 +100,7 @@ function is then called as though it were ``method(object, arg1, arg2, ...)``. [
    if the programmers wants to invoke a method function, and the "object" argument
    is made available implicitly within the body bound to the identifier ``this``.
 
-.. admonition:: **Constraint:** 
+.. admonition:: **Constraint** 
 
     Once we have our object system's core, we'll place the constraint that
     **anything** we do **must** happen via a message send to an object.
@@ -156,7 +156,7 @@ the given value for **the given object**. Note that it can't use :rkt:`get`
 above for the lookup since it might then end up modifying a prototype's
 property, which we won't want to.
 
-.. admonition:: **Think now**: 
+.. admonition:: **Think now** 
 
     So what if the prototype's property gets modified?
 
@@ -564,7 +564,7 @@ Observations
    You'll have to carefully maintain a separation between the object system and
    Racket-primitive values, unlike what we've assumed we can do here.
 
-    .. admonition:: **Exercise**: 
+    .. admonition:: **Exercise** 
 
         Reimplement this object system using :rkt:`#lang typed/racket`.
 

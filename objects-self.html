@@ -130,7 +130,7 @@ is made available implicitly within the body bound to the identifier <code class
 </aside>
 </aside>
 <div class="admonition-constraint admonition">
-<p class="admonition-title"><strong>Constraint:</strong></p>
+<p class="admonition-title"><strong>Constraint</strong></p>
 <p>Once we have our object system’s core, we’ll place the constraint that
 <strong>anything</strong> we do <strong>must</strong> happen via a message send to an object.</p>
 </div>
@@ -177,7 +177,7 @@ the given value for <strong>the given object</strong>. Note that it can’t use 
 above for the lookup since it might then end up modifying a prototype’s
 property, which we won’t want to.</p>
 <div class="admonition-think-now admonition">
-<p class="admonition-title"><strong>Think now</strong>:</p>
+<p class="admonition-title"><strong>Think now</strong></p>
 <p>So what if the prototype’s property gets modified?</p>
 </div>
 <div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">set</span><span class="w"> </span><span class="nv">obj</span><span class="w"> </span><span class="nv">propname</span><span class="w"> </span><span class="nv">val</span><span class="p">)</span>
@@ -548,7 +548,7 @@ You’ll have to carefully maintain a separation between the object system and
 Racket-primitive values, unlike what we’ve assumed we can do here.</p>
 <blockquote>
 <div><div class="admonition-exercise admonition">
-<p class="admonition-title"><strong>Exercise</strong>:</p>
+<p class="admonition-title"><strong>Exercise</strong></p>
 <p>Reimplement this object system using <code class="code highlight racket docutils literal highlight-racket"><span class="kn">#lang </span><span class="nn">typed/racket</span></code>.</p>
 </div>
 </div></blockquote>

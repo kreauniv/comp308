@@ -106,15 +106,33 @@ expressions (the abstract ones).
    :rkt:`'(+ x x)` whereas :rkt:`((lambda (x) (+ x x)) 3)` reduces to :rkt:`(+
    3 3) = 6`.
 
-Take the expression :rkt:`((lambda (x) (* x ((lambda (x) (- x 1)) x))) 10)` and
+We'll use λ instead of :rkt:`lambda` for brevity.
+
+Take the expression :rkt:`((λ (x) (* x ((λ (x) (- x 1)) x))) 10)` and
 try to apply the reduction rules. If you took the "β-reduction" rule in the
-naive way, you might end up with :rkt:`(* 10 ((lambda (10) (- 10 1)) 10))` and
+naive way, you might end up with :rkt:`(* 10 ((λ (10) (- 10 1)) 10))` and
 then scratch your head about what you have at hand and what to do with it next!
 To do this correctly, you must see that the original expression is the same as
-:rkt:`((lambda (x) (* x ((lambda (y) (- y 1)) x))) 10)` .. where we've "α-renamed"
+:rkt:`((λ (x) (* x ((λ (y) (- y 1)) x))) 10)` .. where we've "α-renamed"
 the inner lambda's :rkt:`x` variable to :rkt:`y`, because, well they're supposed to
 be equivalent right? If you now do β-reduction on this equivalent expression,
 you won't be left with the confused expression.
+
+Also, a β-abstraction step must be performed in a manner that is compatible
+with α-renaming. This means that abstracting over :rkt:`(+ x x)` in :rkt:`((λ
+(x) (> (+ x x) 25)) 42)` does not get you :rkt:`((λ (y) ((λ (x) (> y 25)) 42))
+(+ x x))`. This is because in the original :rkt:`λ` expression, you can replace
+the :rkt:`x` with any other symbol and the meaning of the expression remains
+unchanged. However, in the wrongly β-abstracted form, the expression itself
+doesn't make sense as :rkt:`x` in the outermost position is actually undefined.
+So the thumbrule here is -- "you can't pull a bound variable outside of its
+introduction point". The correct way to β-abstract over that expression is to
+first perform the abstraction within the :rkt:`λ` to get :rkt:`((λ (x) (> ((λ
+(y) (+ y y)) x) 25)) 42)` and then β-abstract the inner :rkt:`λ` to get
+:rkt:`((λ (f) ((λ (x) (> (f x) 25)) 42)) (λ (y) (+ y y)))`. Now you can see
+that the expression :rkt:`(λ (f) ((λ (x) (> (f x) 25)) 42))` is independent of
+the addition calculation in :rkt:`(+ x x)` and therefore we've generalized the
+expression over the :rkt:`(+ x x)` calculation.
 
 So the two rules are taken to be **always** applicable in evaluating an
 expression and all correct applications of the rules must evaluate to 

@@ -105,14 +105,14 @@ With the above additions, our type checker now becomes --
     % id(X) is of type Ty if a binding X = Ty exists in the environment.
     exprtype(Env, id(X), Ty) :-
         atom(X),
-        member(X = Ty, Env).
+        member(X : Ty, Env).
 
     % A fun(...) expression is of type fun(ArgTy, BodyTy)
     % if its argument is of type ArgTy and its body is of type
     % BodyTy given occurrences of the argument in the body
     % are consistent with the type of the argument being ArgTy.
     exprtype(Env, fun(ArgSym, ArgTy, Body, BodyTy), fun(ArgTy, BodyTy)) :-
-        exprtype([ArgSym = ArgTy|Env], Body, BodyTy).
+        exprtype([ArgSym : ArgTy|Env], Body, BodyTy).
 
     % Applying a function Fun to an Arg produces a value of type ResultTy
     % if Arg's type is ArgTy and the body type of the function is ResultTy
@@ -140,6 +140,27 @@ and therefore any sub term can be one of the following types --
    our identifiers to **type** terms in contrast to using the
    environment to bind identifiers to values when we interpret the
    expression.
+
+A subtlety
+~~~~~~~~~~
+
+We used :code:`member(X = Ty, Env)` to check if :code:`X = Ty` is present in
+the type environment. This is permissible and valid only in a limited number of
+cases -- where the identifier being checked for is unique in the whole program
+being type checked. In the presence of shadowing of identifiers, this needs to
+be modified to check against only the first occurrence of the identifier in the
+environment, when the environment is treated as a list.
+
+To accommodate that, we need to use Prolog's "cut" operator (notated :code:`!`)
+to stop searching after the first time it finds the identifier in the
+environment. While :code:`member` will permit other possibilities, the cut
+operator forces Prolog to discard all possibilities after that point.
+
+.. code-block:: prolog
+
+    lookup(X : Ty, Env) :-
+        member(X : Ty, Env), !.
+        
 
 Typing conditional expressions
 ------------------------------
@@ -270,7 +291,7 @@ the recursive function may refer to the function itself by name.
 .. code-block:: prolog
 
     exprtype(Env, rec(Fname, Arg, ArgTy, Body, BodyTy), fun(ArgTy, BodyTy)) :-
-        exprtype([Arg = ArgTy, Fname = fun(ArgTy, BodyTy) | Env], Body, BodyTy).
+        exprtype([Arg : ArgTy, Fname : fun(ArgTy, BodyTy) | Env], Body, BodyTy).
 
 This is certainly not a general notion of recursion, but is useful enough for
 many cases such as looping and we're now not relying on Prolog's ability
@@ -295,7 +316,16 @@ different branches of a conditional.
 
 A simple way this is resolved in statically typed languages is to say that an
 identifier has to have a fixed type in its scope and therefore cause the above
-sequencing operation to fail the type check.
+sequencing operation to fail the type check. This is the sensible thing to do
+from a human reasoning perspective. Identifiers are, after all, a tool for
+humans to make connections between different parts of the computational graph.
+When we rethink identifiers as "storage locations", we're actually introducing
+a whole new concept into the language -- mutation. Even then, a programmer
+would expect an identifier to keep referring to the "same kind of thing" in its
+scope and won't expect it to change like a chameleon. Therefore the constraint
+of "a variable can have only one type" is often imposed in statically typed
+languages with a concept of mutation. To change the type of thing an identifier
+refers to, you'll have to introduce a new scope.
 
 
 Type soundness
@@ -336,6 +366,11 @@ program non-termination, runtime check failures and such. Therefore soundness
 goes along with consideration for such exceptional conditions that a programmer
 needs to accept can occur.
 
+In the Prolog formulation, the interpreter and the type checker cosely follow
+each other in structure. So it becomes easier to show soundness through
+progress/preservation steps and to check that the interpreter actually produces
+values in accordance with what the type checker says it does.
+
 A taste of type inference
 -------------------------
 
@@ -361,7 +396,7 @@ usage.
 .. code-block:: prolog
 
     exprtype(Env, funinf(Arg, Body), fun(ArgTy, BodyTy)) :-
-        exprtype([Arg = ArgTy|Env], Body, BodyTy).
+        exprtype([Arg : ArgTy|Env], Body, BodyTy).
         %....anything else needed?
 
 Supposing we have a function :code:`funinf(x, add(id(x), id(x)))`, 
@@ -369,7 +404,7 @@ querying :code:`exprtype(Env, funinf(x, add(id(x), id(x))), FunTy)`
 will result in :code:`FunTy = fun(num, num)`, thanks to Prolog's
 unification and goal search mechanisms.
 
-In fact, much of what we've been writing so far already can do
+In fact, much of what we've been writing so far can already do
 some inference for us because we've embedded it in Prolog where
 unification and goal search are built-in.
 
@@ -382,10 +417,10 @@ on such inference. i.e. We can simply express our functions as
 .. code-block:: prolog
 
     exprtype(Env, fun(ArgSym, Body), fun(ArgTy, BodyTy)) :-
-        exprtype([ArgSym = ArgTy|Env], Body, BodyTy).
+        exprtype([ArgSym : ArgTy|Env], Body, BodyTy).
 
 The above goal is saying "Find some :code:`ArgTy` and :code:`BodyTy` such that
-if you place :code:`ArgSym = ArgTy` in the environment, the body of the
+if you place :code:`ArgSym : ArgTy` in the environment, the body of the
 function checks out to be of type :code:`BodyTy`. In fact, we needn't have made
 any modification to our type checker to do such inference if we permitted the
 use of Prolog variables when we constructed our function term. So instead of
@@ -442,6 +477,95 @@ it has the type -
 ... where :code:`a` and :code:`b` are "type variables". Parametric polymorphism
 combined with type inference can be a very powerful way to check correctness of
 our programs and makes for a rich language.
+
+First let's try to represent such a type. When we use such type variables without
+saying anything more about them, what we're essentially saying is that the function
+(if it is a function) ought to work for **all** instances of the type variable,
+instantiated to be the same wherever it occurs. So let's capture that explicitly
+for the :code:`map` function above, using the right-associativity of :code:`->`.
+
+.. code-block:: prolog
+
+    all([a,b], fun(fun(tvar(a),tvar(b)),fun(listof(tvar(a)), listof(tvar(b)))))
+
+While we could've written the above as
+:code:`all([a,b],fun(fun(a,b),fun(listof(a),listof(b))))`, that muddies up the
+type expression language because we'll then be unable to distinguish between an
+:code:`a` that is a concrete type (like :code:`num`) and a type variable. So it
+is better to make that explicit.
+
+So when we type check something against such a "polymorphic" type, we need to 
+find bindings for the type variables, and also ensure that all occurrences of a
+type variable meet required constraints when bound to the same type instance.
+
+In yet more words, what we're saying is that :code:`map :: a -> b -> Listof a -> Listof b`
+stands for the following collection of types --
+
+.. code-block:: haskell
+
+    Int -> String -> Listof Int -> Listof String
+    Int -> Int -> Listof Int -> Listof Int
+    Listof String -> Int -> Listof (Listof String) -> Listof Int
+    Listof Int -> Listof String -> Listof (Listof Int) -> Listof (Listof String)
+    -- ...and so on...
+
+One thing to keep in mind is that when we write such an :code:`all` type,
+the scope of the variables used within it is expected to be restricted to
+the insides of the :code:`all(...)` form. In other words, we consider all
+:code:`all(..)` forms obtained by replacing the type variables by arbitrary
+symbols within the form to be equivalent. i.e. all of the below represent
+the same type --
+
+.. code-block:: prolog
+
+    all([a,b],fun(fun(tvar(a),tvar(b)),fun(listof(tvar(a)),listof(tvar(b)))))
+    all([b,a],fun(fun(tvar(a),tvar(b)),fun(listof(tvar(a)),listof(tvar(b)))))
+    all([w],fun(fun(tvar(w),tvar(w)),fun(listof(tvar(w)),listof(tvar(w)))))
+    all([x,y],fun(fun(tvar(x),tvar(y)),fun(listof(tvar(x)),listof(tvar(y)))))
+    all([x42,b23],fun(fun(tvar(x42),tvar(b23)),fun(listof(tvar(x42)),listof(tvar(b23)))))
+    ...and so on...
+
+Observe that the ordering of the type variables listed in the first argument to
+:code:`all` is irrelevant, and so that is really a "set of type variables".
+Also, the third case where we give only one type variable instead of two,
+captures the case where both :code:`a` and :code:`b` can be bound to the same
+concrete type.
+
+.. admonition:: **Question**
+
+    Consider this -- are the two types :code:`all([a],fun(tvar(a),tvar(a)))`
+    and :code:`fun(all([a],tvar(a)),all([a],tvar(a)))` equivalent? Try
+    and describe these in words. Can you write example functions that fit
+    these type descriptions?
+
+In order to reduce all ambiguity about which type variables we're referring
+to within such a polymorphic type, it would be useful to have a procedure that
+makes the unique type variables within a scope, also globally unique. We
+can do that using Prolog's :code:`gensym/2`.
+
+.. code-block:: prolog
+
+    unique_tvars(Env, tvar(V), tvar(U)) :-
+        lookup(V = U, Env).
+
+    unique_tvars(Env, fun(A,B), fun(UA, UB)) :-
+        unique_tvars(Env, A, UA),
+        unique_tvars(Env, B, UB).
+
+    unique_tvars(Env, all(Tvars, PolyType), all(UTvars, UPolyType)) :-
+        maplist(unique_tvarenv, Env, Tvars, UTvars, EnvR),
+        unique_tvars(EnvR, PolyType, UPolyType).
+
+    unique_tvarenv(Env, [], [], Env).
+    unique_tvarenv(Env, [Tvar|Tvars], [UTvar|UTvars], EnvResult) :-
+        gensym(Tvar, UTvar),
+        unique_tvarenv([Tvar = UTvar | Env], Tvars, UTvars, EnvResult).
+
+
+Now that we know how to make "local" type variables globally unique, we don't
+need to worry about ambiguities in dealing with them. So we'll also assume
+we'll use distinct variables to mean distinct types in our code for simplicity,
+assuming that such a uniquification step has been done.
 
 ... to be continued ...
 

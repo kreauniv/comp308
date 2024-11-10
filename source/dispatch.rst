@@ -74,21 +74,59 @@ arity of the function cannot be changed, initially.
 
 .. code:: racket
 
+    (define prop-methods 
+        ((lambda ()
+            (define prop-table (list))
+
+            (define (get-prop key prop default-value)
+                (let loop ([t prop-table])
+                    (if (empty? t)
+                        default-value
+                        (let ([p (first t)])
+                            (if (and (eq? (first p) key) (eq? (second p) prop))
+                                (third p)
+                                (loop (rest t)))))))
+
+            (define (set-prop! key prop value)
+                (let loop ([t prop-table])
+                    (if (empty? t)
+                        (set! prop-table (reverse (cons (list key prop value) (reverse prop-table))))
+                        (let ([p (first t)])
+                            (if (and (eq? (first p) key) (eq? (second p) prop))
+                                (set-nth! 2 p value)
+                                (loop (rest t)))))))
+
+            (list get-prop set-prop!))))
+
+    (define get-prop (first prop-methods))
+    (define set-prop! (second prop-methods))
+
     (define (make-generic-procedure default-handler)
-        (let ([handlers '()])
-            (list
-                (lambda (predicate handler)
-                    (set! handlers (reverse (cons (list predicate handler)
-                                                  (reverse handlers)))))
-                (lambda args
-                    (let loop ([h handlers])
-                        (if (nil? h)
-                            (apply default-handler args)
-                            (let ([f (first h)])
-                                (if (apply (first h) args)
-                                    (apply (second h) args)
-                                    (loop (rest h))))))))))
-                                    
+        (let ([proc (lambda args
+                        (let ([hs (get-prop proc 'handlers (list))])
+                            (let loop ([h hs])
+                                (let ([p (first h)])
+                                    (if (apply (first p) args)
+                                        (apply (second p) args)
+                                        (loop (rest h)))))))])
+            (set-prop! proc 'handlers (list (lambda args #t) default-handler))
+            proc))
+
+    (define (extend! proc predicate handler)
+        (let ([hs (get-prop proc 'handlers (list))])
+            (set-prop! proc 'handlers (cons (list predicate handler) hs))))
+
+    ; example
+    (define plus (make-generic-procedure +))
+    (extend! plus 
+             (lambda (x y)
+                (or (symbol? x) (symbol? y)))
+             (lambda (x y)
+                (list '+ x y)))
+
+    ; (plus 2 3) => 5
+    ; (plus 2 'y) => '(+ 2 y)
+    ; (plus 'x 3) => '(+ x 3)
 
 Simple dispatch
 ---------------

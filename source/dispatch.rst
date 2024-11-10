@@ -58,5 +58,37 @@ Such a multi-purpose definition of a verb like ``get`` and ``set!`` is referred 
     The language facility by which a verb can result in different actions depending on
     which entity/entities it is addressed to.
 
+Generic procedures
+------------------
+
+So far we've defined procedures in Scheme/Racket using the ``define`` operator, like this --
+
+.. code:: racket
+
+    (define (f x y) ...)
+
+Once defined, the procedure ``f`` will remain bound to that body of code forever .. until
+redefined entirely. What if, however, we wish to enable it to be extensible with different
+code paths depending on what arguments are passed to it. For simplicity, we'll assume that the
+arity of the function cannot be changed, initially.
+
+.. code:: racket
+
+    (define (make-generic-procedure default-handler)
+        (let ([handlers '()])
+            (list
+                (lambda (predicate handler)
+                    (set! handlers (reverse (cons (list predicate handler)
+                                                  (reverse handlers)))))
+                (lambda args
+                    (let loop ([h handlers])
+                        (if (nil? h)
+                            (apply default-handler args)
+                            (let ([f (first h)])
+                                (if (apply (first h) args)
+                                    (apply (second h) args)
+                                    (loop (rest h))))))))))
+                                    
+
 Simple dispatch
 ---------------

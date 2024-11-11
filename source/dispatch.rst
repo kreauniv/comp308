@@ -74,59 +74,49 @@ arity of the function cannot be changed, initially.
 
 .. code:: racket
 
-    (define prop-methods 
-        ((lambda ()
-            (define prop-table (list))
-
-            (define (get-prop key prop default-value)
-                (let loop ([t prop-table])
-                    (if (empty? t)
-                        default-value
-                        (let ([p (first t)])
-                            (if (and (eq? (first p) key) (eq? (second p) prop))
-                                (third p)
-                                (loop (rest t)))))))
-
-            (define (set-prop! key prop value)
-                (let loop ([t prop-table])
-                    (if (empty? t)
-                        (set! prop-table (reverse (cons (list key prop value) (reverse prop-table))))
-                        (let ([p (first t)])
-                            (if (and (eq? (first p) key) (eq? (second p) prop))
-                                (set-nth! 2 p value)
-                                (loop (rest t)))))))
-
-            (list get-prop set-prop!))))
-
-    (define get-prop (first prop-methods))
-    (define set-prop! (second prop-methods))
-
-    (define (make-generic-procedure default-handler)
-        (let ([proc (lambda args
-                        (let ([hs (get-prop proc 'handlers (list))])
-                            (let loop ([h hs])
-                                (let ([p (first h)])
-                                    (if (apply (first p) args)
-                                        (apply (second p) args)
-                                        (loop (rest h)))))))])
-            (set-prop! proc 'handlers (list (lambda args #t) default-handler))
-            proc))
-
-    (define (extend! proc predicate handler)
-        (let ([hs (get-prop proc 'handlers (list))])
-            (set-prop! proc 'handlers (cons (list predicate handler) hs))))
-
-    ; example
-    (define plus (make-generic-procedure +))
-    (extend! plus 
-             (lambda (x y)
-                (or (symbol? x) (symbol? y)))
-             (lambda (x y)
-                (list '+ x y)))
+    (define (extend proc predicate extension)
+        (lambda args
+            (if (apply predicate args)
+                (apply extension args)
+                (apply proc args)))
+    
+    ; Example of extending ordinary artihmetic to symbolic arithmetic.
+    (set! + (extend +
+                (lambda (x y)
+                    (or (symbol? x) (symbol? y))
+                (lambda (x y)
+                    (list '+ x y)))))
 
     ; (plus 2 3) => 5
     ; (plus 2 'y) => '(+ 2 y)
     ; (plus 'x 3) => '(+ x 3)
+
+There are some incidental aspects of the above implementation of the extension of a function
+that we won't concern ourselves about. For example -
+
+1. When we extend with a new predicate and extension, the latest extension takes precedence
+   over the earlier installed ones. This raises questions -- like "what if we want it to be the
+   other way around?" -- but there is little there of interest to us at this point. 
+2. We split the notion of a function's extension into a "predicate" and the extension procedure
+   that actually does the job. We can argue about whether this split is necessary or not. 
+   Again, it is one way to do it and the predicate does say something about how we make the
+   choice of the extension to use in any particular circumstance. However, this split is
+   also somewhat incidental.
+
+.. admonition:: **Think:**
+    
+    Any others come to your mind?
+
+So for our purposes, we'll consider for the moment that all the predicates of our extension
+are disjoint -- i.e. only one of those predicates will be true for any given set of arguments.
+If that is true, then we don't need to worry about the order in which we perform the extensions
+and all of them will yield the same behaviour for the final function. If not, then we need
+to be careful with the order in which we extend our functions and check whether the result
+behaves the way we want it to.
+
+
+
+
 
 Simple dispatch
 ---------------

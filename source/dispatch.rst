@@ -91,32 +91,47 @@ arity of the function cannot be changed, initially.
     ; (plus 2 'y) => '(+ 2 y)
     ; (plus 'x 3) => '(+ x 3)
 
+The predicate-extension pairs form the various branches of a ``cond`` expression
+that decides which of the extension procedures to call based on properties met by
+the arguments --
+
+.. code:: racket
+
+    (cond
+        [(apply predicate1 args) (apply extension1 args)]
+        [(apply predicate2 args) (apply extension2 args)]
+        ...)
+
+Since the cond expression serves as a "post office" that "dispatches" the arguments
+to the appropriate extension procedure, we refer to this approach in the general sense
+as "dispatch mechanisms" and will study variants in this chapter.
+
 There are some incidental aspects of the above implementation of the extension of a function
-that we won't concern ourselves about. For example -
+that we won't concern ourselves about. For example, When we extend with a new predicate
+and extension, the latest extension takes precedence over the earlier installed ones.
+This raises a question -- "what if we want it to be the other way around?" -- but
+there is little there of interest to us at this point.
 
-1. When we extend with a new predicate and extension, the latest extension takes precedence
-   over the earlier installed ones. This raises questions -- like "what if we want it to be the
-   other way around?" -- but there is little there of interest to us at this point. 
-2. We split the notion of a function's extension into a "predicate" and the extension procedure
-   that actually does the job. We can argue about whether this split is necessary or not. 
-   Again, it is one way to do it and the predicate does say something about how we make the
-   choice of the extension to use in any particular circumstance. However, this split is
-   also somewhat incidental.
+.. admonition:: **Restriction**
 
-.. admonition:: **Think:**
-    
-    Any others come to your mind?
-
-So for our purposes, we'll consider for the moment that all the predicates of our extension
-are disjoint -- i.e. only one of those predicates will be true for any given set of arguments.
-If that is true, then we don't need to worry about the order in which we perform the extensions
-and all of them will yield the same behaviour for the final function. If not, then we need
-to be careful with the order in which we extend our functions and check whether the result
-behaves the way we want it to.
+    For our purposes, we'll restrict our cases to where the predicates are all disjoint
+    on any given list of arguments -- i.e. only one of the predicates evaluates to ``#t``
+    on a given list of arguments. This means we don't have to bother about the order in which
+    we check the predicates.
 
 
+One argument dispatch
+---------------------
 
+Multiple argument dispatch
+--------------------------
 
+Dispatching with tagged values
+------------------------------
 
-Simple dispatch
----------------
+One argument case
+~~~~~~~~~~~~~~~~~
+
+Multiple argument case
+~~~~~~~~~~~~~~~~~~~~~~
+

@@ -119,12 +119,103 @@ there is little there of interest to us at this point.
     on a given list of arguments. This means we don't have to bother about the order in which
     we check the predicates.
 
+So, the key idea behind organizing code using **dispatch** mechanisms is to have a set of 
+special case procedures associated with predicates on the generic procedure's arguments
+which determine which special case is to be used.
 
 One argument dispatch
 ---------------------
 
+Let's take the simple case where all the predicates make their decisions based
+only on the first argument. A classic example is "string representation". We'd like
+to be able to view our values in some way and that calls for a textual presentation
+of the value. 
+
+.. code:: racket
+
+    (define (as-string value)
+        (if (string? value)
+            value
+            (error "Don't know how to treat value as a string")))
+
+Now supposing we wish to extend this facility to integers. We will need a special procedure
+for that --
+
+.. code:: racket
+
+    (define (int-as-string i)
+        (cond
+            [(= i 0) "0"]
+            [(< i 0) (string-concat "-" (int-as-string (- i)))]
+            [(> i 0) (positive-int-as-string i)]))
+    (define (positive-int-as-string i)
+        (if (= i 0)
+            ""
+            (string-concat (positive-int-as-string (div i 10)) (digit-as-string (remainder i 10)))))
+    (define (digit-as-string d)
+        (char->string (string-char-at "0123456789" d)))
+
+Now we can augment our "as-string" generic procedure with this special case for integers.
+
+.. code:: racket
+
+    (set! as-string (extend as-string
+                            integer?
+                            int-as-string))
+
+Whenever we create a new data type in our program, we can augment our ``as-string``
+generic procedure with a facility that works for our new type when passed to it.
+
+Note that we've now started associating the predicate for dispatch with a "type"
+of value we're passing. Given data types ``A``, ``B``, ``C``, etc. in our program,
+we'll then end up with specialization functions named ``A-as-string``, ``B-as-string``,
+``C-as-string`` and so on which handle ``as-string`` cases for each of our types.
+
+This is a little curious because we now associate the "ability to be expressed as a string"
+with each of our data types for which we need that in our program. So there are perhaps
+two equivalent ways of organizing our code here --
+
+1. Maintain ``as-string`` in a module and add a new implementation to that module for
+   every type we introduce within our program. This means every such type's definition will have
+   to be imported into the module that builds up ``as-string``. If we continue along the
+   lines of what we've been doing so far, we'll end up with this kind of an organization.
+
+2. We can declare the ability to be presented as a string as a "property" of our data
+   type, and declare the specialization wherever we declare our type. This then keeps
+   all such behaviours together, which makes for ease of maintenance. However then, 
+   we need some background facility that will collect all such specifications for our
+   various types and build up a single ``as-string`` that will dispatch over our data types.
+
+The second way of looking at this approach makes us think of our data types as
+"things" to which these kinds of special behaviour procedures are "attached" as
+properties. When we need to "invoke" these procedures, we simply call the procedure
+on the value and it knows which special case to use.
+
+Since we're assuming that all our predicates are disjoint, it would be a far more
+efficient way to dispatch if we store right within our value, which of the various
+dispatch predicates will return ``#t`` for it. So we treat each value as having a
+hashtable of properties keyed by the various "generic" behaviours it needs to support
+and whose values are the special implementation. To call on this behaviour, then
+we can implement a common ``invoke`` procedure like this --
+
+.. code:: racket
+
+    (invoke value 'as-string)
+
+Instead of ``(as-string value)``. 
+
+Of course, it is also possible to make the generic procedure ``as-string`` efficiently
+do its dispatch using a similar hashtable within it.
+
+Dispatch over a single argument is therefore the crux of "objects" in programmning
+lanugages. We will come back to some of the design aspects of object systems after
+going through the other possible dispatch mechanisms.
+
+
 Multiple argument dispatch
 --------------------------
+
+
 
 Dispatching with tagged values
 ------------------------------

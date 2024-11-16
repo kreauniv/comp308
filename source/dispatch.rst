@@ -186,30 +186,223 @@ two equivalent ways of organizing our code here --
    we need some background facility that will collect all such specifications for our
    various types and build up a single ``as-string`` that will dispatch over our data types.
 
-The second way of looking at this approach makes us think of our data types as
-"things" to which these kinds of special behaviour procedures are "attached" as
-properties. When we need to "invoke" these procedures, we simply call the procedure
-on the value and it knows which special case to use.
+A value as a "thing"
+----------------------
 
-Since we're assuming that all our predicates are disjoint, it would be a far more
-efficient way to dispatch if we store right within our value, which of the various
-dispatch predicates will return ``#t`` for it. So we treat each value as having a
-hashtable of properties keyed by the various "generic" behaviours it needs to support
-and whose values are the special implementation. To call on this behaviour, then
-we can implement a common ``invoke`` procedure like this --
+If we articulate our extension approach as an ``as-string`` facility that's attached to
+every value we create that's specialized to its purpose, we're starting to think of
+our values as "things" ... more commonly known as "objects" in programming.
+
+So far, we've been thinking of ``as-string`` as the primary entity that we seek to
+extend. If we flip our perspective to focus on the value, it is the value that we
+then seek to augment with a procedure named ``as-string``. So, the value-specific
+behaviour of ``as-string`` becomes more of an attribute of the value.
+
+So instead of ``(as-string value)``, we think of a mechanism ``invoke`` that can 
+invoke such behavioral attributes of our "objects" by name like 
+``(invoke value 'as-string)`` instead.
+
+We can extend this notion to take in more arguments also, which is compatible with
+our "dispatch based on a predicate set over the first argument of a generic procedure".
+``(invoke value 'method arg1 arg2 ...)``.
+
+.. admonition:: **Terminology**:
+
+	We call such procedural attributes "methods". 
+
+"Methods" are general enough to model "properties" of such "objects". To model a 
+property, we need to be able to **get** a property value, and **set** it to change
+its value. So if we have a method that optionally takes a single argument --
+i.e. either ``(invoke value 'prop-name)`` or ``(invoke value 'prop-name prop-val)``, where
+the first way of calling will return the current value of the property and if you
+supply an argument, it sets the property to the given value and (optionally) returns
+``value`` as the result, we can pretend that the method ``'prop-name`` corresponds
+not to a procedure, but to a property of an object.
+
+.. admonition:: **Terminology**:
+
+	The notion of an object's **property** is equivalent to having a named
+	behaviour that can be invoked to set or get a particular value identified
+	by the behaviour's name.
+
+Duplication of dispatch
+-----------------------
+
+When we associate a set of behaviours (and properties, by extension, which we'll
+stop calling out from now on) with values, we may imagine a table tagging
+along with each value in the system -- where the table maps behaviour names to
+special procedures. If we are to do this for, say, all the numbers in our program,
+this starts to look like an awful waste of memory for what is essentially repeated
+information. After all, we usually don't want to do different things to 2, 3, 4,
+42, etc. However, we may want to do one thing for all integers, and another thing
+for all floating point numbers, and yet another for fractions.
+
+In essence, our ``as-string`` generic procedure therefore dispatches on predicates
+of the form ``integer?``, ``float?`` or ``rational?``, rather than specific
+values.
+
+To put this differently, we have a table of such behaviours we wish integers
+to satisfy and give special procedures for named behaviours in this table. Then
+we merely need to identify this table by pointing to it when we have an integer
+value ... or any other more complex and potentially compound data item.
+
+In OOP languages, such a table of behaviours is called a "class". Our ``invoke``
+procedure then starts to look like this --
 
 .. code:: racket
 
-    (invoke value 'as-string)
+	(define (invoke value method-name . args)
+		(let* [(class (get-class value))
+			   (behaviour (lookup-behaviour-proc class method-name))]
+			(apply behaviour (cons value args))))
 
-Instead of ``(as-string value)``. 
+The above specification of what ``invoke`` does has a gap. What happens when
+``lookup-behaviour-proc`` determines that the identified ``class`` has no such
+method?
 
-Of course, it is also possible to make the generic procedure ``as-string`` efficiently
-do its dispatch using a similar hashtable within it.
+.. code:: racket
 
-Dispatch over a single argument is therefore the crux of "objects" in programmning
-lanugages. We will come back to some of the design aspects of object systems after
-going through the other possible dispatch mechanisms.
+	(define (invoke value method-name . args)
+		(let* [(class (get-class value))
+			   (behaviour (lookup-behaviour-proc class method-name))]
+			(if (procedure? behaviour)
+				(apply behaviour (cons value args))
+				(error "No such method"))))
+
+In the above version which calls out this case, we actually have a design
+choice.
+
+1. Perhaps we could call a default generic procedure that we can specialize
+   for different types of values.
+
+2. We can check another class's behaviour table for a procedure. If we take
+   this route, we see that our value then automatically would get all the
+   behaviours associated with this other class -- or it will "inherit" 
+   these behaviours. For this reason, such a class to which the "no such method"
+   case is delegated to is called the "parent class" or "super class".
+			
+.. code:: racket
+
+	(define (invoke value method-name . args)
+		(let* [(class (get-class value))
+			   (behaviour (lookup-behaviour-proc class method-name))]
+			(if (procedure? behaviour)
+				(apply behaviour (cons value args))
+				(let* [(super-class (get-parent class))
+				       (behaviour (lookup-behaviour-proc super-class method-name))]
+					(if (procedure? behaviour)
+						...)))))
+
+Ah! So this procedure of looking up the parent class seems to go on for ever?
+Let's simplify this by defining invoke in a different way.
+
+.. code:: racket
+
+	(define (c-invoke class value method-name . args)
+		(let [(behaviour (lookup-behaviour-proc class method-name))]
+			(if (procedure? behaviour)
+				(apply behaviour (cons value args))
+				(apply c-invoke (list (get-parent class) value method-name . args)))))
+
+How deep would this ``get-parent`` lookup go then?
+
+Most object oriented languages solve this problem by having a "root" class,
+perhaps named ``Object`` whose parent is itself.
+
+Objects objects everywhere
+--------------------------
+
+We can then ask -- "Can we treat all values in our language as objects?"
+... and the answer would be "yes!". Languages like Smalltalk, Ruby
+and Self take a "everything is an object" perspective. This means
+all values have associated "classes" and even a "class" is itself
+an object and also has a class. In the case of Smalltalk, a class'
+class is called a "meta class" and meta classes also form a hierarchy 
+that parallels the class heirarchy.
+
+Take a moment to think about this. We're comfortable representing
+some values such as numbers directly in our programs because we have
+common character based representations for them. Once they become
+values within the program, they gain behaviours we can invoke
+by name. This has the same power as having a slew of procedures
+we can invoke on these numbers and such values. However, the only
+way to **do** anything in such a language is to invoke a method
+or an object! If the invocation returned another object and you
+want to see it, you need to invoke another method on **that** object.
+Obviously, this recursion has to stop somewhere, and programming
+languages provide some built-in objects with behaviour implementations
+that don't return any further values, and entire programs are then
+constructed using these built-in values and the class-mechanism
+of the language.
+
+.. admonition:: **Terminology**:
+
+	When something in a programming language can be represented and
+    manipulated as a value, we say it is "first class". True OOP
+	languages like Smalltalk feature classes as first-class entities,
+	whereas semi-OOP languages like C++ treat classes and values 
+	as separate worlds within the language.
+
+
+The methods of a class
+----------------------
+
+Since we're looking at a class as an object as well, it is instructive
+to think about what kinds of behaviours may be attributable to
+a class.
+
+We already know one such -- the ``'parent-class`` property that
+all classes must possess for the behaviour lookup mechanism to
+work in the language. 
+
+We may also wish to be able to see a representation of all values
+in our system and therefore might wish to define procedures
+that will, say, print them to a terminal, or display them in 
+some environment. A common generic way to handle this is to
+permit a string representation of all values. Such a behaviour
+that can be used to get such a string representation is often
+named ``'description`` in such languages.
+
+.. code:: racket
+
+	(invoke value 'description)
+	; Gets a "string" that is repurposable across multiple
+	; presentation modes.
+
+We'd previously used a ``lookup-behaviour-proc``. This looks like a 
+perfect candidate for a property of a class, so to get a behaviour
+proc object associated with a class by name, we'd do --
+
+.. code:: racket
+
+	(invoke class 'behaviour-named name)
+	
+At this point, you may begin to appreciate how the snake starts
+to eat its own tail, since a "behaviour procedure" itself ought
+to be an object.
+
+Since invocation is the only thing you can do in a strict OOP 
+language, these languages give built-in syntax to keep invocations
+short. Many C-based languages such as Python and Javascript and C++
+use the "dot notation" to denote both properties and methods --
+like ``value.property`` and ``value.method(arg1, arg2)``. 
+
+Languages like Smalltalk make it even simpler by making method
+invocation invisible in the text -- like ``value method`` or 
+``value methodKey1: val1 key2: val2 ...``.
+
+
+Classes versus types
+--------------------
+
+Object oriented languages also tend to refer to such "classes" as "types".
+This comes from an identification of "what kind of thing is this thing?"
+with "what set of behaviours does this thing permit?".
+
+Since method invocation is the only action available in such systems,
+if you know the set of behaviours supported by a particular value,
+you know all there is to know about what kind of a thing it is,
+within this programming context. 
 
 
 Multiple argument dispatch

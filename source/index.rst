@@ -24,6 +24,7 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    mutations
    control
    errornot 
+   dispatch
    objects
    objects-self
    generators

@@ -593,6 +593,26 @@ example, what would a ``(symbol? (symbol? real?))`` mean mathematically? Again,
 in some mathematical contexts it might, but if you're doing ordinary algebra,
 this concept would be out of place.
 
+Such a ``list?`` predicate can be implemented perhaps as shown below --
+
+.. code:: racket
+
+    (define (list? argtype?)
+        (lambda (arg)
+            (if (cons? arg)
+                (let loop [(ls arg)]
+                    (if (empty? ls)
+                        #t ; An empty list belongs to all list types.
+                        (if (argtype? (first ls))
+                            ; Every element of the list must satisfy the argtype? predicate.
+                            (loop (rest ls))
+                            #f)))
+                #f)))
+
+.. admonition:: **Exercise**:
+
+    How would you implement a ``symbol?`` type predicate as used above.
+
 If we now consider an operation like addition and what it must do when given
 two symbols to add, we expect it to produce an expression with two symbols
 connected by a ``+`` operation -- like perhaps ``(+ x y)``. One way we can
@@ -665,11 +685,179 @@ are more closely related to the notion of "types".
 
 If we now generalize the notion of attaching a tag to attaching a list of tags
 (or perhaps a set of tags) to a value, then the behaviours that we can get from
-that value become additively expandable. 
+that value become additively expandable. In the single argument dispatch
+universe of design, this is referred to as "multiple inheritance".
 
-One argument case
-~~~~~~~~~~~~~~~~~
+Multiple inheritance
+~~~~~~~~~~~~~~~~~~~~
 
-Multiple argument case
-~~~~~~~~~~~~~~~~~~~~~~
+"Multiple inheritance" refers to a value (or a new type) inheriting the
+functionality of a number of other types by declaring them as "parents".
+Multiple inheritance can lead to certain kinds of problems. For example, if two
+of the "inherited" types prescribe different behaviours for the same
+method/message, it is unclear which behaviour the type or value must inherit.
 
+Programming languages try to "solve" this problem through some predictable
+mechanism that, despite the ambiguity continuing to exist in principle, makes
+it easy to determine which behaviour manifests by inspecting the code. For
+example, C++ solves it by mandating that the declaration order of the classes
+featuring in the inheritance list determines the priority for selection of a
+method implementation -- i.e. if A and B are both parent classes declared in
+that order and both specify implementations for method M, then if the
+declaration order is ``A, B``, then A's implementation takes precedence over
+B's and if the order is ``B, A``, then B's implementation takes precedence over
+A's. 
+
+While such a resolution mechanism appears to address the issue, it is still not
+clear from the program design perspective what actually should happen in some
+cases. For example, if ``A`` is a class that ``B`` and ``C`` inherit from and
+both override behaviour of method ``M``, and subsequently ``D`` inherits from
+both ``B, C``, both the behaviours of ``B`` and ``C`` for method ``M`` seem
+appropriate as the implementation for ``D``. So which one to choose? Again,
+even if this is resolved by the "declaration sequence = priority" approach, the
+burden has merely shifted to the programmer to decide which of the two orders
+to choose. Due to the nature of the inheritance pattern, this is referred to
+as "the diamond problem" in OOP literature.
+
+.. figure:: images/diamond.svg
+   :align: center
+   :alt: The "diamond problem" of class inheritance.
+
+   When two "base classes" a.k.a. "parent classes" of a class themselves
+   share the same base class, we have a "diamond problem" at hand.
+
+
+Traits: classes as types
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+One approach to program design that truly resolves the multiple inheritance
+problem described in the previous subsection treats classes as equivalent to
+types only if a class consists exclusively of specifications of abstract 
+methods that its child-class must implement in order to be made concrete.
+Such an abstract class cannot be tagged to a value since a value doesn't provide
+method implementations, and is therefore often called an "abstract class" or
+an sometimes (like in Julia) an "abstract type". Furthermore, the inheritance
+mechanism is only used to specify the set of methods available in a "concrete class"
+and no further inheritance is permitted in the design. 
+
+Interestingly enough, though this looks like a severe restriction, it is not
+really a restriction and in practice and leads to a well organized code base.
+The "abstract base class" serves as the "interface" and the "concrete class"
+serves as an "implementation" of the interface. There can be many
+implementations of an interface and to use an object, the programmer only needs
+to know the specification of the interface and its methods and little to
+nothing about the implementation details. This interface-implementation is
+made explicit in the Java language where an "interface" cannot syntactically
+declare any concrete method behaviours whereas a "class" can "implement" an
+interface and declare implementations. In Objective-C/C++ (used in iOS programming)
+the concept of an interface is referred to as a "protocol" since the language
+takes the "method invocation is a form of message passing" view.
+
+For example, a "Serializable" interface may declare the following methods (shown
+in the syntaxes of a few different programming languages) [^ --
+
+
+.. code:: Java
+
+    // Java
+    interface Serializable {
+        bytes serialize();
+        // Here Stream would also be an interface spec.
+        void serializeToStream(Stream s);
+    }
+
+.. code:: cpp
+
+    // C++
+    class Serializable {
+        virtual unsigned char * serialize() = 0;
+        // Here Stream would also be an interface class.
+        virtual void serializeToStream(Stream *s) = 0;
+    }
+
+.. code:: objc
+
+    /* Objective-C/C++ */
+    @protocol Serializable
+    - (NSData*)serialize;
+    /* Here Stream is a protocol that the passed object is expected to meet. */
+    - (void)serializeToStream: (id<Stream>)s;
+    @end
+
+  .. code:: rust
+
+    trait Stream {
+        ...le by
+    }
+
+    trait Serializable {
+        type CT;
+        fn serialize(&self) -> Vec<uint8>;
+        fn serializeToStream(&self, Stream:&Self::CT);
+    }
+
+In languages like Rust which are not OOP in the traditional sense but have a notion of
+a protocol or interface, this idea of an "abstract base class" is known as a "type trait" 
+or simply "trait". A trait, therefore, is a specification of all the methods that a concrete
+type that declares itself to implement the trait must provide implementations for to qualify
+as an implementation of the trait.
+
+Such "abstract base classes" or "type traits" may themselves declare as inheriting from 
+other traits. However, since they're all declarations and there can be only one concrete
+implementation for the collection of methods indicated through such an inheritance mechanism,
+there is no "diamond problem" any more. But yet again, if this structure turns up in a model
+of a domain, the responsibility for deciding what must happen when a particular method is invoked
+continues to fall on the programmer of that final implementation.
+
+Computable types
+----------------
+
+When we think of tagged values, the question arises whether such tags should themselves
+be computable by procedures within the language. Most programming languages maintain a 
+distinction between a "type" and a "value" within the language and "types" cannot be passed
+as arguments to functions and be returned as values.
+
+Some languages deviate from that. Traditional "message passing" OOP languages
+like SmallTalk and Ruby feature "classes" that are themselves objects that can
+be manipulated in programs. This is also true of OOP-ish languages like
+Javascript and python as well. This is not usually done in ahead-of-time compiled
+languages such as C++ and Rust though. And yet, some AoT compiled languages
+also provide some notion of computable types.
+
+For example, in Zig_, types are values that must be known at compile time.
+Though there is a distinction between code that is run during compile time and
+runtime, you can use ordinary functions to compute types at compile time. 
+
+.. _Zig: https://ziglang.org
+
+The Julia_ language places dispatch based on types of multiple/all function
+arguments a central feature of the language to enable the kinds of polymorphism
+needed for mathematical applications. In Julia_, types are actually normal
+runtime values too and functions can take types as arguments and return types
+as values. For the kinds of domains Julia works well for, this is a very
+practical choice, especially with the notion of `generated functions`_ where a
+function is called to generate its own body of code depending only on the types
+of its arguments. Such a function, when called with actual arguments, will call
+the generation code to compute the body and then compile that body and run it.
+Having cached the generated body, it no longer needs to recompute the body if
+the function is passed arguments of the same types again later. This way, a
+function can be written to eliminate code that typically dispatches based on
+argument types.
+
+Julia_ is not an "ahead-of-time" compiled language though and is perhaps better
+described as "just-ahead-of-time compiled" language since compilation of a
+function is not incremental, but is done without fail before calling it. In
+contrast, in "just-in-time compiled" languages such as Java and Smalltalk, a
+function or procedure may end up being compiled only if it invoked sufficiently
+often. Otherwise, it gets interpreted either directly, or via an intermediate
+byte-code interpreter. Single pass compilation to an intermediate byte code
+representation is usually much faster than compilation to machine code and is
+therefore viable in such a scenario.
+
+.. _Julia: https://julialang.org/
+.. _generated functions: https://docs.julialang.org/en/v1/manual/metaprogramming/#Generated-functions
+
+The case with Julia
+-------------------
+
+Julia supports 

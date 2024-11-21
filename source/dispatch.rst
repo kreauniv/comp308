@@ -1,6 +1,8 @@
 Polymorphism via dispatch
 =========================
 
+Note: This section is expected to supercede the discussion on :doc:`objects`.
+
 When writing our procedures/functions in a programming language, we deal with
 different data structures and entities such as files, network sockets and
 processes. For any given system, a number of such entities serves as its "API"
@@ -34,37 +36,35 @@ need to remember far fewer spells overall to be effective in their world.
 Racket library functions kind of work as though they were in that complicated
 world of spells. In Racket, though you'll find procedures named according to
 such common vocabulary, each data structure carries its own set of procedures
-to work with it. So vectors come with ``vector-get`` and ``vector-set!`` and
-``vector-length``, and similarly hash-tables have ``hashtable-get``,
-``hashtable-set!`` and ``hashtable-length``. If we were to invent another data
-structure, say, ``tree-map``, then we'll have to expose yet more procedures
-named ``tree-map-get``, ``tree-map-set!`` and ``tree-map-length`` that will do
-analogous things with tree-maps. If we choose completely different vocabularies
--- say, ``tree-map-search-and_retrieve``, ``tree-map-find-and-replace`` and
-``tree-map-count-entries`` -- we'd place a huge cognitive burden on programmers
+to work with it. So vectors come with ``vector-ref`` and ``vector-set!`` and
+``vector-length``, and similarly hash-tables have ``hash-ref``,
+``hash-set!`` and ``hash-count``. If we were to invent another data
+structure, say, ``treemap``, then we'll have to expose yet more procedures
+named ``treemap-ref``, ``treemap-set!`` and ``treemap-length`` that will do
+analogous things with tree maps. If we choose completely different vocabularies
+-- say, ``treemap-search-and-retrieve``, ``treemap-find-and-replace`` and
+``treemap-count-entries`` -- we'd place a huge cognitive burden on programmers
 who'd want to adopt our new data structure since they cannot reuse their
 vocabulary in the new context.
 
-What if we could simply say ``get``, ``set!`` and ``length`` and when we
+What if we could simply say ``ref``, ``set!`` and ``length`` and when we
 introduce a new data structure, be able to declare how these verbs should work
-with it at that point? That way, if we have a vector ``v``, we get get its
-``k``-th element using ``(get v k)`` and if we have a hashtable ``h`` and a key
-``k``, we can get its associated value using ``(get h k)`` as well, instead of
-``(hashtable-get h k)``. It is quite evident that the cognitive burden is lower
-for such a unified concept of "``get``-ting" a value. While doing this makes
-for concise code while writing, we also notice that when reading code, ``(get h
-k)`` tells us very little about ``h`` than "something we can call ``get`` on",
-whereas ``(hashtable-get h k)`` is amply clear. This is part of the reason for
-that design choice in the Scheme language.
+with it at that point? That way, if we have a vector ``v``, we reference its ``k``-th
+element using ``(ref v k)`` and if we have a hashtable ``h`` and a key ``k``,
+we can get its associated value using ``(ref h k)`` as well, instead of
+``(hash-ref h k)``. It is quite evident that the cognitive burden is lower
+for such a unified concept of "``ref``-ting" a value.
 
-Such a multi-purpose definition of a verb like ``get`` and ``set!`` is referred
-to in programming languages as "polymorphism" and the verb is said to be
-"polymorphic" over a collection of types.
+While doing this makes for concise code while writing, we also notice that when
+reading code, ``(ref h k)`` tells us very little about ``h`` than "something we
+can call ``get`` on", whereas ``(hash-ref h k)`` is amply clear. This is part
+of the reason for that design choice in the Scheme language.
 
-.. admonition:: **Polymorphism**
-    
-    The language facility by which a verb can result in different actions
-    depending on which entity/entities it is addressed to.
+.. admonition:: **Terminology**
+
+    Such a multi-purpose definition of a verb like ``ref`` and ``set!`` is
+    referred to in programming languages as "polymorphism" and the verb is said
+    to be "polymorphic" over a collection of types.
 
 Generic procedures
 ------------------
@@ -91,7 +91,8 @@ changed, initially.
                 (apply proc args)))
     
     ; Example of extending ordinary artihmetic to symbolic arithmetic.
-    (set! + (extend +
+    (define sym+ 
+        (extend +
                 (lambda (x y)
                     (or (symbol? x) (symbol? y))
                 (lambda (x y)
@@ -100,6 +101,22 @@ changed, initially.
     ; (plus 2 3) => 5
     ; (plus 2 'y) => '(+ 2 y)
     ; (plus 'x 3) => '(+ x 3)
+
+However, instead of introducing a new symbol ``sym+`` for our extended
+notion of addition, we can replace the earlier definition of ``+`` to 
+mean what the new ``sym+`` means because ``sym+`` also deals with the
+case of ading up ordinary numbers.
+
+.. code:: racket
+
+    (set! + sym+)
+
+.. admonition:: **Exercise**
+
+    When defining ``sym+``, we used the existing definition of ``+``. Now
+    that we've changed what ``+`` means, do we now have a circular program?
+    Explain whether you think "yes" or "no" is the answer to that question
+    using your understanding of scoping rules of SMoL.
 
 The predicate-extension pairs form the various branches of a ``cond``
 expression that decides which of the extension procedures to call based on
@@ -225,7 +242,7 @@ We can extend this notion to take in more arguments also, which is compatible
 with our "dispatch based on a predicate set over the first argument of a
 generic procedure". ``(invoke value 'method arg1 arg2 ...)``.
 
-.. admonition:: **Terminology**:
+.. admonition:: **Terminology**
 
 	We call such procedural attributes "methods". 
 
@@ -239,7 +256,7 @@ the given value and (optionally) returns ``value`` as the result, we can
 pretend that the method ``'prop-name`` corresponds not to a procedure, but to a
 property of an object.
 
-.. admonition:: **Terminology**:
+.. admonition:: **Terminology**
 
     The notion of an object's **property** is equivalent to having a named
     behaviour that can be invoked to set or get a particular value identified
@@ -353,7 +370,7 @@ behaviour implementations that don't return any further values, and entire
 programs are then constructed using these built-in values and the
 class-mechanism of the language.
 
-.. admonition:: **Terminology**:
+.. admonition:: **Terminology**
 
     When something in a programming language can be represented and manipulated
     as a value, we say it is "first class". True OOP languages like Smalltalk
@@ -609,7 +626,7 @@ Such a ``list?`` predicate can be implemented perhaps as shown below --
                             #f)))
                 #f)))
 
-.. admonition:: **Exercise**:
+.. admonition:: **Exercise**
 
     How would you implement a ``symbol?`` type predicate as used above.
 
@@ -719,12 +736,22 @@ burden has merely shifted to the programmer to decide which of the two orders
 to choose. Due to the nature of the inheritance pattern, this is referred to
 as "the diamond problem" in OOP literature.
 
-.. figure:: images/diamond.svg
+.. figure:: images/diamond.png
    :align: center
    :alt: The "diamond problem" of class inheritance.
 
    When two "base classes" a.k.a. "parent classes" of a class themselves
    share the same base class, we have a "diamond problem" at hand.
+
+
+.. d2::
+   :caption: Testing d2
+   :format: svg
+   :width: 50%
+
+   direction: up
+   A <- B <- D
+   A <- C <- D
 
 
 Traits: classes as types

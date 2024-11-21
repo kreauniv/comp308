@@ -1,8 +1,8 @@
-Lambda - the everything
+λ - the everything
 =======================
 
 If :index:`Alonzo Church` were asked "how far does the computational rabbit
-hole go?", he might have answered "It's :rkt:`lambda` all the way through.".
+hole go?", he might have answered "It's :rkt:`λ` all the way through.".
 
 .. index:: Church-Turing thesis
 
@@ -14,12 +14,12 @@ functions of numbers or strings or booleans or anything else. The only entities
 in Church's world are functions, and the only thing you can do with them is to
 apply them to other things (which are ... functions) ... and he claimed that
 all of what's computable is expressible using these! What's known as the
-`Church-Turing thesis`_ is the proof that Church's "lambda calculus" is
+`Church-Turing thesis`_ is the proof that Church's "λ calculus" is
 equivalent in its universality to Alan Turing's "Turing machine".
 
 .. _Church-Turing thesis: https://en.wikipedia.org/wiki/Church%E2%80%93Turing_thesis
 
-Take a moment to digest that large claim, for the :rkt:`lambda` construct in
+Take a moment to digest that large claim, for the :rkt:`λ` construct in
 Scheme is directly based on that foundational insight. In studying programming
 languages, we repeatedly encounter this idea of "we can express X in terms of
 Y" and where we make larger sets of these "X"s for our convenience where a much
@@ -37,73 +37,73 @@ sugar". Since desugaring is a kind of translation, it could also be taken as a
 kind of "compilation", but in case that scares you, don't worry and just stick
 to "desugaring".
 
-The point of lambdas is that lambdas are at the end of the entire stack of
+The point of λs is that λs are at the end of the entire stack of
 sugarings. The buck stops with them.
 
-So what's :rkt:`lambda`?
+So what's :rkt:`λ`?
 ------------------------
 
-.. index:: lambda
+.. index:: λ
 
-In Scheme, a "lambda expression" is an expression of the general form
+In Scheme, a "λ expression" is an expression of the general form
 shown below --
 
 .. code-block:: racket
 
-    (lambda (..<list-of-var-names>..) <expr-using-vars-in-the-list>)
+    (λ (..<list-of-var-names>..) <expr-using-vars-in-the-list>)
 
 It represents a packaged computation that can be performed when given concrete
-values for the variables listed after :rkt:`lambda` in the above expression.
+values for the variables listed after :rkt:`λ` in the above expression.
 
-For example, :rkt:`(lambda (x) (* x x))` is the function that squares numbers.
+For example, :rkt:`(λ (x) (* x x))` is the function that squares numbers.
 When given a number :rkt:`2`, by substituting :rkt:`x` with :rkt:`2`, you can
-compute the result of what the lambda expression denotes -- which is :rkt:`(* 2
+compute the result of what the λ expression denotes -- which is :rkt:`(* 2
 2) = 4`.
 
-There are two main rules you need to know when working with :rkt:`lambda`
+There are two main rules you need to know when working with :rkt:`λ`
 expressions (the abstract ones).
 
 .. index:: α-renaming
 
 **α-renaming**
-    If :rkt:`(lambda (x) E[x])` is a lambda expression in one argument where :rkt:`E[x]`
+    If :rkt:`(λ (x) E[x])` is a λ expression in one argument where :rkt:`E[x]`
     denotes some expression involving the variable :rkt:`x`, then you can change
     the name of :rkt:`x` to anything else and what the expression denotes is
-    considered to be the same. i.e. You can rewrite it to :rkt:`(lambda (y) E[y])`
+    considered to be the same. i.e. You can rewrite it to :rkt:`(λ (y) E[y])`
     (where we use the same :rkt:`E`) and it means the same thing ... as long as
     E doesn't already use :rkt:`y` as a free variable.
 
 .. index:: β-reduction
 
 **β-reduction**
-    If you have an expression of the form :rkt:`((lambda (x) E1[x]) E2)` where :rkt:`E1[x]`
+    If you have an expression of the form :rkt:`((λ (x) E1[x]) E2)` where :rkt:`E1[x]`
     is an expression that (optionally) uses the variable :rkt:`x` and :rkt:`E2` is some other
     expression, then it is equivalent to :rkt:`E1[E2]`. i.e.
 
-        :rkt:`((lambda (x) E1[x]) E2) => E1[E2]`
+        :rkt:`((λ (x) E1[x]) E2) => E1[E2]`
 
     It is important to note that when we say "is equivalent to", it means you
     can rewrite a sub-expression that looks like one side to the other form
     **anywhere**. We refer to the above left-to-right rewrite as "β-reduction"
     and the corresponding right-to-left rewrite as ":index:`β-abstraction`".
 
-    Just as lambdas offer a conceptual basis of all of computation, all
+    Just as λs offer a conceptual basis of all of computation, all
     abstraction in computing can be seen through β-abstraction.
 
 .. note:: "**β-reduction**" can be considered a fancy term for "substitution",
    for that's what it is. We don't have a corresponding simple term for the
    opposite transformation though. So we'll continue to call it
    "**β-abstraction**". We'll refer to the transformation :rkt:`E1[E2] =>
-   ((lambda (x) E1[x]) E2)` as "β-abstracting over :rkt:`E2`". In most cases,
+   ((λ (x) E1[x]) E2)` as "β-abstracting over :rkt:`E2`". In most cases,
    when we're performing such a transformation, we're no longer really
    interested in the :rkt:`E2` and will usually focus on the preceding
-   :rkt:`(lambda (x) E1[x])` and loosely talk about that as the β-abstracted
+   :rkt:`(λ (x) E1[x])` and loosely talk about that as the β-abstracted
    expression.
 
 .. warning:: When performing a :index:`β-reduction` step in Scheme, you need to
    be careful not to substitute symbols within a :rkt:`quote` sub-expression.
-   For example, :rkt:`((lambda (x) (quote (+ x x))) 3)` reduces to the list
-   :rkt:`'(+ x x)` whereas :rkt:`((lambda (x) (+ x x)) 3)` reduces to :rkt:`(+
+   For example, :rkt:`((λ (x) (quote (+ x x))) 3)` reduces to the list
+   :rkt:`'(+ x x)` whereas :rkt:`((λ (x) (+ x x)) 3)` reduces to :rkt:`(+
    3 3) = 6`.
 
 We'll use λ instead of :rkt:`lambda` for brevity.
@@ -114,7 +114,7 @@ naive way, you might end up with :rkt:`(* 10 ((λ (10) (- 10 1)) 10))` and
 then scratch your head about what you have at hand and what to do with it next!
 To do this correctly, you must see that the original expression is the same as
 :rkt:`((λ (x) (* x ((λ (y) (- y 1)) x))) 10)` .. where we've "α-renamed"
-the inner lambda's :rkt:`x` variable to :rkt:`y`, because, well they're supposed to
+the inner λ's :rkt:`x` variable to :rkt:`y`, because, well they're supposed to
 be equivalent right? If you now do β-reduction on this equivalent expression,
 you won't be left with the confused expression.
 
@@ -142,11 +142,11 @@ Tall claims need taller evidence
 --------------------------------
 
 Back to Church, what he made was a tall claim -- that all computable functions
-are expressible in terms of lambdas. When we make such a claim, we have to back
+are expressible in terms of λs. When we make such a claim, we have to back
 it up though. To recap, he's saying that you don't need :rkt:`cons`, :rkt:`car`,
 :rkt:`cdr`, :rkt:`if`, :rkt:`let`, :rkt:`cond`, booleans or numbers or strings or whatever
 we're used to in normal programming. He claimed that all of these are
-representable using lambdas **alone** .. and showed how to do it.
+representable using λs **alone** .. and showed how to do it.
 
 We'll now work through how to represent basic things in terms of which we
 can build a whole computational edifice.
@@ -170,28 +170,28 @@ trees using nested structures like --
     (pair (pair a b) (pair (pair c d) (pair e f)))
 
 Or tables as a list of lists. Or even graphs. So if we can show we can
-represent pairs using just :rkt:`lambda`, we're good with the other structures.
+represent pairs using just :rkt:`λ`, we're good with the other structures.
 
 .. code-block:: racket
 
-    (define pair (lambda (x y) ...))
+    (define pair (λ (x y) ...))
 
 What should we put within the :rkt:`...`? In fact, what **can** we put in there
-when all we have are functions (i.e. lambda expressions)? So we're now
+when all we have are functions (i.e. λ expressions)? So we're now
 looking at --
 
 .. code-block:: racket
 
-    (define pair (lambda (x y) (lambda (p) ...)))
+    (define pair (λ (x y) (λ (p) ...)))
 
 Again, what can we put in there? We have a :rkt:`p` and some two arbitrary values
 :rkt:`x` and :rkt:`y` that we're expected to "store" in the pair. About the only
-thing we can do (apart from nesting lambda once more, which would seem
+thing we can do (apart from nesting λ once more, which would seem
 pointless) is to apply :rkt:`p` to the :rkt:`x` and :rkt:`y`.
 
 .. code-block:: racket
 
-    (define pair (lambda (x y) (lambda (p) (p x y))))
+    (define pair (λ (x y) (λ (p) (p x y))))
 
 We can now make "pairs" like below --
 
@@ -207,13 +207,13 @@ some simple 2-argument functions shown below --
 
 .. code-block:: racket
 
-    (define .first (lambda (x y) x))
+    (define .first (λ (x y) x))
 
 and
 
 .. code-block:: racket
 
-    (define .second (lambda (x y) y))
+    (define .second (λ (x y) y))
 
 The functions ignore one of their arguments and just evaluate to the other.
 Now what happens when you apply :rkt:`p1` to these two functions.
@@ -221,12 +221,12 @@ Now what happens when you apply :rkt:`p1` to these two functions.
 .. code-block:: racket
 
     (p1 .first)
-    => ((pair 12 100) (lambda (x y) x)) ; substitute their definitions
-    => (((lambda (x y) (lambda (p) (p x y))) 12 100) (lambda (x y) x))
+    => ((pair 12 100) (λ (x y) x)) ; substitute their definitions
+    => (((λ (x y) (λ (p) (p x y))) 12 100) (λ (x y) x))
     ; β-reduce the first term
-    => ((lambda (p) (p 12 100)) (lambda (x y) x))
+    => ((λ (p) (p 12 100)) (λ (x y) x))
     ; β-reduce the expression again
-    => ((lambda (x y) x) 12 100)
+    => ((λ (x y) x) 12 100)
     ; β-reduce the expression again
     => 12
 
@@ -244,12 +244,12 @@ expression :rkt:`(p1 .first)` looks very similar to :rkt:`p1.first` typical of s
 languages.
 
 .. note:: The ones with a careful eye might've noticed that while we claimed to
-   only use lambdas, we ended up using :rkt:`define` in the above definitions. We
+   only use λs, we ended up using :rkt:`define` in the above definitions. We
    use it here only as a substitute for writing the mathematical definitional
    equality :math:`pair = (λ\ (x\ y)\ (λ\ (p)\ (p\ x\ y)))` and because it
    actually permits you to type it into Racket and check things out for
    yourself. We therefore lose no generality by using :rkt:`define` in the above
-   code. Also, lambda calculus deals only with one-argument functions and we've
+   code. Also, λ calculus deals only with one-argument functions and we've
    used two here. However, :math:`(λ\ (x\ y)\ E[x,y])` can be mechanically
    rewritten to :math:`(λ\ (x)\ (λ\ (y)\ E[x,y]))` with corresponding changes
    to substitution steps without loss of logical correctness. So we'll take
@@ -270,7 +270,7 @@ computed only when they are needed and not before.
 .. admonition:: **Exercise**
 
     The only place we use boolean values is to do a branch within an :rkt:`if`
-    condition. So if we can implement :rkt:`if` purely using :rkt:`lambda`, we're
+    condition. So if we can implement :rkt:`if` purely using :rkt:`λ`, we're
     good. For this exercise, you'll need to consider "lazy evaluation" instead
     of "eager evaluation" to keep things simple. In fact, for the rest of this
     demonstration, we'll use lazy evaluation with :rkt:`#lang lazy`. The earlier
@@ -278,7 +278,7 @@ computed only when they are needed and not before.
 
     .. code-block:: racket
 
-        (define IF (lambda (bool then-expr else-expr) ....))
+        (define IF (λ (bool then-expr else-expr) ....))
 
     Remember the trick we used with :rkt:`pair`. You have all you need in that
     code.
@@ -287,7 +287,7 @@ computed only when they are needed and not before.
 ``let``
 ~~~~~~~
 
-It is quite easy to see that we can rewrite :rkt:`let` expressions using :rkt:`lambda`.
+It is quite easy to see that we can rewrite :rkt:`let` expressions using :rkt:`λ`.
 
 .. code-block:: racket
 
@@ -301,11 +301,11 @@ Can be rewritten as --
 
 .. code-block:: racket
 
-    ((lambda (var1 var2 ... varn)
+    ((λ (var1 var2 ... varn)
         <body-using-var1..n>)
      expr1 expr2 ... exprn)
 
-So :rkt:`let` is just "syntactic sugar" on top of lambda - i.e. is for our
+So :rkt:`let` is just "syntactic sugar" on top of λ - i.e. is for our
 convenience without offering additional "expressive power". These notions will
 become clearer (and more formal) as we go along. For now, if you have a sense
 of what they are, that's sufficient.
@@ -315,7 +315,7 @@ Numbers
 
 .. index:: Church numerals
 
-Numbers are a big one to claim to be representable using :rkt:`lambda` alone!
+Numbers are a big one to claim to be representable using :rkt:`λ` alone!
 Numbers (i.e. basic arithmetic with whole numbers) hold a "threshold" place in
 mathematical logic too -- that every ":index:`formal system`" [#fs]_ is
 representable using numbers.
@@ -324,12 +324,12 @@ representable using numbers.
    are assumed to be true -- that serve as a starting point, and a collection
    of rules that tell us how to derive new theorems from other known theorems.
 
-In lambda calculus, all we have are functions and function application. What can
+In λ calculus, all we have are functions and function application. What can
 we apply functions to? The answer to that question is also "functions"! So how
 can we capture the idea of natural numbers using functions alone?
 
 Given a function, what can we do with it? We can apply it to some value. What
-kind of a value can we apply it to (at least within lambda calculus)? We can
+kind of a value can we apply it to (at least within λ calculus)? We can
 apply it to another function. So :index:`Alonzo Church` came up with a
 representation for numbers as the idea of applying a function a certain number
 of times.
@@ -361,7 +361,7 @@ representation of numbers --
     (λ (f) (λ (x) (f (f (f x)))))   ; 3
     ;... and so on
 
-Observe by reading the lambda expression for each "number" that a Church
+Observe by reading the λ expression for each "number" that a Church
 numeral :rkt:`n` stands for the idea of "n applications of f on x" given some
 :rkt:`f` and :rkt:`x`.
 
@@ -440,7 +440,7 @@ I hope it is much easier to read the last definition as "n applications of f
 followed by one more" (reading the function composition from right-to-left).
 
 We'll take a break here and define two utility functions outside of
-Church's lambda calculus that will help us make Church numerals and display
+Church's λ calculus that will help us make Church numerals and display
 them in notation we understand - i.e. as decimal numbers.
 
 .. code-block:: racket
@@ -465,7 +465,7 @@ before reading on.
 
 Given an :rkt:`n` (a Church numeral), we can express the idea of "m+n" as
 "m applications of :rkt:`ch-succ` on n". This translates easily enough to
-a lambda expression like below --
+a λ expression like below --
 
 .. code-block:: racket
 
@@ -559,7 +559,7 @@ domains that you're just about beginning to understand. That's useful even if
 you are not using a functional programming language, because once you construct
 those abstractions, it is usually a mechanical matter to translate them into
 other languages that may not be functional. How can we be sure of that? That's
-what this whole section is about -- that :rkt:`lambda` is enough to represent
+what this whole section is about -- that :rkt:`λ` is enough to represent
 all of computation, so any general purpose language (i.e. "Turing complete
 language") can be understood in terms of it.
 
@@ -590,7 +590,7 @@ Scheme works with this definition just fine, but that's because it already provi
 a mechanism for you to assume the existence of the inner :rkt:`sqrt/rec` function
 when typing to evaluate a particular call. Somehow, the repeated unfolding of the
 code is avoided by using names to tie the function's structure to itself. We **don't**
-have that concept in lambda calculus and so will need to show that we can do this
+have that concept in λ calculus and so will need to show that we can do this
 without such a naming+delayed-binding trick.
 
 So, for our purposes, we do not know what function to use to effect the recursive
@@ -685,9 +685,9 @@ the same result.
 The journey isn't finished yet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We've now shown that you can express recursive calls using :rkt:`lambda` alone.
+We've now shown that you can express recursive calls using :rkt:`λ` alone.
 Mission accomplished! However, don't forget our larger claim that anything
-computable can be expressed using :rkt:`lambda`. In this case, what we just saw
+computable can be expressed using :rkt:`λ`. In this case, what we just saw
 is how we can start with a recursively defined function (given as a spec
 similar to :rkt:`cheat`) and **mechanically** transform it into the true
 recursive function. If we've truly "mechanized" it, then we should be able to

@@ -523,8 +523,8 @@ Ankle deep
 ~~~~~~~~~~
 
 For this section, remember that if ``f`` is a lambda expression
-of the form ``(lambda (x) (- x 12))``, then `(f 24)` is expected to
-evaluate to the same expression as `(- 24 12)` -- i.e. the argument ``24``
+of the form ``(lambda (x) (- x 12))``, then ``(f 24)`` is expected to
+evaluate to the same expression as ``(- 24 12)`` -- i.e. the argument ``24``
 is used to replace occurrences of ``x`` within the body of the ``lambda``.
 
 .. code-block:: racket

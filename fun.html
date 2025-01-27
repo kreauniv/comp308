@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Functions and scope &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=cb25574f" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b30c7235"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5cb08e4e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Stacks and scope" href="stacks-and-scope.html" />
@@ -18,8 +18,9 @@
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -32,7 +33,7 @@
           <div class="body" role="main">
             
   <section id="functions-and-scope">
-<h1>Functions and scope<a class="headerlink" href="#functions-and-scope" title="Permalink to this heading">¶</a></h1>
+<h1>Functions and scope<a class="headerlink" href="#functions-and-scope" title="Link to this heading">¶</a></h1>
 <p>Thus far, we can construct expressions (type <code class="code highlight racket docutils literal highlight-racket"><span class="n">PicExprC</span></code>) in our “PicLang”
 and run them through our interpreter (we’ll indulge a bit and also refer to it
 as a “picture synthesizer”) to produce a “picture” which we can “render” to a
@@ -43,7 +44,7 @@ didn’t have to repeat ourselves about. Functions are about that, and adding
 functions to our language will vastly increase the breadth of what we can
 accomplish within it.</p>
 <section id="defining-functions">
-<h2>Defining functions<a class="headerlink" href="#defining-functions" title="Permalink to this heading">¶</a></h2>
+<h2>Defining functions<a class="headerlink" href="#defining-functions" title="Link to this heading">¶</a></h2>
 <p>Towards this, we’ll consider a function definition structure that captures
 the essence of a general enough function within our language.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">FunDefC</span><span class="w"> </span><span class="p">([</span><span class="n">name</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Symbol</span><span class="p">]</span>
@@ -66,7 +67,7 @@ argument? We have a couple of choices given our picture language terms. We
 could make functions of type <code class="code highlight racket docutils literal highlight-racket"><span class="n">Number</span><span class="w"> </span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Picture</span></code> or <code class="code highlight racket docutils literal highlight-racket"><span class="n">Picture</span><span class="w"> </span><span class="k">-&gt;</span>
 <span class="n">Picture</span></code>. <a class="footnote-reference brackets" href="#nuance" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="nuance" role="doc-footnote">
+<aside class="footnote brackets" id="nuance" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p>We’re thinking of our function as producing a “picture”
 here and not a <code class="code highlight racket docutils literal highlight-racket"><span class="n">PicExprC</span></code> for simplicity because the job of
@@ -114,7 +115,7 @@ body is called a “free variable”. In our language so far, we do not ascribe 
 to such “free variables” and therefore consider such an expression to be an error.</p>
 </section>
 <section id="applying-functions-substitution-a-k-a-reduction">
-<h2>Applying functions: substitution a.k.a. β-reduction<a class="headerlink" href="#applying-functions-substitution-a-k-a-reduction" title="Permalink to this heading">¶</a></h2>
+<h2>Applying functions: substitution a.k.a. β-reduction<a class="headerlink" href="#applying-functions-substitution-a-k-a-reduction" title="Link to this heading">¶</a></h2>
 <p id="index-2">Ok, we have a function definition now. How do we then use it to make pictures? We
 need a way to “apply” the function to a concrete picture expression value to compute
 the required result. We therefore need yet another addition to our language to
@@ -224,7 +225,7 @@ perform a “β-reduction”.</p>
 </div>
 </section>
 <section id="two-evaluation-modes">
-<h2>Two evaluation modes<a class="headerlink" href="#two-evaluation-modes" title="Permalink to this heading">¶</a></h2>
+<h2>Two evaluation modes<a class="headerlink" href="#two-evaluation-modes" title="Link to this heading">¶</a></h2>
 <p>Consider the function definition below –</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">FunDefC</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">ghost</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">p</span><span class="w"> </span><span class="p">(</span><span class="n">OverlayC</span><span class="w"> </span><span class="p">(</span><span class="n">IdC</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">p</span><span class="o">&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">TranslateC</span><span class="w"> </span><span class="mf">4.0</span><span class="w"> </span><span class="p">(</span><span class="n">OpacityC</span><span class="w"> </span><span class="mf">0.5</span><span class="w"> </span><span class="p">(</span><span class="n">IdC</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">p</span><span class="o">&#39;</span><span class="p">)))))</span>
 </pre></div>
@@ -288,7 +289,7 @@ in this case instead of a <code class="code highlight racket docutils literal hi
 that it really needs to do beyond return the provided value, as seen above.</p>
 </section>
 <section id="scope">
-<h2>Scope<a class="headerlink" href="#scope" title="Permalink to this heading">¶</a></h2>
+<h2>Scope<a class="headerlink" href="#scope" title="Link to this heading">¶</a></h2>
 <p>So far, we’ve only seen only one condition that indicates we have a problematic
 function definition at hand – whenever we find a “free variable” in the
 expression of a function definition, such an expression cannot be interpreted.</p>
@@ -331,9 +332,10 @@ next notion we’ll discuss - that of “environments and scope”.</p>
 <h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="work.html">Work plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">λ - the everything</a></li>
 <li class="toctree-l1"><a class="reference internal" href="church.html">Lambda - via β-abstraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
@@ -367,7 +369,7 @@ next notion we’ll discuss - that of “environments and scope”.</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -375,7 +377,7 @@ next notion we’ll discuss - that of “environments and scope”.</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -390,11 +392,11 @@ next notion we’ll discuss - that of “environments and scope”.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Srikumar K. S..
+      &#169;2022, Srikumar K. S..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
       <a href="_sources/fun.rst.txt"

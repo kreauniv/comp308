@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>A language for pictures &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=cb25574f" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b30c7235"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5cb08e4e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -19,8 +19,9 @@
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -33,7 +34,7 @@
           <div class="body" role="main">
             
   <section id="a-language-for-pictures">
-<h1>A language for pictures<a class="headerlink" href="#a-language-for-pictures" title="Permalink to this heading">¶</a></h1>
+<h1>A language for pictures<a class="headerlink" href="#a-language-for-pictures" title="Link to this heading">¶</a></h1>
 <p>The original PLAI course used arithmetic to introduce some ideas. On polling,
 students seemed more inclined towards picking something more interesting like
 picture composition. So we’ll take that track. I hasten to add that there’ll be
@@ -52,7 +53,7 @@ array of “pixels”. The latter is about composing pictures, including but not
 limited to the “2D pixel array” variety.</p>
 </div>
 <section id="growing-a-language">
-<h2>Growing a language<a class="headerlink" href="#growing-a-language" title="Permalink to this heading">¶</a></h2>
+<h2>Growing a language<a class="headerlink" href="#growing-a-language" title="Link to this heading">¶</a></h2>
 <p>We’re about to launch off a precipice in our efforts to figure out a language
 for composing pictures. When we set out on such a task in any domain, there are
 a few things we need to do to build up our understanding of the domain first.
@@ -81,7 +82,7 @@ into the talk. So do press on.</p>
 </div>
 </section>
 <section id="a-plausible-vocabulary">
-<h2>A plausible vocabulary<a class="headerlink" href="#a-plausible-vocabulary" title="Permalink to this heading">¶</a></h2>
+<h2>A plausible vocabulary<a class="headerlink" href="#a-plausible-vocabulary" title="Link to this heading">¶</a></h2>
 <p>Let’s consider 3 categories of images that students gave examples of –</p>
 <ol class="arabic simple">
 <li><p>“<span class="target" id="index-3"></span>Primitives” such as discs, rectangles, squares and triangles. We
@@ -99,7 +100,7 @@ image.</p></li>
 pictures to begin with, even though we don’t yet know what exactly a “picture”
 is. We can represent these ideas using s-expressions like below –</p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="ppm" role="doc-footnote">
+<aside class="footnote brackets" id="ppm" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p>You’ve already been given instructions to write functions to read and
 write this format.</p>
@@ -138,7 +139,7 @@ figure out these details.</p>
 <p>In particular we need to understand “colour” first.</p>
 </section>
 <section id="what-is-colour">
-<h2>What is “colour”?<a class="headerlink" href="#what-is-colour" title="Permalink to this heading">¶</a></h2>
+<h2>What is “colour”?<a class="headerlink" href="#what-is-colour" title="Link to this heading">¶</a></h2>
 <p id="index-6">I’m not talking about a general perceptual understanding of colour here, though
 that is a fascinating topic worthy of its own course. For our purposes, we’ll
 satisfy ourselves with determing colour in terms of three well known colour
@@ -162,7 +163,7 @@ and get the various components of a colour <code class="code highlight racket do
 <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">colour-b</span><span class="w"> </span><span class="n">c</span><span class="p">)</span></code> etc.</p>
 </section>
 <section id="so-what-is-an-image-or-picture">
-<h2>So, what is an “image” or “picture”?<a class="headerlink" href="#so-what-is-an-image-or-picture" title="Permalink to this heading">¶</a></h2>
+<h2>So, what is an “image” or “picture”?<a class="headerlink" href="#so-what-is-an-image-or-picture" title="Link to this heading">¶</a></h2>
 <p>When we look at a picture, what are we actually looking at? If we take up a
 magnifying glass in our hands, we can pore over the details of the picture by
 moving it over the region of interest to us. That is, we can consider for the
@@ -181,7 +182,7 @@ to capture the idea of the types of things we’re dealing with.</p>
 <img alt="A picture of a kitten overlaid on graph paper with a magnifying glass focusing on a leaf." src="_images/image-illustration.png" />
 <figcaption>
 <p><span class="caption-number">Fig. 1 </span><span class="caption-text">An image can be thought of as a mapping from a pair of spatial coordinates <span class="math notranslate nohighlight">\((x,y)\)</span>
-to a colour value. (Credits: <a class="reference external" href="https://commons.wikimedia.org/wiki/File:A_curious_kitten_(Pixabay).jpg">catpic</a> and <a class="reference external" href="https://commons.wikimedia.org/wiki/File:Hand_glass.png">magglass</a>)</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+to a colour value. (Credits: <a class="reference external" href="https://commons.wikimedia.org/wiki/File:A_curious_kitten_(Pixabay).jpg">catpic</a> and <a class="reference external" href="https://commons.wikimedia.org/wiki/File:Hand_glass.png">magglass</a>)</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>Is it too abstract to think of a picture like that? Since we haven’t yet figured out
@@ -228,7 +229,7 @@ for various values of <span class="math notranslate nohighlight">\(x\)</span> an
 <figcaption>
 <p><span class="caption-number">Fig. 2 </span><span class="caption-text">The same cat picture above translated by <span class="math notranslate nohighlight">\((3,2)\)</span>. The colour we’re now
 looking at at <span class="math notranslate nohighlight">\((6,8)\)</span> is at <span class="math notranslate nohighlight">\((3,6)\)</span> relative to the bottom left
-corner of the cat picture.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+corner of the cat picture.</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; scale :: Float -&gt; Float -&gt; Image -&gt; Image</span>
@@ -247,7 +248,7 @@ corner of the cat picture.</span><a class="headerlink" href="#id3" title="Permal
 <figcaption>
 <p><span class="caption-number">Fig. 3 </span><span class="caption-text">The same cat picture above scaled by <span class="math notranslate nohighlight">\((0.5,0.5)\)</span>. The colour we’re
 looking at when we look at <span class="math notranslate nohighlight">\((3,4)\)</span> in the result image is the same
-colour we get when we looked at <span class="math notranslate nohighlight">\((6,8)\)</span> in the original image.</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
+colour we get when we looked at <span class="math notranslate nohighlight">\((6,8)\)</span> in the original image.</span><a class="headerlink" href="#id4" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>Notice that though our scaling factors are <span class="math notranslate nohighlight">\((0.5,0.5)\)</span>, we need to use
@@ -275,7 +276,7 @@ rotation matrix from your linear algebra course.</p>
 </div>
 </section>
 <section id="composing-transformations-as-functions">
-<h2>Composing transformations as functions<a class="headerlink" href="#composing-transformations-as-functions" title="Permalink to this heading">¶</a></h2>
+<h2>Composing transformations as functions<a class="headerlink" href="#composing-transformations-as-functions" title="Link to this heading">¶</a></h2>
 <p>We now have a mini language at hand. Using the functions we’ve defined above,
 we can combine them to make new images. For example, <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">translate</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">5</span>
 <span class="p">(</span><span class="n">rotate</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="mf">2.0</span><span class="p">)))</span></code>. The expression <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="mf">2.0</span><span class="p">)</span></code> produces an
@@ -283,7 +284,7 @@ image function that represents a square of width <span class="math notranslate n
 around the origin by <span class="math notranslate nohighlight">\(30\)</span> degrees and then translate it by <span class="math notranslate nohighlight">\((5,5)\)</span>.</p>
 </section>
 <section id="a-first-step-to-making-an-interpreter">
-<h2>A first step to making an interpreter<a class="headerlink" href="#a-first-step-to-making-an-interpreter" title="Permalink to this heading">¶</a></h2>
+<h2>A first step to making an interpreter<a class="headerlink" href="#a-first-step-to-making-an-interpreter" title="Link to this heading">¶</a></h2>
 <p>We now consider what if we don’t evaluate that expression as a Scheme
 expression, but treat it as a program by quoting it – i.e. <code class="code highlight racket docutils literal highlight-racket"><span class="o">&#39;</span><span class="p">(</span><span class="ss">translate</span><span class="w"> </span><span class="mi">5</span>
 <span class="mi">5</span><span class="w"> </span><span class="p">(</span><span class="ss">rotate</span><span class="w"> </span><span class="mi">30</span><span class="w"> </span><span class="p">(</span><span class="ss">square</span><span class="w"> </span><span class="mf">2.0</span><span class="p">)))</span></code>. To dissect that, what we really have are
@@ -340,7 +341,7 @@ your assignment, you’ll be able to run the above interpreter to do some simple
 things with them. In the next section, we’ll look into what would make for a
 “core language” versus “surface syntax”.</p>
 <section id="an-alternative-representation">
-<h3>An alternative representation<a class="headerlink" href="#an-alternative-representation" title="Permalink to this heading">¶</a></h3>
+<h3>An alternative representation<a class="headerlink" href="#an-alternative-representation" title="Link to this heading">¶</a></h3>
 <p>We represented the “program” as simply an s-expression. Our program in this
 case consisted of a single expression which our interpret “evaluated”. More
 typically when working on programming languages, the sub-expressions we used
@@ -385,7 +386,7 @@ interpreted to give them their meanings as pictures, hence the recursive calls
 to transform these sub-expressions to pictures that we can then compose.</p>
 </section>
 <section id="why-bother">
-<h3>Why bother?<a class="headerlink" href="#why-bother" title="Permalink to this heading">¶</a></h3>
+<h3>Why bother?<a class="headerlink" href="#why-bother" title="Link to this heading">¶</a></h3>
 <p>We already had good enough functions that we can make use of to construct
 pictures. Why would we bother to make such an “interpreter” that so blatantly
 uses the same functions to do the same thing?</p>
@@ -451,9 +452,10 @@ the target machine code from the IR.</p>
 <h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="work.html">Work plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">λ - the everything</a></li>
 <li class="toctree-l1"><a class="reference internal" href="church.html">Lambda - via β-abstraction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">A language for pictures</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#growing-a-language">Growing a language</a></li>
@@ -489,7 +491,7 @@ the target machine code from the IR.</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -497,7 +499,7 @@ the target machine code from the IR.</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -512,11 +514,11 @@ the target machine code from the IR.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Srikumar K. S..
+      &#169;2022, Srikumar K. S..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
       <a href="_sources/piclang.rst.txt"

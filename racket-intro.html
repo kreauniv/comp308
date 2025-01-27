@@ -1,25 +1,26 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>A quick introduction to Racket and Scheme &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=cb25574f" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b30c7235"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5cb08e4e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Lambda - the everything" href="lambda.html" />
+    <link rel="next" title="λ - the everything" href="lambda.html" />
     <link rel="prev" title="Welcome note" href="intro.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -32,7 +33,7 @@
           <div class="body" role="main">
             
   <section id="a-quick-introduction-to-racket-and-scheme">
-<h1>A quick introduction to Racket and Scheme<a class="headerlink" href="#a-quick-introduction-to-racket-and-scheme" title="Permalink to this heading">¶</a></h1>
+<h1>A quick introduction to Racket and Scheme<a class="headerlink" href="#a-quick-introduction-to-racket-and-scheme" title="Link to this heading">¶</a></h1>
 <p>We’re going to be using the <code class="docutils literal notranslate"><span class="pre">#lang</span> <span class="pre">plai-typed</span></code> in this course and therefore
 it is important that you get some decent familiarity with <span class="target" id="index-0"></span>Scheme.
 Fortunately, if you’re comfortable with normal algebra – i.e. mostly
@@ -48,7 +49,7 @@ the purpose of this introduction, you’ll be using <code class="docutils litera
 using other languages during this course, but the basic meaning of expressions
 described here is not going to differ between them much.</p>
 <section id="things">
-<h2>Things<a class="headerlink" href="#things" title="Permalink to this heading">¶</a></h2>
+<h2>Things<a class="headerlink" href="#things" title="Link to this heading">¶</a></h2>
 <p>You write programs that compute some things given other things. We call these
 things “values” or, if you want to sound sophisticated, “objects”.</p>
 <div class="admonition-preparation admonition">
@@ -123,7 +124,7 @@ and <code class="docutils literal notranslate"><span class="pre">rest</span></co
 </dl>
 </section>
 <section id="s-expressions">
-<h2>S-expressions<a class="headerlink" href="#s-expressions" title="Permalink to this heading">¶</a></h2>
+<h2>S-expressions<a class="headerlink" href="#s-expressions" title="Link to this heading">¶</a></h2>
 <p>And then you have the famous “<span class="target" id="index-8"></span>s-expressions” (for “symbolic
 expressions”), which also look like lists, except that there is no quote
 character sticking in front of it. A typically s-expression is of the form –</p>
@@ -171,7 +172,7 @@ in the second definition above will be evaluated in the following sequence -</p>
 </div>
 </section>
 <section id="procedures">
-<h2>Procedures<a class="headerlink" href="#procedures" title="Permalink to this heading">¶</a></h2>
+<h2>Procedures<a class="headerlink" href="#procedures" title="Link to this heading">¶</a></h2>
 <p id="index-9">There is another operator that Scheme provides – <code class="docutils literal notranslate"><span class="pre">lambda</span></code> – that’s
 used to create your own procedures. The one below, for example,
 creates a “hypotenuse” calculating function.</p>
@@ -209,7 +210,7 @@ procedure a name using the known <code class="docutils literal notranslate"><spa
 <p>If you put that into the file and “Run” it, you can use <code class="docutils literal notranslate"><span class="pre">hypotenuse</span></code>
 in the REPL like <code class="docutils literal notranslate"><span class="pre">(hypotenuse</span> <span class="pre">3</span> <span class="pre">4)</span></code>.</p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="xy" role="doc-footnote">
+<aside class="footnote brackets" id="xy" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p>… barring the exchange of <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> variables. We don’t
 consider that because in order to see that it is ok to exchange <code class="docutils literal notranslate"><span class="pre">x</span></code>
@@ -228,7 +229,7 @@ in Scheme.</p>
 </aside>
 </section>
 <section id="evaluation-by-substitution">
-<h2>Evaluation by substitution<a class="headerlink" href="#evaluation-by-substitution" title="Permalink to this heading">¶</a></h2>
+<h2>Evaluation by substitution<a class="headerlink" href="#evaluation-by-substitution" title="Link to this heading">¶</a></h2>
 <p>In the absence of side effects, we can evaluate any s-expression using a
 process of <span class="target" id="index-10"></span>substitution. Let’s take the same example above –</p>
 <div class="admonition note">
@@ -286,7 +287,7 @@ of substituting 3 for x and 4 for y according to the declared
 argument sequence.</p>
 </section>
 <section id="homoiconicity">
-<h2>Homoiconicity<a class="headerlink" href="#homoiconicity" title="Permalink to this heading">¶</a></h2>
+<h2>Homoiconicity<a class="headerlink" href="#homoiconicity" title="Link to this heading">¶</a></h2>
 <p id="index-11">You’d have noticed that there are two ways of evaluating expressions depending
 on what operator is placed at the head of the list. For example, if you did
 <code class="docutils literal notranslate"><span class="pre">(list</span> <span class="pre">(x</span> <span class="pre">y)</span> <span class="pre">(+</span> <span class="pre">x</span> <span class="pre">y))</span></code>, the RPEL would’ve complained about <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>
@@ -313,7 +314,7 @@ using nested lists – and the user’s programs can manipulate these structures
 as well.</p>
 </section>
 <section id="what-s-in-the-box">
-<h2>What’s in the box?<a class="headerlink" href="#what-s-in-the-box" title="Permalink to this heading">¶</a></h2>
+<h2>What’s in the box?<a class="headerlink" href="#what-s-in-the-box" title="Link to this heading">¶</a></h2>
 <p>Scheme comes with many standard functions for working with data. You don’t
 need to learn all of them. You can just search the <a class="reference external" href="https://docs.racket-lang.org/">Racket documentation</a>
 for relevant functions when you need them and then use them. However, a
@@ -371,7 +372,7 @@ function/procedure being applied to the given list of arguments. So <code class=
 <p>Note that white space doesn’t matter for meaning, except that some
 space must be there between the terms of an s-expression.</p>
 <section id="read-and-write">
-<h3><code class="docutils literal notranslate"><span class="pre">read</span></code> and <code class="docutils literal notranslate"><span class="pre">write</span></code><a class="headerlink" href="#read-and-write" title="Permalink to this heading">¶</a></h3>
+<h3><code class="docutils literal notranslate"><span class="pre">read</span></code> and <code class="docutils literal notranslate"><span class="pre">write</span></code><a class="headerlink" href="#read-and-write" title="Link to this heading">¶</a></h3>
 <p id="index-13">The <code class="docutils literal notranslate"><span class="pre">write</span></code> procedure can be used to write out a serialized form of the given
 value. For example <code class="docutils literal notranslate"><span class="pre">(write</span> <span class="pre">'(+</span> <span class="pre">2</span> <span class="pre">3))</span></code> <a class="footnote-reference brackets" href="#quote" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a> will print out <code class="docutils literal notranslate"><span class="pre">(+</span> <span class="pre">2</span> <span class="pre">3)</span></code>
 and <code class="docutils literal notranslate"><span class="pre">(write</span> <span class="pre">(+</span> <span class="pre">2</span> <span class="pre">3))</span></code> will print out <code class="docutils literal notranslate"><span class="pre">5</span></code>.</p>
@@ -386,7 +387,7 @@ two functions are why the REPL is called the REPL - “read eval print loop”.
 The first three parts can literally be written as <code class="docutils literal notranslate"><span class="pre">(print</span> <span class="pre">(eval</span> <span class="pre">(read)))</span></code>
 in Scheme and “loop” refers to doing that over and over.</p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="quote" role="doc-footnote">
+<aside class="footnote brackets" id="quote" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
 <p>Note the quote symbol on the argument to write means the argument
 won’t be evaluated. Also note tha the output of <code class="docutils literal notranslate"><span class="pre">write</span></code> didn’t have the
@@ -396,7 +397,7 @@ quote symbol.</p>
 </section>
 </section>
 <section id="the-end-for-now">
-<h2>The end (for now)<a class="headerlink" href="#the-end-for-now" title="Permalink to this heading">¶</a></h2>
+<h2>The end (for now)<a class="headerlink" href="#the-end-for-now" title="Link to this heading">¶</a></h2>
 <p>The above is nearly all the Scheme basics we’ll need. We’ll use a few
 constructs built on top of these, but they will have familiar structure and
 we’ll go through how they can be reduce to these to understand them. There are
@@ -433,7 +434,7 @@ symbol names</a>. To get the <code class="docutils literal notranslate"><span cl
 with the cursor at the end, press the Ctrl-\ key combination (control +
 backslash) to turn the <code class="docutils literal notranslate"><span class="pre">\lambda</span></code> into <code class="docutils literal notranslate"><span class="pre">λ</span></code>.</p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="short" role="doc-footnote">
+<aside class="footnote brackets" id="short" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
 <p>Compared to what we’d have to learn for a language like Python,
 or C/C++ or Java. The only other language with similar brief explanation
@@ -442,22 +443,61 @@ of how it works is the object oriented language <a class="reference external" hr
 </aside>
 </section>
 <section id="exercises">
-<h2>Exercises<a class="headerlink" href="#exercises" title="Permalink to this heading">¶</a></h2>
+<h2>Exercises<a class="headerlink" href="#exercises" title="Link to this heading">¶</a></h2>
 <p>Evaluate the following by the substitution approach and check your result on
 the Racket REPL. All examples below are without side effects, so you don’t need
 to worry about duplicated expressions and can use the simple substitution
 method. Hint: Do it mechanically at first, paying attention to the parentheses.
 You may want to refer to how lambda expressions simplify when applied to values
 in the preceding text.</p>
+<section id="feet-wet">
+<h3>Feet wet<a class="headerlink" href="#feet-wet" title="Link to this heading">¶</a></h3>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; 0</span>
+<span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="mi">45</span><span class="w"> </span><span class="mi">15</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="mi">45</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">5</span><span class="p">)</span><span class="w"> </span><span class="mi">5</span><span class="p">))</span>
+
+<span class="c1">; 1</span>
+<span class="p">(</span><span class="nb">length</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="mi">15</span><span class="p">))</span>
+
+<span class="c1">; 2</span>
+<span class="p">((</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="p">))</span><span class="w"> </span><span class="nb">display</span><span class="p">)</span>
+
+<span class="c1">; 3</span>
+<span class="p">(</span><span class="nb">third</span><span class="w"> </span><span class="p">(</span><span class="nb">append</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">append</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="p">))))</span>
+
+<span class="c1">; 4</span>
+<span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">&lt;</span><span class="w"> </span><span class="p">(</span><span class="nb">string-length</span><span class="w"> </span><span class="s2">&quot;hello&quot;</span><span class="p">)</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="nb">+</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="p">))</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="nb">-</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="p">)))</span>
+
+<span class="c1">; 5</span>
+<span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">&lt;</span><span class="w"> </span><span class="p">(</span><span class="nb">string-length</span><span class="w"> </span><span class="s2">&quot;hello&quot;</span><span class="p">)</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="nb">+</span><span class="w"> </span><span class="nb">-</span><span class="p">)</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="p">))</span>
+
+<span class="c1">; 6</span>
+<span class="p">((</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">&lt;</span><span class="w"> </span><span class="p">(</span><span class="nb">string-length</span><span class="w"> </span><span class="s2">&quot;hello&quot;</span><span class="p">)</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="nb">+</span><span class="w"> </span><span class="nb">*</span><span class="p">)</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1">; 7</span>
 <span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">6</span><span class="p">)</span>
 <span class="w">      </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="mi">14</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">5</span><span class="p">))</span>
 <span class="w">      </span><span class="p">(</span><span class="nb">string-append</span><span class="w"> </span><span class="s2">&quot;hello&quot;</span><span class="w"> </span><span class="s2">&quot; &quot;</span><span class="w"> </span><span class="s2">&quot;world&quot;</span><span class="p">))</span>
+
+<span class="c1">; 8</span>
 <span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">=</span><span class="w"> </span><span class="p">(</span><span class="nb">remainder</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="nb">quotient</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">8</span><span class="p">)</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span>
 
-<span class="c1">; 1</span>
+<span class="c1">; 9</span>
+<span class="p">(</span><span class="nb">equal?</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">&#39;</span><span class="p">()))</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span>
+<span class="p">(</span><span class="nb">equal?</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="nb">empty</span><span class="p">))</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="ankle-deep">
+<h3>Ankle deep<a class="headerlink" href="#ankle-deep" title="Link to this heading">¶</a></h3>
+<p>For this section, remember that if <code class="docutils literal notranslate"><span class="pre">f</span></code> is a lambda expression
+of the form <code class="docutils literal notranslate"><span class="pre">(lambda</span> <span class="pre">(x)</span> <span class="pre">(-</span> <span class="pre">x</span> <span class="pre">12))</span></code>, then <cite>(f 24)</cite> is expected to
+evaluate to the same expression as <cite>(- 24 12)</cite> – i.e. the argument <code class="docutils literal notranslate"><span class="pre">24</span></code>
+is used to replace occurrences of <code class="docutils literal notranslate"><span class="pre">x</span></code> within the body of the <code class="docutils literal notranslate"><span class="pre">lambda</span></code>.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; 1</span>
 <span class="p">((</span><span class="k">lambda</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="w">   </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="n">x</span><span class="p">))</span>
 <span class="w">      </span><span class="mi">2</span><span class="p">))</span>
@@ -485,6 +525,7 @@ in the preceding text.</p>
 </div>
 </section>
 </section>
+</section>
 
 
           </div>
@@ -505,6 +546,7 @@ in the preceding text.</p>
 <h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="work.html">Work plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">A quick introduction to Racket and Scheme</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#things">Things</a></li>
@@ -517,7 +559,7 @@ in the preceding text.</p>
 <li class="toctree-l2"><a class="reference internal" href="#exercises">Exercises</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">λ - the everything</a></li>
 <li class="toctree-l1"><a class="reference internal" href="church.html">Lambda - via β-abstraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
@@ -541,11 +583,11 @@ in the preceding text.</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="intro.html" title="previous chapter">Welcome note</a></li>
-      <li>Next: <a href="lambda.html" title="next chapter">Lambda - the everything</a></li>
+      <li>Next: <a href="lambda.html" title="next chapter">λ - the everything</a></li>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -553,7 +595,7 @@ in the preceding text.</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -568,11 +610,11 @@ in the preceding text.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Srikumar K. S..
+      &#169;2022, Srikumar K. S..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
       <a href="_sources/racket-intro.rst.txt"

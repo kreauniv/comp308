@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Objects - the Self way &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=cb25574f" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b30c7235"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5cb08e4e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Generators" href="generators.html" />
@@ -18,8 +18,9 @@
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -32,7 +33,7 @@
           <div class="body" role="main">
             
   <section id="objects-the-self-way">
-<h1>Objects - the Self way<a class="headerlink" href="#objects-the-self-way" title="Permalink to this heading">¶</a></h1>
+<h1>Objects - the Self way<a class="headerlink" href="#objects-the-self-way" title="Link to this heading">¶</a></h1>
 <p>The <a class="reference internal" href="objects.html"><span class="doc">previous section on objects</span></a> treated objects by building up
 an object system by representing an object using a closure that dispatches on
 its first argument. While this is instructive, object systems are never done
@@ -43,14 +44,14 @@ by means of <strong>passing a message to an object</strong>”. In this section,
 what it takes to have an object system like Javascript and Self – called
 a “prototype based object system”.</p>
 <section id="prototypes-versus-classes">
-<h2>Prototypes versus classes<a class="headerlink" href="#prototypes-versus-classes" title="Permalink to this heading">¶</a></h2>
+<h2>Prototypes versus classes<a class="headerlink" href="#prototypes-versus-classes" title="Link to this heading">¶</a></h2>
 <p>The notion of “class” is common in many “object oriented” programming languages
 such as C++, Java and Smalltalk. <a class="footnote-reference brackets" href="#ak" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> In these languages, “classes” play the role
 of “object factories” - they make families of objects with similar kinds of properties
 and behaviour. In these langauges, a “class” can therefore be thought of as a “type”
 of an object.</p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="ak" role="doc-footnote">
+<aside class="footnote brackets" id="ak" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p>Alan Kay, the famous computer scientist behind the creation of the Smalltalk
 programming language, once said “I invented the term ‘object oriented programming’
@@ -74,22 +75,22 @@ other objects. Since “objects” are runtime entities, <a class="footnote-refe
 relationship between an object and its prototype is a dynamic relationship.</p>
 <p>This is what we’ll model using plain <code class="code highlight racket docutils literal highlight-racket"><span class="kn">#lang </span><span class="nn">racket</span></code> in this chapter.</p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="cbos" role="doc-footnote">
+<aside class="footnote brackets" id="cbos" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
 <p>… as opposed to “class based object systems”.</p>
 </aside>
-<aside class="footnote brackets" id="ctclasses" role="doc-footnote">
+<aside class="footnote brackets" id="ctclasses" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
 <p>… whereas classes can be compile-time entities.</p>
 </aside>
 </aside>
 </section>
 <section id="what-are-objects-in-javascript">
-<h2>What are objects in Javascript?<a class="headerlink" href="#what-are-objects-in-javascript" title="Permalink to this heading">¶</a></h2>
+<h2>What are objects in Javascript?<a class="headerlink" href="#what-are-objects-in-javascript" title="Link to this heading">¶</a></h2>
 <p>Javascript provides the following functionalities for its objects, which we’ll
 try to replicate in Racket.</p>
 <section id="getting-a-property-of-an-object">
-<h3>Getting a property of an object<a class="headerlink" href="#getting-a-property-of-an-object" title="Permalink to this heading">¶</a></h3>
+<h3>Getting a property of an object<a class="headerlink" href="#getting-a-property-of-an-object" title="Link to this heading">¶</a></h3>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">object</span><span class="p">.</span><span class="nx">property_name</span>
 </pre></div>
 </div>
@@ -99,7 +100,7 @@ such a property, the runtime will search up the “prototype chain” of the obj
 until it gets a value or else it produces an <code class="docutils literal notranslate"><span class="pre">undefined</span></code> value.</p>
 </section>
 <section id="modifying-a-property-of-an-object">
-<h3>Modifying a property of an object<a class="headerlink" href="#modifying-a-property-of-an-object" title="Permalink to this heading">¶</a></h3>
+<h3>Modifying a property of an object<a class="headerlink" href="#modifying-a-property-of-an-object" title="Link to this heading">¶</a></h3>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">object</span><span class="p">.</span><span class="nx">property_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">new_value</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -109,7 +110,7 @@ assignment, if object itself gains such a property if it didn’t have it
 earlier, even if its prototype did have a value for this property.</p>
 </section>
 <section id="invoke-a-method">
-<h3>Invoke a method<a class="headerlink" href="#invoke-a-method" title="Permalink to this heading">¶</a></h3>
+<h3>Invoke a method<a class="headerlink" href="#invoke-a-method" title="Link to this heading">¶</a></h3>
 <div class="highlight-javascript notranslate"><div class="highlight"><pre><span></span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">object</span><span class="p">.</span><span class="nx">method_name</span><span class="p">(</span><span class="nx">arg1</span><span class="p">,</span><span class="w"> </span><span class="nx">arg2</span><span class="p">,</span><span class="w"> </span><span class="p">...)</span>
 </pre></div>
 </div>
@@ -122,7 +123,7 @@ delivered, instantaneously or later on.</p>
 retrieving an method <strong>function</strong> <code class="docutils literal notranslate"><span class="pre">method</span></code> from the prototype chain. This
 function is then called as though it were <code class="docutils literal notranslate"><span class="pre">method(object,</span> <span class="pre">arg1,</span> <span class="pre">arg2,</span> <span class="pre">...)</span></code>. <a class="footnote-reference brackets" href="#call" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="call" role="doc-footnote">
+<aside class="footnote brackets" id="call" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">4</a><span class="fn-bracket">]</span></span>
 <p>In Javascript, this is done using <code class="docutils literal notranslate"><span class="pre">method.call(object,</span> <span class="pre">arg1,</span> <span class="pre">arg2,</span> <span class="pre">...)</span></code>
 if the programmers wants to invoke a method function, and the “object” argument
@@ -137,7 +138,7 @@ is made available implicitly within the body bound to the identifier <code class
 </section>
 </section>
 <section id="the-basic-structure-of-objects">
-<h2>The basic structure of objects<a class="headerlink" href="#the-basic-structure-of-objects" title="Permalink to this heading">¶</a></h2>
+<h2>The basic structure of objects<a class="headerlink" href="#the-basic-structure-of-objects" title="Link to this heading">¶</a></h2>
 <p>Taking the cue from the previous section, we conceive an object as having a set
 of properties and a reference to a “prototype”. We’ll model the “set of properties”
 as a simple list of name-value associations. An important thing to note is that
@@ -222,7 +223,7 @@ is two steps -</p>
 step handled by <code class="code highlight racket docutils literal highlight-racket"><span class="n">make</span></code> and the initialization step by the <code class="code highlight racket docutils literal highlight-racket"><span class="o">&#39;</span><span class="ss">init</span></code> message send.</p>
 </section>
 <section id="creating-the-object-system">
-<h2>Creating the object system<a class="headerlink" href="#creating-the-object-system" title="Permalink to this heading">¶</a></h2>
+<h2>Creating the object system<a class="headerlink" href="#creating-the-object-system" title="Link to this heading">¶</a></h2>
 <p>With the foundations in place, we now need actual objects to use as prototypes
 when making new objects. We also need to live by our maxim that everything we do
 must be done by message passing after we’ve created the basic object system.</p>
@@ -353,7 +354,7 @@ done. We know how to construct such a <code class="code highlight racket docutil
 </div>
 </section>
 <section id="conditional-execution">
-<h2>Conditional execution<a class="headerlink" href="#conditional-execution" title="Permalink to this heading">¶</a></h2>
+<h2>Conditional execution<a class="headerlink" href="#conditional-execution" title="Link to this heading">¶</a></h2>
 <p>All that is fine, but how do we do things like <code class="code highlight racket docutils literal highlight-racket"><span class="k">if</span></code> or equivalently
 <code class="code highlight racket docutils literal highlight-racket"><span class="k">cond</span></code> within our object system without again resorting to Racket
 Blocks give us immense flexibilty there and we can maybe think of putting
@@ -394,7 +395,7 @@ identifier <code class="code highlight racket docutils literal highlight-racket"
 the boolean is true, all we need to do is <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">!</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">if-true</span><span class="w"> </span><span class="n">blk</span><span class="p">)</span></code>.</p>
 </section>
 <section id="loops">
-<h2>Loops<a class="headerlink" href="#loops" title="Permalink to this heading">¶</a></h2>
+<h2>Loops<a class="headerlink" href="#loops" title="Link to this heading">¶</a></h2>
 <p>Now that we have blocks that know how to execute themselves and produce object
 results, we can use this framework to implement a while loop like this –</p>
 <div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nf">!</span><span class="w"> </span><span class="nv">condblock</span><span class="w"> </span><span class="ss">&#39;while-true</span><span class="w"> </span><span class="nv">bodyblock</span><span class="p">)</span>
@@ -502,7 +503,7 @@ We’ll now extend the functionality provided by <code class="code highlight rac
 </div>
 </section>
 <section id="observations">
-<h2>Observations<a class="headerlink" href="#observations" title="Permalink to this heading">¶</a></h2>
+<h2>Observations<a class="headerlink" href="#observations" title="Link to this heading">¶</a></h2>
 <ol class="arabic">
 <li><p>Note that we’ve augmented the various core classes with new functionality
 <strong>after</strong> we created them. This means any object created that uses one of
@@ -584,9 +585,10 @@ like a duck, it <strong>is</strong> a duck”.</p></li>
 <h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="work.html">Work plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">λ - the everything</a></li>
 <li class="toctree-l1"><a class="reference internal" href="church.html">Lambda - via β-abstraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
@@ -623,7 +625,7 @@ like a duck, it <strong>is</strong> a duck”.</p></li>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -631,7 +633,7 @@ like a duck, it <strong>is</strong> a duck”.</p></li>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -646,11 +648,11 @@ like a duck, it <strong>is</strong> a duck”.</p></li>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Srikumar K. S..
+      &#169;2022, Srikumar K. S..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
       <a href="_sources/objects-self.rst.txt"

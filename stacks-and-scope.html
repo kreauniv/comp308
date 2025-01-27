@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Stacks and scope &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=cb25574f" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b30c7235"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5cb08e4e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -19,8 +19,9 @@
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -33,7 +34,7 @@
           <div class="body" role="main">
             
   <section id="stacks-and-scope">
-<h1>Stacks and scope<a class="headerlink" href="#stacks-and-scope" title="Permalink to this heading">¶</a></h1>
+<h1>Stacks and scope<a class="headerlink" href="#stacks-and-scope" title="Link to this heading">¶</a></h1>
 <p>We considered a minimally useful <span class="target" id="index-0"></span>stack machine in the preceding quiz,
 which is reproduced below for reference -</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="kn">#lang </span><span class="nn">racket</span>
@@ -145,7 +146,7 @@ and these turn out to be low resource processors that can be used in
 devices like printers.</p>
 </div>
 <section id="adding-names-to-the-stack-machine">
-<h2>Adding names to the stack-machine<a class="headerlink" href="#adding-names-to-the-stack-machine" title="Permalink to this heading">¶</a></h2>
+<h2>Adding names to the stack-machine<a class="headerlink" href="#adding-names-to-the-stack-machine" title="Link to this heading">¶</a></h2>
 <p>So we’d like to be able to “<span class="target" id="index-2"></span>bind” symbols to values picked from the
 stack so we can recall them whenever we need their values. For this, we need a
 kind of “dictionary” in which we can lookup values associated with symbols.
@@ -251,7 +252,7 @@ stack and bind them to <code class="code highlight racket docutils literal highl
 </div>
 </section>
 <section id="blocks">
-<h2>Blocks<a class="headerlink" href="#blocks" title="Permalink to this heading">¶</a></h2>
+<h2>Blocks<a class="headerlink" href="#blocks" title="Link to this heading">¶</a></h2>
 <p>Though we’ve been able to bind symbols to values and use them, our
 stack-machine programming language does not have the ability to reuse such
 calculations. For example, we’ll have to repeat the whole distance calculation
@@ -319,7 +320,7 @@ stack-machine language!</p>
 </div>
 </section>
 <section id="which-programs-are-valid-blocks">
-<h2>Which programs are valid blocks?<a class="headerlink" href="#which-programs-are-valid-blocks" title="Permalink to this heading">¶</a></h2>
+<h2>Which programs are valid blocks?<a class="headerlink" href="#which-programs-are-valid-blocks" title="Link to this heading">¶</a></h2>
 <p>The way we’ve implemented block execution, the final value of a block’s
 bindings will be available after block execution. So the following
 program will actually produce a value with our stack-machine.</p>
@@ -401,7 +402,7 @@ eliminated the “global variables only” meaning in our program, our blocks ca
 reference variables that are meaningless in certain ways.</p>
 </section>
 <section id="dynamic-scoping">
-<h2>Dynamic scoping<a class="headerlink" href="#dynamic-scoping" title="Permalink to this heading">¶</a></h2>
+<h2>Dynamic scoping<a class="headerlink" href="#dynamic-scoping" title="Link to this heading">¶</a></h2>
 <p id="index-7">Consider the program below –</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">stack-machine</span><span class="w"> </span><span class="o">&#39;</span><span class="p">((</span><span class="ss">block</span><span class="w"> </span><span class="p">(</span><span class="ss">def</span><span class="w"> </span><span class="ss">x</span><span class="p">)</span><span class="w"> </span><span class="ss">x</span><span class="w"> </span><span class="ss">x</span><span class="w"> </span><span class="ss">*</span><span class="w"> </span><span class="ss">y</span><span class="w"> </span><span class="ss">y</span><span class="w"> </span><span class="ss">*</span><span class="w"> </span><span class="ss">+</span><span class="w"> </span><span class="ss">sqrt</span><span class="p">)</span>
 <span class="w">                 </span><span class="p">(</span><span class="ss">def</span><span class="w"> </span><span class="ss">distance</span><span class="p">)</span>
@@ -441,7 +442,7 @@ constraints of the functions that it relies on. We <strong>do not</strong> want 
 check how a function behaves in every context it is being invoked.</p>
 </section>
 <section id="fixing-dynamic-scoping">
-<h2>Fixing dynamic scoping<a class="headerlink" href="#fixing-dynamic-scoping" title="Permalink to this heading">¶</a></h2>
+<h2>Fixing dynamic scoping<a class="headerlink" href="#fixing-dynamic-scoping" title="Link to this heading">¶</a></h2>
 <p id="index-9">To fix the “dynamic scoping bug”, we need to clarify what exactly is the problem
 in the first place.</p>
 <div class="admonition note">
@@ -566,9 +567,10 @@ blocks would you try to exhaust some of these possibilities?</p>
 <h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="work.html">Work plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">λ - the everything</a></li>
 <li class="toctree-l1"><a class="reference internal" href="church.html">Lambda - via β-abstraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
@@ -603,7 +605,7 @@ blocks would you try to exhaust some of these possibilities?</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -611,7 +613,7 @@ blocks would you try to exhaust some of these possibilities?</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -626,11 +628,11 @@ blocks would you try to exhaust some of these possibilities?</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Srikumar K. S..
+      &#169;2022, Srikumar K. S..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
       <a href="_sources/stacks-and-scope.rst.txt"

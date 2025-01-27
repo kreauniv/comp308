@@ -1,0 +1,43 @@
+Work plan
+=========
+
+Racket/Scheme notation
+----------------------
+
+1. Calculating expressions. Common operators like arithmetic and ``display``.
+2. Defining named procedures.
+3. Lambda expressions
+4. Macros such as ``let``
+5. Common constructs -- ``cond``, ``let*``, ``if``, ``cons``, ``first``, ``rest``, ``list?``, ``cons?``, ``real?``, ``string?``, ``symbol?``.
+
+
+λ-calculus basics
+-----------------
+
+1. α-renaming
+2. β-reduction
+3. η-reduction
+4. β-abstraction
+
+
+SMoL
+----
+
+
+Mystery Languages
+-----------------
+
+
+PicLang
+-------
+
+
+Stack machine
+-------------
+
+1. Scheme program to stack sequence
+2. Stack program
+3. Stack program interpreter for arithmetic
+
+
+

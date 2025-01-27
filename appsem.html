@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Alternative application semantics &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=cb25574f" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b30c7235"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5cb08e4e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Types: Checking some program invariants statically" href="types.html" />
@@ -18,8 +18,9 @@
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -32,7 +33,7 @@
           <div class="body" role="main">
             
   <section id="alternative-application-semantics">
-<h1>Alternative application semantics<a class="headerlink" href="#alternative-application-semantics" title="Permalink to this heading">¶</a></h1>
+<h1>Alternative application semantics<a class="headerlink" href="#alternative-application-semantics" title="Link to this heading">¶</a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This section takes a different approach compared to the original
@@ -49,7 +50,7 @@ type systems due to time constraints but am trying to see if this change of
 approach can help with the constraint of a trimester system.</p>
 </div>
 <section id="solving-for-goals">
-<h2>Solving for goals<a class="headerlink" href="#solving-for-goals" title="Permalink to this heading">¶</a></h2>
+<h2>Solving for goals<a class="headerlink" href="#solving-for-goals" title="Link to this heading">¶</a></h2>
 <p>One paradigm for program execution (function application) is to consider
 “variables” to be first class entities you can pass to your functions.
 Variables start off with low information content and as your function
@@ -164,7 +165,7 @@ made via equality.</p>
 </div>
 </section>
 <section id="goals">
-<h2>Goals<a class="headerlink" href="#goals" title="Permalink to this heading">¶</a></h2>
+<h2>Goals<a class="headerlink" href="#goals" title="Link to this heading">¶</a></h2>
 <p>We earlier stated that our “program” in this model has the task of figuring out
 which possible assignments to variables makes sense – i.e. is consistent with
 a set of declarations about their properties. Since we’re talking about
@@ -259,7 +260,7 @@ and makes a goal of them.</p>
 </div>
 </section>
 <section id="structural-unification">
-<h2>Structural unification<a class="headerlink" href="#structural-unification" title="Permalink to this heading">¶</a></h2>
+<h2>Structural unification<a class="headerlink" href="#structural-unification" title="Link to this heading">¶</a></h2>
 <p>So far, our “unification” procedure only dealt with simple values and variables.
 We can extend this mechanism to also consider matching, say two cons pairs.
 In that case though, we’d expect the corresponding parts of the cons pairs
@@ -340,7 +341,7 @@ and “or” as <code class="code highlight racket docutils literal highlight-ra
 You may also want to go through <a class="reference external" href="https://erik-j.de/microkanren/">A Gentle Introduction to microKanren</a>.</p>
 </section>
 <section id="generalizing-pair-s">
-<h2>Generalizing “pair”s<a class="headerlink" href="#generalizing-pair-s" title="Permalink to this heading">¶</a></h2>
+<h2>Generalizing “pair”s<a class="headerlink" href="#generalizing-pair-s" title="Link to this heading">¶</a></h2>
 <p>In the latest version of <code class="code highlight racket docutils literal highlight-racket"><span class="n">unify</span></code> above, we supported unification of two
 “pair” structures. What if we want to generalize that and support arbitrary
 <code class="code highlight racket docutils literal highlight-racket"><span class="k">struct</span></code>-like … structures?</p>
@@ -435,7 +436,7 @@ you? What kinds of goals would you try it on?</p>
 </div>
 </section>
 <section id="prolog">
-<h2>Prolog<a class="headerlink" href="#prolog" title="Permalink to this heading">¶</a></h2>
+<h2>Prolog<a class="headerlink" href="#prolog" title="Link to this heading">¶</a></h2>
 <p>Prolog is a language in which key ideas we discussed above – <code class="code highlight racket docutils literal highlight-racket"><span class="n">unify</span></code>, the
 notion of “goals”, and <code class="code highlight racket docutils literal highlight-racket"><span class="n">disj</span></code> / <code class="code highlight racket docutils literal highlight-racket"><span class="n">conj</span></code> as “goal combinators” – are
 available as language level primitives.</p>
@@ -477,7 +478,7 @@ for some kinds of optimization problems, use it as a sophisticated search
 engine on a database of facts and so on.</p>
 </div>
 <section id="examples">
-<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">¶</a></h3>
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h3>
 <p>Consider the following block of code. Place it in a file named <code class="code highlight racket docutils literal highlight-racket"><span class="n">presence.pl</span></code>.
 Then run <code class="code highlight racket docutils literal highlight-racket"><span class="n">swipl</span></code> and on the REPL type <code class="code highlight racket docutils literal highlight-racket"><span class="p">[</span><span class="n">presence</span><span class="p">]</span><span class="o">.</span></code> (including the period
 at the end), followed by return key. Now the module is loaded for you to play with.</p>
@@ -524,7 +525,7 @@ language primitives!</p>
 </section>
 </section>
 <section id="our-interpreter-expressed-in-prolog">
-<h2>Our interpreter expressed in Prolog<a class="headerlink" href="#our-interpreter-expressed-in-prolog" title="Permalink to this heading">¶</a></h2>
+<h2>Our interpreter expressed in Prolog<a class="headerlink" href="#our-interpreter-expressed-in-prolog" title="Link to this heading">¶</a></h2>
 <p>We can actually build our calculator language in Prolog like below –</p>
 <div class="highlight-prolog notranslate"><div class="highlight"><pre><span></span><span class="p">:-</span> <span class="nf">module</span><span class="p">(</span><span class="s s-Atom">interp</span><span class="p">,</span> <span class="p">[</span><span class="s s-Atom">interp</span><span class="o">/</span><span class="mi">2</span><span class="p">]).</span>
 
@@ -559,7 +560,7 @@ See how we use unification here where we used <code class="code highlight racket
 </div>
 </section>
 <section id="adding-functions-to-our-interpreter">
-<h2>Adding functions to our interpreter<a class="headerlink" href="#adding-functions-to-our-interpreter" title="Permalink to this heading">¶</a></h2>
+<h2>Adding functions to our interpreter<a class="headerlink" href="#adding-functions-to-our-interpreter" title="Link to this heading">¶</a></h2>
 <p>To add functions to our language, we’ve seen that we need three things -</p>
 <ol class="arabic simple">
 <li><p>A term to represent an “identifier”</p></li>
@@ -638,9 +639,10 @@ instead of <code class="code docutils literal notranslate"><span class="pre">mem
 <h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="work.html">Work plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">λ - the everything</a></li>
 <li class="toctree-l1"><a class="reference internal" href="church.html">Lambda - via β-abstraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
@@ -677,7 +679,7 @@ instead of <code class="code docutils literal notranslate"><span class="pre">mem
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -685,7 +687,7 @@ instead of <code class="code docutils literal notranslate"><span class="pre">mem
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -700,11 +702,11 @@ instead of <code class="code docutils literal notranslate"><span class="pre">mem
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Srikumar K. S..
+      &#169;2022, Srikumar K. S..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
       <a href="_sources/appsem.rst.txt"

@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Polymorphism via dispatch &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5cb08e4e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="polymorphism-via-dispatch">
+<h1>Polymorphism via dispatch<a class="headerlink" href="#polymorphism-via-dispatch" title="Link to this heading">¶</a></h1>
+<p>Note: This section is expected to supercede the discussion on <a class="reference internal" href="objects.html"><span class="doc">Objects</span></a>.</p>
+<p>When writing our procedures/functions in a programming language, we deal with
+different data structures and entities such as files, network sockets and
+processes. For any given system, a number of such entities serves as its “API”
+or “Application Programming Interface”. If each of these entities were to be
+transacted with using its own vocabulary, it will become very hard for
+programmers to retain the vocabularies necessary to work with a practical
+subset of these entity types in working memory so they act of programming is
+both efficient and reliable.</p>
+<p>Thankfully, many of these entities can be worked with using a much smaller set
+of “verbs” using which programmers typically chunk their thinking about them.
+For example, both hash-tables and vectors in Racket offer the notion of
+associating a value with a key. Only, in the case of hash-tables, the key can
+be anything “hashable” whereas in the case of a vector, the key must be in the
+range <span class="math notranslate nohighlight">\([0,N)\)</span>. However, the act of getting a value associated with a
+particular key can simply be thought of across all such data structures using
+the verb “get” and similarly the setting of a value against a particular key
+can be thought of using the verb “set”.</p>
+<p>For an analogy, consider the Harry Potter world and Hermione Granger’s timely
+use of the spell “Alohamora” to open a lock. Suppose that in the wizarding
+world, each kind of lock required a different spell to be learnt to open it –
+“Alohamora Big One”, “Alohamora 42”, “Alohamora Locksmith &amp; Sons Tiny 2021
+edition” and so on – wizards might give up pretty soon. But we have a hint
+here – that the word “Alohamora” suggests that the lock needs to be opened,
+and the ones programming these locks can determine what to do when the lock
+hears the spell “Alohamora”, instead of making custom spells for it. This would
+then obviously be preferrable for wizards (and students!) since they would then
+need to remember far fewer spells overall to be effective in their world.</p>
+<p>Racket library functions kind of work as though they were in that complicated
+world of spells. In Racket, though you’ll find procedures named according to
+such common vocabulary, each data structure carries its own set of procedures
+to work with it. So vectors come with <code class="docutils literal notranslate"><span class="pre">vector-ref</span></code> and <code class="docutils literal notranslate"><span class="pre">vector-set!</span></code> and
+<code class="docutils literal notranslate"><span class="pre">vector-length</span></code>, and similarly hash-tables have <code class="docutils literal notranslate"><span class="pre">hash-ref</span></code>,
+<code class="docutils literal notranslate"><span class="pre">hash-set!</span></code> and <code class="docutils literal notranslate"><span class="pre">hash-count</span></code>. If we were to invent another data
+structure, say, <code class="docutils literal notranslate"><span class="pre">treemap</span></code>, then we’ll have to expose yet more procedures
+named <code class="docutils literal notranslate"><span class="pre">treemap-ref</span></code>, <code class="docutils literal notranslate"><span class="pre">treemap-set!</span></code> and <code class="docutils literal notranslate"><span class="pre">treemap-length</span></code> that will do
+analogous things with tree maps. If we choose completely different vocabularies
+– say, <code class="docutils literal notranslate"><span class="pre">treemap-search-and-retrieve</span></code>, <code class="docutils literal notranslate"><span class="pre">treemap-find-and-replace</span></code> and
+<code class="docutils literal notranslate"><span class="pre">treemap-count-entries</span></code> – we’d place a huge cognitive burden on programmers
+who’d want to adopt our new data structure since they cannot reuse their
+vocabulary in the new context.</p>
+<p>What if we could simply say <code class="docutils literal notranslate"><span class="pre">ref</span></code>, <code class="docutils literal notranslate"><span class="pre">set!</span></code> and <code class="docutils literal notranslate"><span class="pre">length</span></code> and when we
+introduce a new data structure, be able to declare how these verbs should work
+with it at that point? That way, if we have a vector <code class="docutils literal notranslate"><span class="pre">v</span></code>, we reference its <code class="docutils literal notranslate"><span class="pre">k</span></code>-th
+element using <code class="docutils literal notranslate"><span class="pre">(ref</span> <span class="pre">v</span> <span class="pre">k)</span></code> and if we have a hashtable <code class="docutils literal notranslate"><span class="pre">h</span></code> and a key <code class="docutils literal notranslate"><span class="pre">k</span></code>,
+we can get its associated value using <code class="docutils literal notranslate"><span class="pre">(ref</span> <span class="pre">h</span> <span class="pre">k)</span></code> as well, instead of
+<code class="docutils literal notranslate"><span class="pre">(hash-ref</span> <span class="pre">h</span> <span class="pre">k)</span></code>. It is quite evident that the cognitive burden is lower
+for such a unified concept of “<code class="docutils literal notranslate"><span class="pre">ref</span></code>-ing” a value.</p>
+<p>While doing this makes for concise code while writing, we also notice that when
+reading code, <code class="docutils literal notranslate"><span class="pre">(ref</span> <span class="pre">h</span> <span class="pre">k)</span></code> tells us very little about <code class="docutils literal notranslate"><span class="pre">h</span></code> than “something we
+can call <code class="docutils literal notranslate"><span class="pre">ref</span></code> on”, whereas <code class="docutils literal notranslate"><span class="pre">(hash-ref</span> <span class="pre">h</span> <span class="pre">k)</span></code> is amply clear. This is part
+of the reason for that design choice to be explicit in the Scheme/Racket
+languages. The goal of a program is only partly to instruct machines (such as
+“locks”) but equally to communicate “how to” knowledge to other humans.</p>
+<div class="admonition-terminology admonition">
+<p class="admonition-title"><strong>Terminology</strong></p>
+<p>Such a multi-purpose definition of a verb like <code class="docutils literal notranslate"><span class="pre">ref</span></code> and <code class="docutils literal notranslate"><span class="pre">set!</span></code> is
+referred to in programming languages as “polymorphism” and the verb is said
+to be “polymorphic” over a collection of types.</p>
+</div>
+<section id="generic-procedures">
+<h2>Generic procedures<a class="headerlink" href="#generic-procedures" title="Link to this heading">¶</a></h2>
+<p>So far we’ve defined procedures in Scheme/Racket using the <code class="docutils literal notranslate"><span class="pre">define</span></code> operator,
+like this –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="k">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Once defined, the procedure <code class="docutils literal notranslate"><span class="pre">f</span></code> will remain bound to that body of code
+forever .. until redefined entirely. What if, however, we wish to enable it to
+be extensible with different code paths depending on what arguments are passed
+to it. For simplicity, we’ll assume that the arity of the function cannot be
+changed, initially.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">extend</span><span class="w"> </span><span class="n">proc</span><span class="w"> </span><span class="n">predicate</span><span class="w"> </span><span class="n">extension</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">lambda</span><span class="w"> </span><span class="n">args</span>
+<span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">predicate</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">extension</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">proc</span><span class="w"> </span><span class="n">args</span><span class="p">)))</span>
+
+<span class="c1">; Example of extending ordinary artihmetic to symbolic arithmetic.</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">sym+</span>
+<span class="w">    </span><span class="p">(</span><span class="n">extend</span><span class="w"> </span><span class="nb">+</span>
+<span class="w">            </span><span class="p">(</span><span class="k">lambda</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span>
+<span class="w">                </span><span class="p">(</span><span class="k">or</span><span class="w"> </span><span class="p">(</span><span class="nb">symbol?</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">symbol?</span><span class="w"> </span><span class="n">y</span><span class="p">))</span>
+<span class="w">            </span><span class="p">(</span><span class="k">lambda</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)</span>
+<span class="w">                </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">+</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)))))</span>
+
+<span class="c1">; (plus 2 3) =&gt; 5</span>
+<span class="c1">; (plus 2 &#39;y) =&gt; &#39;(+ 2 y)</span>
+<span class="c1">; (plus &#39;x 3) =&gt; &#39;(+ x 3)</span>
+</pre></div>
+</div>
+<p>However, instead of introducing a new symbol <code class="docutils literal notranslate"><span class="pre">sym+</span></code> for our extended
+notion of addition, we can replace the earlier definition of <code class="docutils literal notranslate"><span class="pre">+</span></code> to
+mean what the new <code class="docutils literal notranslate"><span class="pre">sym+</span></code> means because <code class="docutils literal notranslate"><span class="pre">sym+</span></code> also deals with the
+case of adding up ordinary numbers.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="nb">+</span><span class="w"> </span><span class="n">sym+</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>When defining <code class="docutils literal notranslate"><span class="pre">sym+</span></code>, we used the existing definition of <code class="docutils literal notranslate"><span class="pre">+</span></code>. Now
+that we’ve changed what <code class="docutils literal notranslate"><span class="pre">+</span></code> means, do we now have a circular program?
+Explain whether you think “yes” or “no” is the answer to that question
+using your understanding of scoping rules of SMoL.</p>
+</div>
+<p>The predicate-extension pairs form the various branches of a <code class="docutils literal notranslate"><span class="pre">cond</span></code>
+expression that decides which of the extension procedures to call based on
+properties met by the arguments –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">cond</span>
+<span class="w">    </span><span class="p">[(</span><span class="nb">apply</span><span class="w"> </span><span class="n">predicate1</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">extension1</span><span class="w"> </span><span class="n">args</span><span class="p">)]</span>
+<span class="w">    </span><span class="p">[(</span><span class="nb">apply</span><span class="w"> </span><span class="n">predicate2</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">extension2</span><span class="w"> </span><span class="n">args</span><span class="p">)]</span>
+<span class="w">    </span><span class="k">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Since the cond expression serves as a “post office” that “dispatches” the
+arguments to the appropriate extension procedure, we refer to this approach in
+the general sense as “dispatch mechanisms” and will study variants in this
+chapter.</p>
+<p>There are some incidental aspects of the above implementation of the extension
+of a function that we won’t concern ourselves about. For example, When we
+extend with a new predicate and extension, the latest extension takes
+precedence over the earlier installed ones. This raises a question – “what if
+we want it to be the other way around?” – but there is little there of
+interest to us at this point.</p>
+<div class="admonition-restriction admonition">
+<p class="admonition-title"><strong>Restriction</strong></p>
+<p>For our purposes, we’ll restrict our cases to where the predicates are all
+disjoint on any given list of arguments – i.e. only one of the predicates
+evaluates to <code class="docutils literal notranslate"><span class="pre">#t</span></code> on a given list of arguments. This means we don’t have
+to bother about the order in which we check the predicates.</p>
+</div>
+<p>So, the key idea behind organizing code using <strong>dispatch</strong> mechanisms is to
+have a set of special case procedures associated with predicates on the generic
+procedure’s arguments which determine which special case is to be used.</p>
+</section>
+<section id="one-argument-dispatch">
+<h2>One argument dispatch<a class="headerlink" href="#one-argument-dispatch" title="Link to this heading">¶</a></h2>
+<p>Let’s take the simple case where all the predicates make their decisions based
+only on the first argument. A classic example is “string representation”. We’d
+like to be able to view our values in some way and that calls for a textual
+presentation of the value.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">as-string</span><span class="w"> </span><span class="n">value</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">string?</span><span class="w"> </span><span class="n">value</span><span class="p">)</span>
+<span class="w">        </span><span class="n">value</span>
+<span class="w">        </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;Don&#39;t know how to treat value as a string&quot;</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Now supposing we wish to extend this facility to integers. We will need a
+special procedure for that –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">int-as-string</span><span class="w"> </span><span class="n">i</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">cond</span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">=</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">]</span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">&lt;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">string-concat</span><span class="w"> </span><span class="s2">&quot;-&quot;</span><span class="w"> </span><span class="p">(</span><span class="n">int-as-string</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">i</span><span class="p">)))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">&gt;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">positive-int-as-string</span><span class="w"> </span><span class="n">i</span><span class="p">)]))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">positive-int-as-string</span><span class="w"> </span><span class="n">i</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">=</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">        </span><span class="s2">&quot;&quot;</span>
+<span class="w">        </span><span class="p">(</span><span class="n">string-concat</span><span class="w"> </span><span class="p">(</span><span class="n">positive-int-as-string</span><span class="w"> </span><span class="p">(</span><span class="n">div</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="mi">10</span><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="n">digit-as-string</span><span class="w"> </span><span class="p">(</span><span class="nb">remainder</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="mi">10</span><span class="p">)))))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">digit-as-string</span><span class="w"> </span><span class="n">d</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="n">char-&gt;string</span><span class="w"> </span><span class="p">(</span><span class="n">string-char-at</span><span class="w"> </span><span class="s2">&quot;0123456789&quot;</span><span class="w"> </span><span class="n">d</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Now we can augment our “as-string” generic procedure with this special case for
+integers.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">as-string</span><span class="w"> </span><span class="p">(</span><span class="n">extend</span><span class="w"> </span><span class="n">as-string</span>
+<span class="w">                        </span><span class="nb">integer?</span>
+<span class="w">                        </span><span class="n">int-as-string</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Whenever we create a new data type in our program, we can augment our
+<code class="docutils literal notranslate"><span class="pre">as-string</span></code> generic procedure with a facility that works for our new type
+when passed to it.</p>
+<p>Note that we’ve now started associating the predicate for dispatch with a
+“type” of value we’re passing. Given data types <code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">B</span></code>, <code class="docutils literal notranslate"><span class="pre">C</span></code>, etc. in
+our program, we’ll then end up with specialization functions named
+<code class="docutils literal notranslate"><span class="pre">A-as-string</span></code>, <code class="docutils literal notranslate"><span class="pre">B-as-string</span></code>, <code class="docutils literal notranslate"><span class="pre">C-as-string</span></code> and so on which handle
+<code class="docutils literal notranslate"><span class="pre">as-string</span></code> cases for each of our types.</p>
+<p>This is a little curious because we now associate the “ability to be expressed
+as a string” with each of our data types for which we need that in our program.
+So there are perhaps two equivalent ways of organizing our code here –</p>
+<ol class="arabic simple">
+<li><p>Maintain <code class="docutils literal notranslate"><span class="pre">as-string</span></code> in a module and add a new implementation to that
+module for every type we introduce within our program. This means every such
+type’s definition will have to be imported into the module that builds up
+<code class="docutils literal notranslate"><span class="pre">as-string</span></code>. If we continue along the lines of what we’ve been doing so
+far, we’ll end up with this kind of an organization.</p></li>
+<li><p>We can declare the ability to be presented as a string as a “property” of
+our data type, and declare the specialization wherever we declare our type.
+This then keeps all such behaviours together, which makes for ease of
+maintenance. However then, we need some background facility that will
+collect all such specifications for our various types and build up a single
+<code class="docutils literal notranslate"><span class="pre">as-string</span></code> that will dispatch over our data types.</p></li>
+</ol>
+</section>
+<section id="a-value-as-a-thing">
+<h2>A value as a “thing”<a class="headerlink" href="#a-value-as-a-thing" title="Link to this heading">¶</a></h2>
+<p>If we articulate our extension approach as an <code class="docutils literal notranslate"><span class="pre">as-string</span></code> facility that’s
+attached to every value we create that’s specialized to its purpose, we’re
+starting to think of our values as “things” … more commonly known as
+“objects” in programming.</p>
+<p>So far, we’ve been thinking of <code class="docutils literal notranslate"><span class="pre">as-string</span></code> as the primary entity that we seek
+to extend. If we flip our perspective to focus on the value, it is the value
+that we then seek to augment with a procedure named <code class="docutils literal notranslate"><span class="pre">as-string</span></code>. So, the
+value-specific behaviour of <code class="docutils literal notranslate"><span class="pre">as-string</span></code> becomes more of an attribute of the
+value.</p>
+<p>So instead of <code class="docutils literal notranslate"><span class="pre">(as-string</span> <span class="pre">value)</span></code>, we think of a mechanism <code class="docutils literal notranslate"><span class="pre">invoke</span></code> that
+can invoke such behavioral attributes of our “objects” by name like <code class="docutils literal notranslate"><span class="pre">(invoke</span>
+<span class="pre">value</span> <span class="pre">'as-string)</span></code> instead.</p>
+<p>We can extend this notion to take in more arguments also, which is compatible
+with our “dispatch based on a predicate set over the first argument of a
+generic procedure”. <code class="docutils literal notranslate"><span class="pre">(invoke</span> <span class="pre">value</span> <span class="pre">'method</span> <span class="pre">arg1</span> <span class="pre">arg2</span> <span class="pre">...)</span></code>.</p>
+<div class="admonition-terminology admonition">
+<p class="admonition-title"><strong>Terminology</strong></p>
+<p>We call such procedural attributes “methods”.</p>
+</div>
+<p>“Methods” are general enough to model “properties” of such “objects”. To model
+a property, we need to be able to <strong>get</strong> a property value, and <strong>set</strong> it to
+change its value. So if we have a method that optionally takes a single
+argument – i.e. either <code class="docutils literal notranslate"><span class="pre">(invoke</span> <span class="pre">value</span> <span class="pre">'prop-name)</span></code> or <code class="docutils literal notranslate"><span class="pre">(invoke</span> <span class="pre">value</span>
+<span class="pre">'prop-name</span> <span class="pre">prop-val)</span></code>, where the first way of calling will return the current
+value of the property and if you supply an argument, it sets the property to
+the given value and (optionally) returns <code class="docutils literal notranslate"><span class="pre">value</span></code> as the result, we can
+pretend that the method <code class="docutils literal notranslate"><span class="pre">'prop-name</span></code> corresponds not to a procedure, but to a
+property of an object.</p>
+<div class="admonition-terminology admonition">
+<p class="admonition-title"><strong>Terminology</strong></p>
+<p>The notion of an object’s <strong>property</strong> is equivalent to having a named
+behaviour that can be invoked to set or get a particular value identified
+by the behaviour’s name.</p>
+</div>
+</section>
+<section id="dispatch-in-efficiencies">
+<h2>Dispatch (in)efficiencies<a class="headerlink" href="#dispatch-in-efficiencies" title="Link to this heading">¶</a></h2>
+<p>When we associate a set of behaviours (and properties, by extension, which
+we’ll stop calling out from now on) with values, we may imagine a table tagging
+along with each value in the system – where the table maps behaviour names to
+special procedures. If we are to do this for, say, all the numbers in our
+program, this starts to look like an awful waste of memory for what is
+essentially repeated information. After all, we usually don’t want to do
+different things to 2, 3, 4, 42, etc. However, we may want to do one thing for
+all integers, and another thing for all floating point numbers, and yet another
+for fractions.</p>
+<p>In essence, our <code class="docutils literal notranslate"><span class="pre">as-string</span></code> generic procedure therefore dispatches on
+predicates of the form <code class="docutils literal notranslate"><span class="pre">integer?</span></code>, <code class="docutils literal notranslate"><span class="pre">float?</span></code> or <code class="docutils literal notranslate"><span class="pre">rational?</span></code>, rather than
+specific values.</p>
+<p>To put this differently, we have a table of such behaviours we wish integers to
+satisfy and give special procedures for named behaviours in this table. Then we
+merely need to identify this table by pointing to it when we have an integer
+value … or any other more complex and potentially compound data item.</p>
+<p>In OOP languages, such a table of behaviour procedures is called a “class”. Our
+<code class="docutils literal notranslate"><span class="pre">invoke</span></code> procedure then starts to look like this –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">invoke</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let*</span><span class="w"> </span><span class="p">[(</span><span class="k">class</span><span class="w"> </span><span class="p">(</span><span class="n">get-class</span><span class="w"> </span><span class="n">value</span><span class="p">))</span>
+<span class="w">           </span><span class="p">(</span><span class="n">behaviour</span><span class="w"> </span><span class="p">(</span><span class="n">lookup-behaviour-proc</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="n">method-name</span><span class="p">))]</span>
+<span class="w">        </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">behaviour</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">args</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>The above specification of what <code class="docutils literal notranslate"><span class="pre">invoke</span></code> does has a gap. What happens when
+<code class="docutils literal notranslate"><span class="pre">lookup-behaviour-proc</span></code> determines that the identified <code class="docutils literal notranslate"><span class="pre">class</span></code> has no such
+method?</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">invoke</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let*</span><span class="w"> </span><span class="p">[(</span><span class="k">class</span><span class="w"> </span><span class="p">(</span><span class="n">get-class</span><span class="w"> </span><span class="n">value</span><span class="p">))</span>
+<span class="w">           </span><span class="p">(</span><span class="n">behaviour</span><span class="w"> </span><span class="p">(</span><span class="n">lookup-behaviour-proc</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="n">method-name</span><span class="p">))]</span>
+<span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">procedure?</span><span class="w"> </span><span class="n">behaviour</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">behaviour</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">args</span><span class="p">))</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;No such method&quot;</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>In the above version which calls out this case, we actually have a design
+choice.</p>
+<ol class="arabic simple">
+<li><p>Perhaps we could call a default generic procedure that we can specialize for
+different types of values.</p></li>
+<li><p>We can check another class’s behaviour table for a procedure. If we take
+this route, we see that our value then automatically would get all the
+behaviours associated with this other class – or it will “inherit” these
+behaviours. For this reason, such a class to which the “no such method” case
+is delegated to is called the “parent class” or “super class”.</p></li>
+</ol>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">invoke</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let*</span><span class="w"> </span><span class="p">[(</span><span class="k">class</span><span class="w"> </span><span class="p">(</span><span class="n">get-class</span><span class="w"> </span><span class="n">value</span><span class="p">))</span>
+<span class="w">           </span><span class="p">(</span><span class="n">behaviour</span><span class="w"> </span><span class="p">(</span><span class="n">lookup-behaviour-proc</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="n">method-name</span><span class="p">))]</span>
+<span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">procedure?</span><span class="w"> </span><span class="n">behaviour</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">behaviour</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">args</span><span class="p">))</span>
+<span class="w">            </span><span class="p">(</span><span class="k">let*</span><span class="w"> </span><span class="p">[(</span><span class="n">super-class</span><span class="w"> </span><span class="p">(</span><span class="n">get-parent</span><span class="w"> </span><span class="k">class</span><span class="p">))</span>
+<span class="w">                   </span><span class="p">(</span><span class="n">behaviour</span><span class="w"> </span><span class="p">(</span><span class="n">lookup-behaviour-proc</span><span class="w"> </span><span class="n">super-class</span><span class="w"> </span><span class="n">method-name</span><span class="p">))]</span>
+<span class="w">                </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">procedure?</span><span class="w"> </span><span class="n">behaviour</span><span class="p">)</span>
+<span class="w">                    </span><span class="k">...</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>Ah! So this procedure of looking up the parent class seems to go on for ever?
+Let’s simplify this by defining invoke in a different way.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">c-invoke</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[(</span><span class="n">behaviour</span><span class="w"> </span><span class="p">(</span><span class="n">lookup-behaviour-proc</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="n">method-name</span><span class="p">))]</span>
+<span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">procedure?</span><span class="w"> </span><span class="n">behaviour</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">behaviour</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">args</span><span class="p">))</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">c-invoke</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="p">(</span><span class="n">get-parent</span><span class="w"> </span><span class="k">class</span><span class="p">)</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)))))</span>
+
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">invoke</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">c-invoke</span><span class="w"> </span><span class="p">(</span><span class="nb">append</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="p">(</span><span class="n">get-class</span><span class="w"> </span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">method-name</span><span class="p">)</span><span class="w"> </span><span class="n">args</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>How deep would this <code class="docutils literal notranslate"><span class="pre">get-parent</span></code> lookup go then?</p>
+<p>Most object oriented languages solve this problem by having a “root” class,
+perhaps named <code class="docutils literal notranslate"><span class="pre">Object</span></code> whose parent is itself.</p>
+<div class="admonition-ponder-this admonition">
+<p class="admonition-title"><strong>Ponder this</strong></p>
+<p>We casually wrote function calls <code class="docutils literal notranslate"><span class="pre">(get-class</span> <span class="pre">value)</span></code> and <code class="docutils literal notranslate"><span class="pre">(get-parent</span> <span class="pre">class)</span></code>.
+Won’t these two functions also have to work across all values and return different
+classes for different values and different parents for different classes? .. thereby
+assuming the very mechanism we’re trying to implement with <code class="docutils literal notranslate"><span class="pre">invoke</span></code>? i.e. Aren’t
+these <code class="docutils literal notranslate"><span class="pre">(invoke</span> <span class="pre">value</span> <span class="pre">'class)</span></code> and <code class="docutils literal notranslate"><span class="pre">(invoke</span> <span class="pre">class</span> <span class="pre">'parent-class)</span></code>?</p>
+</div>
+</section>
+<section id="objects-objects-everywhere">
+<h2>Objects, objects, everywhere<a class="headerlink" href="#objects-objects-everywhere" title="Link to this heading">¶</a></h2>
+<p>We can then ask – “Can we treat all values in our language as objects?” …
+and the answer would be “yes!”. Languages like Smalltalk, Ruby and Self take a
+“everything is an object” perspective. This means all values have associated
+“classes” and even a “class” is itself an object and also has a class. In the
+case of Smalltalk, a class’ class is called a “meta class” and meta classes
+also form a hierarchy that parallels the class heirarchy.</p>
+<p>Take a moment to think about this. We’re comfortable representing some values
+such as numbers directly in our programs because we have common character based
+representations for them. Once they become values within the program, they gain
+behaviours we can invoke by name. This has the same power as having a slew of
+procedures we can invoke on these numbers and such values. However, the only
+way to <strong>do</strong> anything in such a language is to invoke a method or an object!
+If the invocation returned another object and you want to see it, you need to
+invoke another method on <strong>that</strong> object. Obviously, this recursion has to stop
+somewhere, and programming languages provide some built-in objects with
+behaviour implementations that don’t return any further values, and entire
+programs are then constructed using these built-in values and the
+class-mechanism of the language.</p>
+<div class="admonition-terminology admonition">
+<p class="admonition-title"><strong>Terminology</strong></p>
+<p>When something in a programming language can be represented and manipulated
+as a value, we say it is “first class”. True OOP languages like Smalltalk
+feature classes as first-class entities, whereas semi-OOP languages like
+C++ treat classes and values as separate worlds within the language.</p>
+</div>
+</section>
+<section id="the-methods-of-a-class">
+<h2>The methods of a class<a class="headerlink" href="#the-methods-of-a-class" title="Link to this heading">¶</a></h2>
+<p>Since we’re looking at a class as an object as well, it is instructive to think
+about what kinds of behaviours may be attributable to a class.</p>
+<p>We already know one such – the <code class="docutils literal notranslate"><span class="pre">'parent-class</span></code> property that all classes
+must possess for the behaviour lookup mechanism to work in the language.</p>
+<p>We may also wish to be able to see a representation of all values in our system
+and therefore might wish to define procedures that will, say, print them to a
+terminal, or display them in some environment. A common generic way to handle
+this is to permit a string representation of all values. Such a behaviour that
+can be used to get such a string representation is often named <code class="docutils literal notranslate"><span class="pre">'description</span></code>
+in such languages.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">invoke</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">description</span><span class="p">)</span>
+<span class="c1">; Gets a &quot;string&quot; that is repurposable across multiple</span>
+<span class="c1">; presentation modes.</span>
+</pre></div>
+</div>
+<p>We’d previously used a <code class="docutils literal notranslate"><span class="pre">lookup-behaviour-proc</span></code>. This looks like a perfect
+candidate for a property of a class, so to get a behaviour proc object
+associated with a class by name, we’d do –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">invoke</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">behaviour-named</span><span class="w"> </span><span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>At this point, you may begin to appreciate how the snake starts to eat its own
+tail, since a “behaviour procedure” itself ought to be an object.</p>
+<p>Since invocation is the only thing you can do in a strict OOP language, these
+languages give built-in syntax to keep invocations short. Many C-based
+languages such as Python and Javascript and C++ use the “dot notation” to
+denote both properties and methods – like <code class="docutils literal notranslate"><span class="pre">value.property</span></code> and
+<code class="docutils literal notranslate"><span class="pre">value.method(arg1,</span> <span class="pre">arg2)</span></code>.</p>
+<p>Languages like Smalltalk make it even simpler by making method invocation
+invisible in the text – like <code class="docutils literal notranslate"><span class="pre">value</span> <span class="pre">method</span></code> or <code class="docutils literal notranslate"><span class="pre">value</span> <span class="pre">methodKey1:</span> <span class="pre">val1</span>
+<span class="pre">key2:</span> <span class="pre">val2</span> <span class="pre">...</span></code>.</p>
+<p>Since “invoking a method on an object” can be split into “look up a
+function-valued property of the object” and then “calling it, passing the
+object as one of the arguments”, we can generalize the mechanism for such
+“lookup a property of a thing” so we can reuse it in different way. For that,
+we introduce two functions – <code class="docutils literal notranslate"><span class="pre">getprop</span></code> and <code class="docutils literal notranslate"><span class="pre">setprop</span></code> – with the following
+behaviours –</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">getprop</span></code> when given a thing and a property name, produces a value.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">setprop!</span></code> stores a value against a property name associated with a thing,
+so that a subsequent call to <code class="docutils literal notranslate"><span class="pre">getprop</span></code> will retrieve that value.</p></li>
+</ol>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">make-proplist</span><span class="p">)</span>
+<span class="w">    </span><span class="c1">; A &quot;property list&quot; is a list of triples of thing-property-value</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="nv">**proplist**</span><span class="w"> </span><span class="p">(</span><span class="nf">box</span><span class="w"> </span><span class="o">&#39;</span><span class="p">()))</span>
+
+<span class="w">    </span><span class="c1">; The default-value is returned if the thing or its property</span>
+<span class="w">    </span><span class="c1">; are not found.</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">getprop</span><span class="w"> </span><span class="nv">thing</span><span class="w"> </span><span class="nv">property</span><span class="w"> </span><span class="nv">default-value</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="nv">loop</span><span class="w"> </span><span class="p">[(</span><span class="nf">tail</span><span class="w"> </span><span class="p">(</span><span class="nf">unbox</span><span class="w"> </span><span class="nv">**proplist**</span><span class="p">))]</span>
+<span class="w">            </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">null?</span><span class="w"> </span><span class="nv">tail</span><span class="p">)</span>
+<span class="w">                </span><span class="nv">default-value</span>
+<span class="w">                </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[(</span><span class="nf">triple</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="nv">tail</span><span class="p">))]</span>
+<span class="w">                    </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">and</span><span class="w"> </span><span class="p">(</span><span class="nb">eq?</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="nv">triple</span><span class="p">)</span><span class="w"> </span><span class="nv">thing</span><span class="p">)</span>
+<span class="w">                             </span><span class="p">(</span><span class="nb">equal?</span><span class="w"> </span><span class="p">(</span><span class="nb">second</span><span class="w"> </span><span class="nv">triple</span><span class="p">)</span><span class="w"> </span><span class="nv">property</span><span class="p">))</span>
+<span class="w">                        </span><span class="p">(</span><span class="nb">third</span><span class="w"> </span><span class="nv">triple</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">(</span><span class="nf">loop</span><span class="w"> </span><span class="p">(</span><span class="nf">rest</span><span class="w"> </span><span class="nv">tail</span><span class="p">)))))))</span>
+
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">setprop!</span><span class="w"> </span><span class="nv">thing</span><span class="w"> </span><span class="nv">property</span><span class="w"> </span><span class="nv">value</span><span class="p">)</span>
+<span class="w">        </span><span class="c1">; We&#39;re being a bit lazy here (in the human sense) and</span>
+<span class="w">        </span><span class="c1">; simply adding the new association at the head without</span>
+<span class="w">        </span><span class="c1">; checking whether it is already there and modifying that</span>
+<span class="w">        </span><span class="c1">; entry instead. The meanings of getprop and setprop!</span>
+<span class="w">        </span><span class="c1">; are preserved by this approach though lacking in</span>
+<span class="w">        </span><span class="c1">; efficiency. We will have to modify our approach to</span>
+<span class="w">        </span><span class="c1">; use a &quot;mutable cons&quot; if we are to change this strategy.</span>
+<span class="w">        </span><span class="p">(</span><span class="nf">set-box!</span><span class="w"> </span><span class="nv">**proplist**</span>
+<span class="w">                  </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="nv">thing</span><span class="w"> </span><span class="nv">property</span><span class="w"> </span><span class="nv">value</span><span class="p">)</span>
+<span class="w">                        </span><span class="p">(</span><span class="nf">unbox</span><span class="w"> </span><span class="nv">**proplist**</span><span class="p">))))</span>
+
+<span class="w">    </span><span class="p">(</span><span class="nb">values</span><span class="w"> </span><span class="nv">getprop</span><span class="w"> </span><span class="nv">setprop!</span><span class="p">))</span>
+
+<span class="p">(</span><span class="k">define-values</span><span class="w"> </span><span class="p">(</span><span class="nf">getprop</span><span class="w"> </span><span class="nv">setprop!</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">make-proplist</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition-question admonition">
+<p class="admonition-title"><strong>Question</strong></p>
+<p>When checking the “thing” position in the property list, we used <code class="docutils literal notranslate"><span class="pre">eq?</span></code>
+but for the property position, we used <code class="docutils literal notranslate"><span class="pre">equal?</span></code>. What are the
+consequences of using one versus the other for these fields?</p>
+</div>
+<p>These <code class="docutils literal notranslate"><span class="pre">getprop</span></code> and <code class="docutils literal notranslate"><span class="pre">setprop!</span></code> are intended for use in our interpreter for
+us to understand the ideas behind various types of dispatch. So we can now
+express the basic notion of <code class="docutils literal notranslate"><span class="pre">invoke</span></code> like this –</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">invoke</span><span class="w"> </span><span class="nv">thing</span><span class="w"> </span><span class="nv">method-name</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[(</span><span class="nf">method</span><span class="w"> </span><span class="p">(</span><span class="nf">getprop</span><span class="w"> </span><span class="nv">thing</span><span class="w"> </span><span class="nv">method-name</span><span class="w"> </span><span class="no">#f</span><span class="p">))]</span>
+<span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="nv">method</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="nv">method</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="nv">thing</span><span class="w"> </span><span class="nv">args</span><span class="p">))</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s">&quot;Unresolved method&quot;</span><span class="p">))))</span>
+</pre></div>
+</div>
+</section>
+<section id="classes-versus-types">
+<h2>Classes versus types<a class="headerlink" href="#classes-versus-types" title="Link to this heading">¶</a></h2>
+<p>Object oriented languages also tend to refer to such “classes” as “types”. This
+comes from an identification of “what kind of thing is this thing?” with “what
+set of behaviours does this thing permit?”. For problems that lend themselves
+to modelling as objects (example graphical user interfaces), this is a
+reasonable identification. In other cases, this may not be reasonable and we’ll
+see some examples later.</p>
+<div class="admonition-terminology admonition">
+<p class="admonition-title"><strong>Terminology</strong></p>
+<p>This “identification” of “the kind of a thing” with “set of a thing’s
+behaviours” is also known as <strong>Duck Typing</strong>. It comes from “if it looks
+like a duck and quacks like a duck, it is a duck.” Strongly OOP languages
+such as Ruby, Smalltalk and Javascript embrace and exploit this idea.</p>
+</div>
+<p>Since method invocation is the only action available in such systems, if you
+know the set of behaviours supported by a particular value, you know all there
+is to know about what kind of a thing it is, within this programming context.</p>
+<p>With a “class system”, our notion of invoke changes to this –</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">invoke</span><span class="w"> </span><span class="nv">thing</span><span class="w"> </span><span class="nv">method-name</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[(</span><span class="nf">tclass</span><span class="w"> </span><span class="p">(</span><span class="nf">getprop</span><span class="w"> </span><span class="nv">thing</span><span class="w"> </span><span class="ss">&#39;class</span><span class="w"> </span><span class="no">#f</span><span class="p">))]</span>
+<span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="nv">tclass</span>
+<span class="w">            </span><span class="p">(</span><span class="nf">c-invoke</span><span class="w"> </span><span class="nv">tclass</span><span class="w"> </span><span class="nv">thing</span><span class="w"> </span><span class="nv">method-name</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s">&quot;Unknown class for thing&quot;</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">c-invoke</span><span class="w"> </span><span class="nv">tclass</span><span class="w"> </span><span class="nv">thing</span><span class="w"> </span><span class="nv">method-name</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[(</span><span class="nf">method</span><span class="w"> </span><span class="p">(</span><span class="nf">getprop</span><span class="w"> </span><span class="nv">tclass</span><span class="w"> </span><span class="nv">method-name</span><span class="w"> </span><span class="no">#f</span><span class="p">))]</span>
+<span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="nv">method</span>
+<span class="w">            </span><span class="c1">; [REF1] Calling method on thing</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="nv">method</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="nv">tclass</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="nv">thing</span><span class="w"> </span><span class="nv">args</span><span class="p">)))</span>
+<span class="w">            </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">[(</span><span class="nf">parent</span><span class="w"> </span><span class="p">(</span><span class="nf">getprop</span><span class="w"> </span><span class="nv">tclass</span><span class="w"> </span><span class="ss">&#39;parent</span><span class="w"> </span><span class="no">#f</span><span class="p">))]</span>
+<span class="w">                </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="nv">parent</span>
+<span class="w">                    </span><span class="p">(</span><span class="nf">c-invoke</span><span class="w"> </span><span class="nv">parent</span><span class="w"> </span><span class="nv">thing</span><span class="w"> </span><span class="nv">method-name</span><span class="w"> </span><span class="nv">args</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s">&quot;No such method&quot;</span><span class="p">))))))</span>
+</pre></div>
+</div>
+<p>The way we call the method in this case at “[REF1]” in the code is slightly
+different from the non-class approach where the only additional argument
+it received was the thing itself. In this case, we’re also passing the class
+as well to the method. This is to meet a common need in such systems to extend
+methods by calling on a “super class“‘s behaviour under some conditions. So,
+a method may decide that the parent class of the given <code class="docutils literal notranslate"><span class="pre">tclass</span></code> may know
+better and delegate the task to it. So without knowing <code class="docutils literal notranslate"><span class="pre">tclass</span></code> (the
+class of <code class="docutils literal notranslate"><span class="pre">thing</span></code>), it cannot make that call.</p>
+<p>When using such <code class="docutils literal notranslate"><span class="pre">getprop</span></code> and <code class="docutils literal notranslate"><span class="pre">setprop!</span></code>, the step of creating a value also
+means associating the value with its class at creation time using <code class="docutils literal notranslate"><span class="pre">setprop!</span></code>
+so that method invocations can happen.</p>
+<div class="admonition-reflect admonition">
+<p class="admonition-title"><strong>Reflect</strong></p>
+<p>We need to <code class="docutils literal notranslate"><span class="pre">(setprop!</span> <span class="pre">val</span> <span class="pre">'class</span> <span class="pre">class-of-val)</span></code> even for simple values
+like integers. So obviously this approach is not very efficient if we have
+to do that. However, we can specialize <code class="docutils literal notranslate"><span class="pre">getprop</span></code> and <code class="docutils literal notranslate"><span class="pre">setprop!</span></code>
+themselves to make this more efficient and so we don’t store one entry for
+2, one for 3, another for 42, and so on, if we are guaranteed that property
+and method lookups are common for all the numbers.</p>
+</div>
+</section>
+<section id="message-passing-paradigm">
+<h2>Message passing “paradigm”<a class="headerlink" href="#message-passing-paradigm" title="Link to this heading">¶</a></h2>
+<p>Consider our polymorphic invocation <code class="docutils literal notranslate"><span class="pre">(invoke</span> <span class="pre">value</span> <span class="pre">'as-string)</span></code>. If we
+abstract out the value from this expression, we get <code class="docutils literal notranslate"><span class="pre">(lambda</span> <span class="pre">(x)</span> <span class="pre">(invoke</span> <span class="pre">x</span>
+<span class="pre">'as-string))</span></code>. The concept embodied by this lambda can also be thought of
+as “sending the message <code class="docutils literal notranslate"><span class="pre">'as-string</span></code> to <code class="docutils literal notranslate"><span class="pre">x</span></code>”. Note that in this case
+we also expect a result to be returned from that invocation.</p>
+<p>If we relax the requirement that a result must be returned, this lambda then
+becomes a pure “send-message” procedure. Something happens with the object
+that’s a consequence of the message having been sent, but no value is provided
+as a response. Since this is also, conceptually, “message passing”, we can see
+how method invocation is one implementation of the notion of message passing.
+Even in languages where method invocation is the implementation, “message
+passing” serves as a mental model and Smalltalk, for example, provides the
+ability to abstractly represent, store and send entire messages independent of
+objects. This is not quite true of languages like C++, although you can bend
+the language to this mode through some gymnastics.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Method invocation is one implementation of the notion of message passing.</p>
+</div>
+<p>Asynchronous message passing is yet another implementation of the idea, where
+the object to which the message is being sent may not act on the message by the
+time the message sending completes. Now, are there languages where this
+approach is applied? Indeed, the Erlang (and its syntactic variant “Elixir”)
+language has the notion of “process” which behaves like our objects, which can
+receive and respond to messages asynchronously. Processes in Erlang are very
+lightweight – you can create hundreds of thousands or even millions of
+processes on modern computers without overwhelming the system – and in some
+sense are more hard core objects than other languages. Is Erlang an esoteric
+language that nobody uses? I’ll leave you with the thought that when you send a
+message though Whatsapp, it is forwarded to your recipient by an Erlang
+program. Yup Whatsapp was for a long time just one big machine running a highly
+concurrent Erlang program to handle all the message sending.</p>
+</section>
+<section id="multiple-argument-dispatch">
+<h2>Multiple argument dispatch<a class="headerlink" href="#multiple-argument-dispatch" title="Link to this heading">¶</a></h2>
+<p>There are domains where the previously discussed “single argument dispatch”
+or “OOP” way of thinking does not quite map naturally. Mathematics is one such.
+We’ll look at some characteristics of mathematical domains that makes it hard
+to use OOP ideas and what we coudl replace it with.</p>
+<p>Consider the notion of “addition” of two things. If the two happened to be real
+numbers, then we we need to use the <code class="docutils literal notranslate"><span class="pre">real+</span></code> procedure to add them. If they’re
+both complex numbers, say, then we should use <code class="docutils literal notranslate"><span class="pre">complex+</span></code> to add them. What if
+we have one real number and one complex number? In this case, we know that we
+should “promote” the real number to a complex number and then use <code class="docutils literal notranslate"><span class="pre">complex+</span></code>.
+This is because real numbers are a sub-space of complex numbers – i.e. a complex
+number consists of two real numbers, along with some special rules of arithmetic.</p>
+<p>Let’s explore this situation a bit more -</p>
+<p>If I have a value bound to an identifier <code class="docutils literal notranslate"><span class="pre">x</span></code>, I can check if it is a real
+number or a complex number using the corresponding predicate like <code class="docutils literal notranslate"><span class="pre">(real?</span> <span class="pre">x)</span></code>
+and <code class="docutils literal notranslate"><span class="pre">(complex?</span> <span class="pre">x)</span></code>. In the mathematical sense, since a real number is also a
+complex number, <code class="docutils literal notranslate"><span class="pre">complex?</span></code> may answer <code class="docutils literal notranslate"><span class="pre">true</span></code> even if <code class="docutils literal notranslate"><span class="pre">x</span></code> was originally
+created as a pure real number in computer memory. Now let’s consider the notion
+of a “vector” – which is an ordered collection of numbers. We might expect to
+be able to test whether an <code class="docutils literal notranslate"><span class="pre">x</span></code> is a vector using <code class="docutils literal notranslate"><span class="pre">(vector?</span> <span class="pre">x)</span></code> (we’re still
+talking about the mathematical domain). However, our concept space has
+surreptitiously multiplied. We now have to deal with the notions of
+<code class="docutils literal notranslate"><span class="pre">real-vector?</span></code> and <code class="docutils literal notranslate"><span class="pre">complex-vector?</span></code>. If we then think of adding symbolic
+arithmetic capabilities to our system, then an <code class="docutils literal notranslate"><span class="pre">x</span></code> may be bound to a symbol
+value, which we may then test using <code class="docutils literal notranslate"><span class="pre">(symbol?</span> <span class="pre">x)</span></code>. However, again, our
+concept space has surreptitiously multiplied yet again to –</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Type combinations</span><a class="headerlink" href="#id1" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Types as predicates</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">real?</span></code></p></td>
+<td><p>A real number value</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">complex?</span></code></p></td>
+<td><p>A complex number value</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">real-symbol?</span></code></p></td>
+<td><p>A symbol whose value is expected to be a real number</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">complex-symbol?</span></code></p></td>
+<td><p>A symbol whose value is expected to be a complex number</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">real-vector?</span></code></p></td>
+<td><p>A vector of real numbers</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">complex-vector?</span></code></p></td>
+<td><p>A vector of complex numbers</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">real-vector-symbol?</span></code></p></td>
+<td><p>A symbol standing for a vector of real numbers</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">complex-vector-symbol?</span></code></p></td>
+<td><p>A symbol standing for a vector of complex numbers</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">real-symbol-vector?</span></code></p></td>
+<td><p>A vector of symbols that stand for real numbers</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">complex-symbol-vector?</span></code></p></td>
+<td><p>A vector of symbols that stand for complex numbers</p></td>
+</tr>
+</tbody>
+</table>
+<p>In the above table, we haven’t considered the possibilities with vectors where
+you may have, say, a mixture of real and complex numbers.</p>
+<p>Note that the way the concepts multiply is dependent on the domain and there is
+no generic rule that applies to all cases. Here, we make use of
+<span class="math notranslate nohighlight">\(\mathbb{R} \in \mathbb{C}\)</span> and that a symbol can stand for any concrete
+thing such as a real number, or a complex number or a vector of reals, and a
+vector may be a collection of things, including symbols that stand for complex
+numbers. Also, there are operations on integers that may not be applicable to
+reals, like reversing digits in some base.</p>
+<p>Now when adding two things, we need to consider the <span class="math notranslate nohighlight">\(n \times n\)</span> possibile
+combinations of operations to decide what to do in each case. In this domain therefore,
+when we introduce a new concept, it helps to introduce it in its most general form
+rather than a specific case. For example, the notion of a vector can be introduced
+as a “tensor” which would come with a specific rank and we can then deal with vectors
+as “rank 1 tensors”.</p>
+<p>Now, this isn’t quite unique to Mathematics. We see it with data structures too.
+For example, once we go beyond the basic “primitive” types like <code class="docutils literal notranslate"><span class="pre">integer?</span></code>,
+<code class="docutils literal notranslate"><span class="pre">real?</span></code>, <code class="docutils literal notranslate"><span class="pre">complex?</span></code>, <code class="docutils literal notranslate"><span class="pre">char?</span></code> and <code class="docutils literal notranslate"><span class="pre">string?</span></code>. When we consider, say, lists,
+we need to ask “list of what?”. So we now have <code class="docutils literal notranslate"><span class="pre">real-list?</span></code>, <code class="docutils literal notranslate"><span class="pre">complex-list?</span></code>,
+<code class="docutils literal notranslate"><span class="pre">char-list?</span></code> and <code class="docutils literal notranslate"><span class="pre">string-list?</span></code> to start with, but in truth this compounds
+even more, like “list of lists of complex numbers” and so on. As with vectors
+above, we haven’t even considered the case of lists of mixed type entities.</p>
+</section>
+<section id="parametric-types">
+<h2>Parametric types<a class="headerlink" href="#parametric-types" title="Link to this heading">¶</a></h2>
+<p>Clearly we need a systematic way to tame this complexity blow up we saw in the
+previous section. To start with, we’ll at least need a notation to express
+these types. As a first step, we can actually “lift” our type predicates over
+the types of their contained values. For example, the type <code class="docutils literal notranslate"><span class="pre">complex-vector?</span></code>
+can be written as <code class="docutils literal notranslate"><span class="pre">(vector?</span> <span class="pre">complex?)</span></code>, with the result of the expression
+being the predicate that is equivalent to <code class="docutils literal notranslate"><span class="pre">complex-vector?</span></code> predicate.
+Similarly, “a symbol that refers to a real number” would be <code class="docutils literal notranslate"><span class="pre">(symbol?</span> <span class="pre">real?)</span></code>
+and “a vector of symbols that refer to real numbers” can be expressed as
+<code class="docutils literal notranslate"><span class="pre">(vector?</span> <span class="pre">(symbol?</span> <span class="pre">real?))</span></code>. So these concepts are compositional in nature.
+This would perhaps work for collection types like lists too, with <code class="docutils literal notranslate"><span class="pre">(list?</span>
+<span class="pre">string?)</span></code>, <code class="docutils literal notranslate"><span class="pre">(list?</span> <span class="pre">real?)</span></code>, <code class="docutils literal notranslate"><span class="pre">(list?</span> <span class="pre">(list?</span> <span class="pre">string?))</span></code> and so on.</p>
+<p>With this approach, our types table now reads –</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Type combinations</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Types as predicates</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">real?</span></code></p></td>
+<td><p>A real number value</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">complex?</span></code></p></td>
+<td><p>A complex number value</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">(symbol?</span> <span class="pre">real?)</span></code></p></td>
+<td><p>A symbol whose value is expected to be a real number</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">(symbol?</span> <span class="pre">complex?)</span></code></p></td>
+<td><p>A symbol whose value is expected to be a complex number</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">(vector?</span> <span class="pre">real?)</span></code></p></td>
+<td><p>A vector of real numbers</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">(vector?</span> <span class="pre">complex?)</span></code></p></td>
+<td><p>A vector of complex numbers</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">(symbol?</span> <span class="pre">(vector?</span> <span class="pre">real?))</span></code></p></td>
+<td><p>A symbol standing for a vector of real numbers</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">(symbol?</span> <span class="pre">(vector?</span> <span class="pre">complex?))</span></code></p></td>
+<td><p>A symbol standing for a vector of complex numbers</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">(vector?</span> <span class="pre">(symbol?</span> <span class="pre">real?))</span></code></p></td>
+<td><p>A vector of symbols that stand for real numbers</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">(vector?</span> <span class="pre">(symbol?</span> <span class="pre">complex?))</span></code></p></td>
+<td><p>A vector of symbols that stand for complex numbers</p></td>
+</tr>
+</tbody>
+</table>
+<p>Note that from a domain perspective, not all of these may make sense. For
+example, what would a <code class="docutils literal notranslate"><span class="pre">(symbol?</span> <span class="pre">(symbol?</span> <span class="pre">real?))</span></code> mean mathematically? Again,
+in some mathematical contexts it might, but if you’re doing ordinary algebra,
+this concept would be out of place.</p>
+<p>Such a <code class="docutils literal notranslate"><span class="pre">list?</span></code> predicate can be implemented perhaps as shown below –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nb">list?</span><span class="w"> </span><span class="n">argtype?</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">lambda</span><span class="w"> </span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">cons?</span><span class="w"> </span><span class="n">arg</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="n">loop</span><span class="w"> </span><span class="p">[(</span><span class="n">ls</span><span class="w"> </span><span class="n">arg</span><span class="p">)]</span>
+<span class="w">                </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">empty?</span><span class="w"> </span><span class="n">ls</span><span class="p">)</span>
+<span class="w">                    </span><span class="no">#t</span><span class="w"> </span><span class="c1">; An empty list belongs to all list types.</span>
+<span class="w">                    </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">argtype?</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="n">ls</span><span class="p">))</span>
+<span class="w">                        </span><span class="c1">; Every element of the list must satisfy the argtype? predicate.</span>
+<span class="w">                        </span><span class="p">(</span><span class="n">loop</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="n">ls</span><span class="p">))</span>
+<span class="w">                        </span><span class="no">#f</span><span class="p">)))</span>
+<span class="w">            </span><span class="no">#f</span><span class="p">)))</span>
+</pre></div>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>How would you implement a <code class="docutils literal notranslate"><span class="pre">symbol?</span></code> type predicate as used above.</p>
+</div>
+<p>If we now consider an operation like addition and what it must do when given
+two symbols to add, we expect it to produce an expression with two symbols
+connected by a <code class="docutils literal notranslate"><span class="pre">+</span></code> operation – like perhaps <code class="docutils literal notranslate"><span class="pre">(+</span> <span class="pre">x</span> <span class="pre">y)</span></code>. One way we can
+simplify our calculation system is to say “we don’t care what the symbols <code class="docutils literal notranslate"><span class="pre">x</span></code>
+and <code class="docutils literal notranslate"><span class="pre">y</span></code> are supposed to refer to, but this is how their sum is expressed.
+Now, this may work in some contexts and not in others. For example, if you know
+all symbols are going to be referring to scalars, this would be ok, but if
+<code class="docutils literal notranslate"><span class="pre">x</span></code> may be a symbol referring to a vector of reals and <code class="docutils literal notranslate"><span class="pre">y</span></code> a real number,
+the result of their sum is something that needs explicit specification in the
+mathematical context as there is no singular natural extension.</p>
+<p>Here are some ways programming languages deal with these possibilities –</p>
+<dl>
+<dt>Untyped collections</dt><dd><p>Languages like Scheme, Python, Javascript and Smalltalk take the route
+where a collection type such as a <code class="docutils literal notranslate"><span class="pre">list?</span></code> or <code class="docutils literal notranslate"><span class="pre">vector?</span></code> doesn’t care
+what types of values it stores. It may be a mix of different types as well.
+It is up to the programmer to be cognizant of the domain and place appropriately
+typed values into these collections to be manipulated by their programs.
+In such languages, constraints on such data types are checked using
+<strong>contracts</strong> at procedure or module boundaries.</p>
+</dd>
+<dt>Uniformly typed collections</dt><dd><p>Languages such as Haskell in which a type must be assignable to every
+identifier, it is not possible to have an idea such as “list of
+reals and strings” without having it be expressible as type in its
+system. For this reason, Haskell enforces that collection types such
+as lists and arrays must have uniform types – i.e. we can have a list of
+all reals, a list of all complex numbers, but a list of reals and complex
+numbers needs a new type “real or complex” to be created before it can be
+expressed.</p>
+<p>In the case of lists, it is easy to see how this uniformity leads to
+manageable complexity of operations such as “concatenation”, where
+two lists can be concatenated only if they have the same value types,
+and produce another list of the same value type as well.</p>
+</dd>
+<dt>Automatic type promotion</dt><dd><p>This is rarely used except perhaps in a context where a programming language
+that was originally “dynamically typed” gains type declaration features
+that can be used partially – referred to as “gradual typing”.</p>
+<p>In such languages, concatenating a list of strings with a list of reals may
+yield a computed type like “list of (union of real and string)”.</p>
+</dd>
+</dl>
+<p>The above illustrate the design space available when considering operations
+that may be specialized over multiple types, but these approaches are also
+relevant when considering single-argument dispatch as well.</p>
+</section>
+<section id="dispatching-with-tagged-values">
+<h2>Dispatching with tagged values<a class="headerlink" href="#dispatching-with-tagged-values" title="Link to this heading">¶</a></h2>
+<p>When we considered the design of procedure dispatch over a single argument
+value, we considered a set of predicates that we test against the value to
+determine which course of action to take. This was our starting point. Now, we
+further restricted ourselves to think that we’ll consider the set of predicates
+to be mutually exclusive or “disjoint” – meaning we’re guaranteed that a value
+will satisfy exactly one of the predicates in our set.</p>
+<p>If that is the case, what if we kept a piece of extra information along with
+each value that indicated which of these set of predicates it satisfies?
+Arguably, this can be a tiny piece of information that doesn’t add much in
+terms of storage, provided our set of predicates does not have a large size.</p>
+<p>With this approach, the dispatch branches become tests for equality with
+a value’s tags. Even better, if each tag is associated with a set of procedures
+by name, the lookup can be in near-constant time (complexity wise) as well”.
+Such tags reify what we called “classes” earlier when discussing OOP, but
+are more closely related to the notion of “types”.</p>
+<p>If we now generalize the notion of attaching a tag to attaching a list of tags
+(or perhaps a set of tags) to a value, then the behaviours that we can get from
+that value become additively expandable. In the single argument dispatch
+universe of design, this is referred to as “multiple inheritance”.</p>
+<section id="multiple-inheritance">
+<h3>Multiple inheritance<a class="headerlink" href="#multiple-inheritance" title="Link to this heading">¶</a></h3>
+<p>“Multiple inheritance” refers to a value (or a new type) inheriting the
+functionality of a number of other types by declaring them as “parents”.
+Multiple inheritance can lead to certain kinds of problems. For example, if two
+of the “inherited” types prescribe different behaviours for the same
+method/message, it is unclear which behaviour the type or value must inherit.</p>
+<p>Programming languages try to “solve” this problem through some predictable
+mechanism that, despite the ambiguity continuing to exist in principle, makes
+it easy to determine which behaviour manifests by inspecting the code. For
+example, C++ solves it by mandating that the declaration order of the classes
+featuring in the inheritance list determines the priority for selection of a
+method implementation – i.e. if A and B are both parent classes declared in
+that order and both specify implementations for method M, then if the
+declaration order is <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">B</span></code>, then A’s implementation takes precedence over
+B’s and if the order is <code class="docutils literal notranslate"><span class="pre">B,</span> <span class="pre">A</span></code>, then B’s implementation takes precedence over
+A’s.</p>
+<p>While such a resolution mechanism appears to address the issue, it is still not
+clear from the program design perspective what actually should happen in some
+cases. For example, if <code class="docutils literal notranslate"><span class="pre">A</span></code> is a class that <code class="docutils literal notranslate"><span class="pre">B</span></code> and <code class="docutils literal notranslate"><span class="pre">C</span></code> inherit from and
+both override behaviour of method <code class="docutils literal notranslate"><span class="pre">M</span></code>, and subsequently <code class="docutils literal notranslate"><span class="pre">D</span></code> inherits from
+both <code class="docutils literal notranslate"><span class="pre">B,</span> <span class="pre">C</span></code>, both the behaviours of <code class="docutils literal notranslate"><span class="pre">B</span></code> and <code class="docutils literal notranslate"><span class="pre">C</span></code> for method <code class="docutils literal notranslate"><span class="pre">M</span></code> seem
+appropriate as the implementation for <code class="docutils literal notranslate"><span class="pre">D</span></code>. So which one to choose? Again,
+even if this is resolved by the “declaration sequence = priority” approach, the
+burden has merely shifted to the programmer to decide which of the two orders
+to choose. Due to the nature of the inheritance pattern, this is referred to
+as “the diamond problem” in OOP literature.</p>
+<figure class="align-center" id="id3">
+<img alt="The &quot;diamond problem&quot; of class inheritance." src="_images/diamond.png" />
+<figcaption>
+<p><span class="caption-text">When two “base classes” a.k.a. “parent classes” of a class themselves
+share the same base class, we have a “diamond problem” at hand.</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-default" id="id4" style="width: 50%">
+<div class="d2lang"><object data="_images/537cb58590385a0dda6bdd61b593855b.svg" type="image/svg+xml" class="d2lang">
+</object>
+</div>
+<figcaption>
+<p><span class="caption-text">Testing d2</span><a class="headerlink" href="#id4" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="traits-classes-as-types">
+<h3>Traits: classes as types<a class="headerlink" href="#traits-classes-as-types" title="Link to this heading">¶</a></h3>
+<p>One approach to program design that truly resolves the multiple inheritance
+problem described in the previous subsection treats classes as equivalent to
+types only if a class consists exclusively of specifications of abstract
+methods that its child-class must implement in order to be made concrete.
+Such an abstract class cannot be tagged to a value since a value doesn’t provide
+method implementations, and is therefore often called an “abstract class” or
+an sometimes (like in Julia) an “abstract type”. Furthermore, the inheritance
+mechanism is only used to specify the set of methods available in a “concrete class”
+and no further inheritance is permitted in the design.</p>
+<p>Interestingly enough, though this looks like a severe restriction, it is not
+really a restriction and in practice and leads to a well organized code base.
+The “abstract base class” serves as the “interface” and the “concrete class”
+serves as an “implementation” of the interface. There can be many
+implementations of an interface and to use an object, the programmer only needs
+to know the specification of the interface and its methods and little to
+nothing about the implementation details. This interface-implementation is
+made explicit in the Java language where an “interface” cannot syntactically
+declare any concrete method behaviours whereas a “class” can “implement” an
+interface and declare implementations. In Objective-C/C++ (used in iOS programming)
+the concept of an interface is referred to as a “protocol” since the language
+takes the “method invocation is a form of message passing” view.</p>
+<p>For example, a “Serializable” interface may declare the following methods (shown
+in the syntaxes of a few different programming languages) [^ –</p>
+<div class="highlight-Java notranslate"><div class="highlight"><pre><span></span><span class="c1">// Java</span>
+<span class="kd">interface</span> <span class="nc">Serializable</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">bytes</span><span class="w"> </span><span class="nf">serialize</span><span class="p">();</span>
+<span class="w">    </span><span class="c1">// Here Stream would also be an interface spec.</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">serializeToStream</span><span class="p">(</span><span class="n">Stream</span><span class="w"> </span><span class="n">s</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="c1">// C++</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Serializable</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">serialize</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="c1">// Here Stream would also be an interface class.</span>
+<span class="w">    </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">serializeToStream</span><span class="p">(</span><span class="n">Stream</span><span class="w"> </span><span class="o">*</span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-objc notranslate"><div class="highlight"><pre><span></span><span class="w">  </span><span class="cm">/* Objective-C/C++ */</span>
+<span class="w">  </span><span class="k">@protocol</span> <span class="nc">Serializable</span>
+  <span class="o">-</span><span class="w"> </span><span class="p">(</span><span class="bp">NSData</span><span class="o">*</span><span class="p">)</span><span class="n">serialize</span><span class="p">;</span>
+<span class="w">  </span><span class="cm">/* Here Stream is a protocol that the passed object is expected to meet. */</span>
+<span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">serializeToStream</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">Stream</span><span class="o">&gt;</span><span class="p">)</span><span class="n">s</span><span class="p">;</span>
+<span class="w">  </span><span class="k">@end</span>
+
+<span class="p">..</span><span class="w"> </span><span class="n">code</span><span class="o">::</span><span class="w"> </span><span class="n">rust</span>
+
+<span class="w">  </span><span class="n">trait</span><span class="w"> </span><span class="n">Stream</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="p">...</span><span class="n">le</span><span class="w"> </span><span class="n">by</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">trait</span><span class="w"> </span><span class="n">Serializable</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">type</span><span class="w"> </span><span class="n">CT</span><span class="p">;</span>
+<span class="w">      </span><span class="n">fn</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="o">&amp;</span><span class="nb">self</span><span class="p">)</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="n">Vec</span><span class="o">&lt;</span><span class="n">uint8</span><span class="o">&gt;</span><span class="p">;</span>
+<span class="w">      </span><span class="n">fn</span><span class="w"> </span><span class="nf">serializeToStream</span><span class="p">(</span><span class="o">&amp;</span><span class="nb">self</span><span class="p">,</span><span class="w"> </span><span class="n">Stream</span><span class="o">:&amp;</span><span class="n">Self</span><span class="o">::</span><span class="n">CT</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+</pre></div>
+</div>
+<p>In languages like Rust which are not OOP in the traditional sense but have a notion of
+a protocol or interface, this idea of an “abstract base class” is known as a “type trait”
+or simply “trait”. A trait, therefore, is a specification of all the methods that a concrete
+type that declares itself to implement the trait must provide implementations for to qualify
+as an implementation of the trait.</p>
+<p>Such “abstract base classes” or “type traits” may themselves declare as inheriting from
+other traits. However, since they’re all declarations and there can be only one concrete
+implementation for the collection of methods indicated through such an inheritance mechanism,
+there is no “diamond problem” any more. But yet again, if this structure turns up in a model
+of a domain, the responsibility for deciding what must happen when a particular method is invoked
+continues to fall on the programmer of that final implementation.</p>
+</section>
+</section>
+<section id="computable-types">
+<h2>Computable types<a class="headerlink" href="#computable-types" title="Link to this heading">¶</a></h2>
+<p>When we think of tagged values, the question arises whether such tags should themselves
+be computable by procedures within the language. Most programming languages maintain a
+distinction between a “type” and a “value” within the language and “types” cannot be passed
+as arguments to functions and be returned as values.</p>
+<p>Some languages deviate from that. Traditional “message passing” OOP languages
+like SmallTalk and Ruby feature “classes” that are themselves objects that can
+be manipulated in programs. This is also true of OOP-ish languages like
+Javascript and python as well. This is not usually done in ahead-of-time compiled
+languages such as C++ and Rust though. And yet, some AoT compiled languages
+also provide some notion of computable types.</p>
+<p>For example, in <a class="reference external" href="https://ziglang.org">Zig</a>, types are values that must be known at compile time.
+Though there is a distinction between code that is run during compile time and
+runtime, you can use ordinary functions to compute types at compile time.</p>
+<p>The <a class="reference external" href="https://julialang.org/">Julia</a> language places dispatch based on types of multiple/all function
+arguments a central feature of the language to enable the kinds of polymorphism
+needed for mathematical applications. In <a class="reference external" href="https://julialang.org/">Julia</a>, types are actually normal
+runtime values too and functions can take types as arguments and return types
+as values. For the kinds of domains Julia works well for, this is a very
+practical choice, especially with the notion of <a class="reference external" href="https://docs.julialang.org/en/v1/manual/metaprogramming/#Generated-functions">generated functions</a> where a
+function is called to generate its own body of code depending only on the types
+of its arguments. Such a function, when called with actual arguments, will call
+the generation code to compute the body and then compile that body and run it.
+Having cached the generated body, it no longer needs to recompute the body if
+the function is passed arguments of the same types again later. This way, a
+function can be written to eliminate code that typically dispatches based on
+argument types.</p>
+<p><a class="reference external" href="https://julialang.org/">Julia</a> is not an “ahead-of-time” compiled language though and is perhaps better
+described as “just-ahead-of-time compiled” language since compilation of a
+function is not incremental, but is done without fail before calling it. In
+contrast, in “just-in-time compiled” languages such as Java and Smalltalk, a
+function or procedure may end up being compiled only if it invoked sufficiently
+often. Otherwise, it gets interpreted either directly, or via an intermediate
+byte-code interpreter. Single pass compilation to an intermediate byte code
+representation is usually much faster than compilation to machine code and is
+therefore viable in such a scenario.</p>
+</section>
+<section id="the-case-with-julia">
+<h2>The case with Julia<a class="headerlink" href="#the-case-with-julia" title="Link to this heading">¶</a></h2>
+<p>Julia supports</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Comp308: Principles of Programming Languages</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="work.html">Work plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
+<li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">λ - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="church.html">Lambda - via β-abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notional-machine.html">Notional machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun.html">Functions and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stacks-and-scope.html">Stacks and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun-in-piclang.html">Functions in PicLang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mutations.html">Mutations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="control.html">Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="errornot.html">On the choice between “error” and “do something reasonable” in design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="objects.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="objects-self.html">Objects - the Self way</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appsem.html">Alternative application semantics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="types.html">Types: Checking some program invariants statically</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Srikumar K. S..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/dispatch.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

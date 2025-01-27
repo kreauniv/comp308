@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Lambda - via β-abstraction &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=cb25574f" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b30c7235"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5cb08e4e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="A language for pictures" href="piclang.html" />
-    <link rel="prev" title="Lambda - the everything" href="lambda.html" />
+    <link rel="prev" title="λ - the everything" href="lambda.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -33,7 +34,7 @@
           <div class="body" role="main">
             
   <section id="lambda-via-abstraction">
-<h1>Lambda - via β-abstraction<a class="headerlink" href="#lambda-via-abstraction" title="Permalink to this heading">¶</a></h1>
+<h1>Lambda - via β-abstraction<a class="headerlink" href="#lambda-via-abstraction" title="Link to this heading">¶</a></h1>
 <dl class="field-list simple">
 <dt class="field-odd">author<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Srikumar K. S.</p>
@@ -61,7 +62,7 @@ representing full integers. And we don’t really use fixed point combinators
 very often in “real world programming”. <a class="footnote-reference brackets" href="#fpc" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> So what purpose does learning
 these serve us?</p>
 <aside class="footnote-list brackets">
-<aside class="footnote brackets" id="fpc" role="doc-footnote">
+<aside class="footnote brackets" id="fpc" role="note">
 <span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
 <p>We’ll see some places where they are useful tools, even though these
 largely arise when building up programming languages and not usually when
@@ -80,14 +81,14 @@ throughout and at times that might feel trivial or laborious, but I hope you
 gain enough fluency with the idea by the end that you don’t need to think hard
 to leverage it in the future.</p>
 <section id="calculus">
-<h2>λ-calculus<a class="headerlink" href="#calculus" title="Permalink to this heading">¶</a></h2>
+<h2>λ-calculus<a class="headerlink" href="#calculus" title="Link to this heading">¶</a></h2>
 <p>So the basics first – expressed in Racket notation using s-expressions.</p>
 <section id="its-stuff">
-<h3>Its “stuff”<a class="headerlink" href="#its-stuff" title="Permalink to this heading">¶</a></h3>
+<h3>Its “stuff”<a class="headerlink" href="#its-stuff" title="Link to this heading">¶</a></h3>
 <p>We call an expression of the notion of a “function” a “λ-term”.</p>
 </section>
 <section id="its-structure">
-<h3>Its “structure”<a class="headerlink" href="#its-structure" title="Permalink to this heading">¶</a></h3>
+<h3>Its “structure”<a class="headerlink" href="#its-structure" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><p>An identifier like <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, called “variables” due to the mathematical origin
 of λ-calculus, is a “λ-term”.</p></li>
@@ -98,7 +99,7 @@ way (including not using it at all), then <code class="docutils literal notransl
 </ol>
 </section>
 <section id="its-properties">
-<h3>Its “properties”<a class="headerlink" href="#its-properties" title="Permalink to this heading">¶</a></h3>
+<h3>Its “properties”<a class="headerlink" href="#its-properties" title="Link to this heading">¶</a></h3>
 <p><strong>α-renaming</strong></p>
 <blockquote>
 <div><p>Two λ-terms that differ only in a change of variable are equivalent.
@@ -130,7 +131,7 @@ be understood as one kind of equivalence of functions.</p>
 </section>
 </section>
 <section id="allowances">
-<h2>Allowances<a class="headerlink" href="#allowances" title="Permalink to this heading">¶</a></h2>
+<h2>Allowances<a class="headerlink" href="#allowances" title="Link to this heading">¶</a></h2>
 <p>Strictly speaking, λ-calculus only talks about functions of one variable.
 We can extend the idea to functions of multiple variables because this
 case can be reduced to functions of one variable like this –</p>
@@ -141,7 +142,7 @@ case can be reduced to functions of one variable like this –</p>
 <span class="pre">...)</span></code> construct.</p>
 </section>
 <section id="making-pairs">
-<h2>Making pairs<a class="headerlink" href="#making-pairs" title="Permalink to this heading">¶</a></h2>
+<h2>Making pairs<a class="headerlink" href="#making-pairs" title="Link to this heading">¶</a></h2>
 <p>Our starting point for building the edifice of useful computational objects
 is the absolute basic data structure – the humble “pair” that associates
 two objects. We need to be able to make pairs of objects, which are,
@@ -177,7 +178,7 @@ can build pretty much any other data structure out of it. But we’ll first
 need some basics like numbers to store in these data structures.</p>
 </section>
 <section id="church-numerals">
-<h2>Church numerals<a class="headerlink" href="#church-numerals" title="Permalink to this heading">¶</a></h2>
+<h2>Church numerals<a class="headerlink" href="#church-numerals" title="Link to this heading">¶</a></h2>
 <p>The word “numeral” refers to a way of expressing or representing a number.
 So 123, 01111011, CXXIII, १२३ are all representations of the same <em>number</em>.
 Church numerals are such a representation of numbers (whole numbers to be
@@ -212,7 +213,7 @@ represent the number “one”. Zero offers a simple case by extension.</p>
 </pre></div>
 </div>
 <section id="successor">
-<h3>Successor<a class="headerlink" href="#successor" title="Permalink to this heading">¶</a></h3>
+<h3>Successor<a class="headerlink" href="#successor" title="Link to this heading">¶</a></h3>
 <p>To define representations for other numbers, we need a way to define
 the idea of a “successor” function <code class="docutils literal notranslate"><span class="pre">ch-succ</span></code>, that can take us
 from <code class="docutils literal notranslate"><span class="pre">zero</span></code> to <code class="docutils literal notranslate"><span class="pre">one</span></code> –</p>
@@ -230,7 +231,7 @@ a specific n. This is <code class="docutils literal notranslate"><span class="pr
 </div>
 </section>
 <section id="converting-between-racket-and-church-numerals">
-<h3>Converting between Racket and Church numerals<a class="headerlink" href="#converting-between-racket-and-church-numerals" title="Permalink to this heading">¶</a></h3>
+<h3>Converting between Racket and Church numerals<a class="headerlink" href="#converting-between-racket-and-church-numerals" title="Link to this heading">¶</a></h3>
 <p>To play with these concretely in Racket, you can use the following functions to
 convert from Racket’s number representation to Church numerals.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Here n is a Racket numeral</span>
@@ -246,7 +247,7 @@ convert from Racket’s number representation to Church numerals.</p>
 </div>
 </section>
 <section id="addition">
-<h3>Addition<a class="headerlink" href="#addition" title="Permalink to this heading">¶</a></h3>
+<h3>Addition<a class="headerlink" href="#addition" title="Link to this heading">¶</a></h3>
 <p>Now how do you add two Church numerals? Given <code class="docutils literal notranslate"><span class="pre">m</span></code> and <code class="docutils literal notranslate"><span class="pre">n</span></code> represent
 their respective number of applications of a function <code class="docutils literal notranslate"><span class="pre">f</span></code> to an <code class="docutils literal notranslate"><span class="pre">x</span></code>,
 we seek to calculate <code class="docutils literal notranslate"><span class="pre">((m</span> <span class="pre">f)</span> <span class="pre">((n</span> <span class="pre">f)</span> <span class="pre">x))</span></code>. As before, we β-abstract
@@ -289,7 +290,7 @@ abstracting on <code class="docutils literal notranslate"><span class="pre">m</s
 <p>… which is an equally valid (and clearer) definition of <code class="docutils literal notranslate"><span class="pre">ch-add</span></code>.</p>
 </section>
 <section id="multiplication">
-<h3>Multiplication<a class="headerlink" href="#multiplication" title="Permalink to this heading">¶</a></h3>
+<h3>Multiplication<a class="headerlink" href="#multiplication" title="Link to this heading">¶</a></h3>
 <p>Now how do we multiply two numbers? If <code class="docutils literal notranslate"><span class="pre">m</span></code> and <code class="docutils literal notranslate"><span class="pre">n</span></code> are two Church numerals
 standing for “m applications of f” and “n applications of f”, we seek to capture
 the idea of “m applications of n applications of f”. This is easily expressed
@@ -307,7 +308,7 @@ over <code class="docutils literal notranslate"><span class="pre">m</span></code
 <p>We also note that this is ordinary function composition of <code class="docutils literal notranslate"><span class="pre">m</span></code> and <code class="docutils literal notranslate"><span class="pre">n</span></code>.</p>
 </section>
 <section id="subtraction">
-<h3>Subtraction<a class="headerlink" href="#subtraction" title="Permalink to this heading">¶</a></h3>
+<h3>Subtraction<a class="headerlink" href="#subtraction" title="Link to this heading">¶</a></h3>
 <p>How do you then get subtraction? Can we do a “predecessor” operator?</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">ch-&gt;i</span><span class="w"> </span><span class="p">(</span><span class="n">ch-pred</span><span class="w"> </span><span class="p">(</span><span class="n">i-&gt;ch</span><span class="w"> </span><span class="mi">5</span><span class="p">)))</span>
 <span class="c1">; Should print 4</span>
@@ -375,7 +376,7 @@ numerals</a>).</p>
 </section>
 </section>
 <section id="understanding-recursion">
-<h2>Understanding recursion<a class="headerlink" href="#understanding-recursion" title="Permalink to this heading">¶</a></h2>
+<h2>Understanding recursion<a class="headerlink" href="#understanding-recursion" title="Link to this heading">¶</a></h2>
 <p>We have the whole of integers done now. However, we haven’t solved the case of
 repetition – a.k.a. “iteration” – which in functional terms we express using
 the concept of “recursion”. In fact, even in the previous section, in our
@@ -527,7 +528,7 @@ applies a function to a given <strong>list</strong> of arguments.</p>
 </div>
 </section>
 <section id="moral-of-the-story">
-<h2>Moral of the story<a class="headerlink" href="#moral-of-the-story" title="Permalink to this heading">¶</a></h2>
+<h2>Moral of the story<a class="headerlink" href="#moral-of-the-story" title="Link to this heading">¶</a></h2>
 <p>We started with low level ideas and have systematically moved to work with
 higher level concepts using β-abstraction. In particular, arriving at the
 general “fixed point combinators” starting from concrete specifications of
@@ -566,9 +567,10 @@ domain that we can do as programmers.</p>
 <h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="work.html">Work plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">λ - the everything</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Lambda - via β-abstraction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#calculus">λ-calculus</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#allowances">Allowances</a></li>
@@ -599,12 +601,12 @@ domain that we can do as programmers.</p>
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="lambda.html" title="previous chapter">Lambda - the everything</a></li>
+      <li>Previous: <a href="lambda.html" title="previous chapter">λ - the everything</a></li>
       <li>Next: <a href="piclang.html" title="next chapter">A language for pictures</a></li>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -612,7 +614,7 @@ domain that we can do as programmers.</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -627,11 +629,11 @@ domain that we can do as programmers.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Srikumar K. S..
+      &#169;2022, Srikumar K. S..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
       <a href="_sources/church.rst.txt"

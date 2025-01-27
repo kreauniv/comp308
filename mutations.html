@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Mutations &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=cb25574f" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b30c7235"></script>
-    <script src="_static/doctools.js?v=888ff710"></script>
-    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5cb08e4e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -19,8 +19,9 @@
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -33,7 +34,7 @@
           <div class="body" role="main">
             
   <section id="mutations">
-<h1>Mutations<a class="headerlink" href="#mutations" title="Permalink to this heading">¶</a></h1>
+<h1>Mutations<a class="headerlink" href="#mutations" title="Link to this heading">¶</a></h1>
 <p>Much in the history of programming languages has been concerned with what we’d
 call “imperative” style of programming. This involves thinking of a program as
 “performing a sequence of steps” and less as “computing a particular value from
@@ -44,7 +45,7 @@ look deeper to see why such a sequencing even deserves a mention there.</p>
 <figure class="align-center" id="id1">
 <img alt="A diagram of components of a modern computer. Features a CPU, data storage, program memory, I/O devices and the network." src="_images/computer.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Core components of a modern “computer”.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Core components of a modern “computer”.</span><a class="headerlink" href="#id1" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>Such a computer features a CPU at the heart, which pull a sequence of instructions
@@ -74,7 +75,7 @@ write a different value back, the value you read in could be something else.</p>
 effect of a model of computation where we’re reading from and writing to
 addressable memory locations that’re <strong>mutable</strong>.</p>
 <section id="the-racket-box">
-<h2>The Racket “box”<a class="headerlink" href="#the-racket-box" title="Permalink to this heading">¶</a></h2>
+<h2>The Racket “box”<a class="headerlink" href="#the-racket-box" title="Link to this heading">¶</a></h2>
 <p>Racket provides an entity called a “box” that is akin to a one-element mutable
 vector. A box is either empty or has something in it and you can change the
 contents of the box.</p>
@@ -107,7 +108,7 @@ irrelevance explicit by declaring <code class="code highlight racket docutils li
 </ol>
 </section>
 <section id="sequencing">
-<h2>Sequencing<a class="headerlink" href="#sequencing" title="Permalink to this heading">¶</a></h2>
+<h2>Sequencing<a class="headerlink" href="#sequencing" title="Link to this heading">¶</a></h2>
 <p>The main aspect of using boxes that we need to pay attention to is that
 with operations like <code class="code highlight racket docutils literal highlight-racket"><span class="nb">set-box!</span></code>, we now have to pay attention to the order
 in which expressions are evaluated, even at the same “level” in our expression
@@ -127,7 +128,7 @@ we’ve used there.</p>
 to add a notion of “boxes” as well as implement a notion of sequencing.</p>
 </section>
 <section id="sequencing-in-the-stack-machine">
-<h2>Sequencing in the stack machine<a class="headerlink" href="#sequencing-in-the-stack-machine" title="Permalink to this heading">¶</a></h2>
+<h2>Sequencing in the stack machine<a class="headerlink" href="#sequencing-in-the-stack-machine" title="Link to this heading">¶</a></h2>
 <p>We’ve already seen sequencing of operations happening in our
 <code class="code highlight racket docutils literal highlight-racket"><span class="n">stack-machine</span></code> – whose “program” consists of a sequence of instructions,
 each of which take in a “state” and produce a new state. In our case, “state”
@@ -152,7 +153,7 @@ based interpreter we wrote, which relies on Racket’s own stack mechanism.</p>
 <p>So let’s now look at how to implement such sequencing in our PicLang.</p>
 </section>
 <section id="terms-for-boxes">
-<h2>Terms for boxes<a class="headerlink" href="#terms-for-boxes" title="Permalink to this heading">¶</a></h2>
+<h2>Terms for boxes<a class="headerlink" href="#terms-for-boxes" title="Link to this heading">¶</a></h2>
 <p>Corresponding to the functions that Racket provides for boxes, we’ll need a
 few new terms –</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">BoxC</span><span class="w"> </span><span class="p">(</span><span class="n">expr</span><span class="p">))</span><span class="w">    </span><span class="c1">; Makes a new box whose value is the result</span>
@@ -216,7 +217,7 @@ and have the structure store a “reference” that points into the storage.</p>
 </div>
 </section>
 <section id="variations">
-<h2>Variations<a class="headerlink" href="#variations" title="Permalink to this heading">¶</a></h2>
+<h2>Variations<a class="headerlink" href="#variations" title="Link to this heading">¶</a></h2>
 <p>We have some choices in how we define the <code class="code highlight racket docutils literal highlight-racket"><span class="n">UnboxC</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">SetBoxC</span></code>
 terms. In the preceding formulation, we specified <code class="code highlight racket docutils literal highlight-racket"><span class="n">UnboxC</span></code> to hold an
 <em>identifier</em> to be looked up in the current environment for a box value. We
@@ -235,7 +236,7 @@ extended form as syntactic sugar too. For example, we could desugar
 interpreter as though we expect only <code class="code highlight racket docutils literal highlight-racket"><span class="n">IdC</span></code> terms in the first slot.</p>
 </section>
 <section id="super-powers">
-<h2>Super powers<a class="headerlink" href="#super-powers" title="Permalink to this heading">¶</a></h2>
+<h2>Super powers<a class="headerlink" href="#super-powers" title="Link to this heading">¶</a></h2>
 <p>With any such feature addition to a language, it is always necessary to ask
 what kinds of, what we’ve been calling, “super powers” does it give us. So
 what new super power did we gain by having mutable storage in our language?</p>
@@ -300,7 +301,7 @@ but (roughly speaking) by using Scheme identifiers as variables.</p>
 </div>
 </section>
 <section id="state-machines">
-<h2>State machines<a class="headerlink" href="#state-machines" title="Permalink to this heading">¶</a></h2>
+<h2>State machines<a class="headerlink" href="#state-machines" title="Link to this heading">¶</a></h2>
 <p id="index-0">“Function returning different values each time it is called” is a kind of silly
 way of stating the “super power” we’ve got. This is much bigger than what it
 looks like – which perhaps deserves a response like “ok, so what?”.</p>
@@ -415,9 +416,10 @@ can handle parsing of such decimal numbers given one character at a time.</p>
 <h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="work.html">Work plan</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
 <li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
-<li class="toctree-l1"><a class="reference internal" href="lambda.html">Lambda - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">λ - the everything</a></li>
 <li class="toctree-l1"><a class="reference internal" href="church.html">Lambda - via β-abstraction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
@@ -454,7 +456,7 @@ can handle parsing of such decimal numbers given one character at a time.</p>
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -462,7 +464,7 @@ can handle parsing of such decimal numbers given one character at a time.</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -477,11 +479,11 @@ can handle parsing of such decimal numbers given one character at a time.</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2022, Srikumar K. S..
+      &#169;2022, Srikumar K. S..
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
       <a href="_sources/mutations.rst.txt"

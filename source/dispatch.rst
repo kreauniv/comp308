@@ -345,7 +345,7 @@ Let's simplify this by defining invoke in a different way.
                 (apply c-invoke (list (get-parent class) value method-name . args)))))
 
     (define (invoke value method-name . args)
-        (apply c-invoke (append (list (get-class value) value method-name) args))))
+        (apply c-invoke (append (list (get-class value) value method-name) args)))
 
 How deep would this ``get-parent`` lookup go then?
 

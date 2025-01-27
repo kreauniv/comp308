@@ -53,12 +53,14 @@ with it at that point? That way, if we have a vector ``v``, we reference its ``k
 element using ``(ref v k)`` and if we have a hashtable ``h`` and a key ``k``,
 we can get its associated value using ``(ref h k)`` as well, instead of
 ``(hash-ref h k)``. It is quite evident that the cognitive burden is lower
-for such a unified concept of "``ref``-ting" a value.
+for such a unified concept of "``ref``-ing" a value.
 
 While doing this makes for concise code while writing, we also notice that when
 reading code, ``(ref h k)`` tells us very little about ``h`` than "something we
-can call ``get`` on", whereas ``(hash-ref h k)`` is amply clear. This is part
-of the reason for that design choice in the Scheme language.
+can call ``ref`` on", whereas ``(hash-ref h k)`` is amply clear. This is part
+of the reason for that design choice to be explicit in the Scheme/Racket
+languages. The goal of a program is only partly to instruct machines (such as
+"locks") but equally to communicate "how to" knowledge to other humans.
 
 .. admonition:: **Terminology**
 
@@ -105,7 +107,7 @@ changed, initially.
 However, instead of introducing a new symbol ``sym+`` for our extended
 notion of addition, we can replace the earlier definition of ``+`` to 
 mean what the new ``sym+`` means because ``sym+`` also deals with the
-case of ading up ordinary numbers.
+case of adding up ordinary numbers.
 
 .. code:: racket
 
@@ -244,7 +246,7 @@ generic procedure". ``(invoke value 'method arg1 arg2 ...)``.
 
 .. admonition:: **Terminology**
 
-	We call such procedural attributes "methods". 
+    We call such procedural attributes "methods". 
 
 "Methods" are general enough to model "properties" of such "objects". To model
 a property, we need to be able to **get** a property value, and **set** it to
@@ -289,10 +291,10 @@ In OOP languages, such a table of behaviour procedures is called a "class". Our
 
 .. code:: racket
 
-	(define (invoke value method-name . args)
-		(let* [(class (get-class value))
-			   (behaviour (lookup-behaviour-proc class method-name))]
-			(apply behaviour (cons value args))))
+    (define (invoke value method-name . args)
+        (let* [(class (get-class value))
+               (behaviour (lookup-behaviour-proc class method-name))]
+            (apply behaviour (cons value args))))
 
 The above specification of what ``invoke`` does has a gap. What happens when
 ``lookup-behaviour-proc`` determines that the identified ``class`` has no such
@@ -300,12 +302,12 @@ method?
 
 .. code:: racket
 
-	(define (invoke value method-name . args)
-		(let* [(class (get-class value))
-			   (behaviour (lookup-behaviour-proc class method-name))]
-			(if (procedure? behaviour)
-				(apply behaviour (cons value args))
-				(error "No such method"))))
+    (define (invoke value method-name . args)
+        (let* [(class (get-class value))
+               (behaviour (lookup-behaviour-proc class method-name))]
+            (if (procedure? behaviour)
+                (apply behaviour (cons value args))
+                (error "No such method"))))
 
 In the above version which calls out this case, we actually have a design
 choice.
@@ -318,37 +320,49 @@ choice.
    behaviours associated with this other class -- or it will "inherit" these
    behaviours. For this reason, such a class to which the "no such method" case
    is delegated to is called the "parent class" or "super class".
-			
+            
 .. code:: racket
 
-	(define (invoke value method-name . args)
-		(let* [(class (get-class value))
-			   (behaviour (lookup-behaviour-proc class method-name))]
-			(if (procedure? behaviour)
-				(apply behaviour (cons value args))
-				(let* [(super-class (get-parent class))
-				       (behaviour (lookup-behaviour-proc super-class method-name))]
-					(if (procedure? behaviour)
-						...)))))
+    (define (invoke value method-name . args)
+        (let* [(class (get-class value))
+               (behaviour (lookup-behaviour-proc class method-name))]
+            (if (procedure? behaviour)
+                (apply behaviour (cons value args))
+                (let* [(super-class (get-parent class))
+                       (behaviour (lookup-behaviour-proc super-class method-name))]
+                    (if (procedure? behaviour)
+                        ...)))))
 
 Ah! So this procedure of looking up the parent class seems to go on for ever?
 Let's simplify this by defining invoke in a different way.
 
 .. code:: racket
 
-	(define (c-invoke class value method-name . args)
-		(let [(behaviour (lookup-behaviour-proc class method-name))]
-			(if (procedure? behaviour)
-				(apply behaviour (cons value args))
-				(apply c-invoke (list (get-parent class) value method-name . args)))))
+    (define (c-invoke class value method-name . args)
+        (let [(behaviour (lookup-behaviour-proc class method-name))]
+            (if (procedure? behaviour)
+                (apply behaviour (cons value args))
+                (apply c-invoke (list (get-parent class) value method-name . args)))))
+
+    (define (invoke value method-name . args)
+        (apply c-invoke (append (list (get-class value) value method-name) args))))
 
 How deep would this ``get-parent`` lookup go then?
 
 Most object oriented languages solve this problem by having a "root" class,
 perhaps named ``Object`` whose parent is itself.
 
-Objects objects everywhere
---------------------------
+.. admonition:: **Ponder this**
+    
+    We casually wrote function calls ``(get-class value)`` and ``(get-parent class)``.
+    Won't these two functions also have to work across all values and return different
+    classes for different values and different parents for different classes? .. thereby
+    assuming the very mechanism we're trying to implement with ``invoke``? i.e. Aren't
+    these ``(invoke value 'class)`` and ``(invoke class 'parent-class)``?
+
+
+Objects, objects, everywhere
+----------------------------
 
 We can then ask -- "Can we treat all values in our language as objects?" ...
 and the answer would be "yes!". Languages like Smalltalk, Ruby and Self take a
@@ -396,9 +410,9 @@ in such languages.
 
 .. code:: racket
 
-	(invoke value 'description)
-	; Gets a "string" that is repurposable across multiple
-	; presentation modes.
+    (invoke value 'description)
+    ; Gets a "string" that is repurposable across multiple
+    ; presentation modes.
 
 We'd previously used a ``lookup-behaviour-proc``. This looks like a perfect
 candidate for a property of a class, so to get a behaviour proc object
@@ -406,8 +420,8 @@ associated with a class by name, we'd do --
 
 .. code:: racket
 
-	(invoke class 'behaviour-named name)
-	
+    (invoke class 'behaviour-named name)
+    
 At this point, you may begin to appreciate how the snake starts to eat its own
 tail, since a "behaviour procedure" itself ought to be an object.
 
@@ -420,6 +434,69 @@ denote both properties and methods -- like ``value.property`` and
 Languages like Smalltalk make it even simpler by making method invocation
 invisible in the text -- like ``value method`` or ``value methodKey1: val1
 key2: val2 ...``.
+
+Since "invoking a method on an object" can be split into "look up a
+function-valued property of the object" and then "calling it, passing the
+object as one of the arguments", we can generalize the mechanism for such
+"lookup a property of a thing" so we can reuse it in different way. For that,
+we introduce two functions -- ``getprop`` and ``setprop`` -- with the following
+behaviours --
+
+1. ``getprop`` when given a thing and a property name, produces a value.
+2. ``setprop!`` stores a value against a property name associated with a thing,
+   so that a subsequent call to ``getprop`` will retrieve that value.
+
+.. code:: scheme
+
+    (define (make-proplist)
+        ; A "property list" is a list of triples of thing-property-value
+        (define **proplist** (box '()))
+
+        ; The default-value is returned if the thing or its property
+        ; are not found.
+        (define (getprop thing property default-value)
+            (let loop [(tail (unbox **proplist**))]
+                (if (null? tail)
+                    default-value
+                    (let [(triple (first tail))]
+                        (if (and (eq? (first triple) thing)
+                                 (equal? (second triple) property))
+                            (third triple)
+                            (loop (rest tail)))))))
+
+        (define (setprop! thing property value)
+            ; We're being a bit lazy here (in the human sense) and
+            ; simply adding the new association at the head without
+            ; checking whether it is already there and modifying that
+            ; entry instead. The meanings of getprop and setprop!
+            ; are preserved by this approach though lacking in
+            ; efficiency. We will have to modify our approach to
+            ; use a "mutable cons" if we are to change this strategy.
+            (set-box! **proplist**
+                      (cons (list thing property value)
+                            (unbox **proplist**))))
+
+        (values getprop setprop!))
+
+    (define-values (getprop setprop!) (make-proplist))
+                    
+.. admonition:: **Question**
+
+    When checking the "thing" position in the property list, we used ``eq?``
+    but for the property position, we used ``equal?``. What are the
+    consequences of using one versus the other for these fields?
+
+These ``getprop`` and ``setprop!`` are intended for use in our interpreter for
+us to understand the ideas behind various types of dispatch. So we can now
+express the basic notion of ``invoke`` like this --
+
+.. code:: scheme
+
+    (define (invoke thing method-name . args)
+        (let [(method (getprop thing method-name #f))]
+            (if method
+                (apply method (cons thing args))
+                (error "Unresolved method"))))
 
 
 Classes versus types
@@ -443,11 +520,53 @@ Since method invocation is the only action available in such systems, if you
 know the set of behaviours supported by a particular value, you know all there
 is to know about what kind of a thing it is, within this programming context. 
 
+With a "class system", our notion of invoke changes to this --
+
+.. code:: scheme
+
+    (define (invoke thing method-name . args)
+        (let [(tclass (getprop thing 'class #f))]
+            (if tclass
+                (c-invoke tclass thing method-name args)
+                (error "Unknown class for thing"))))
+
+    (define (c-invoke tclass thing method-name args)
+        (let [(method (getprop tclass method-name #f))]
+            (if method
+                ; [REF1] Calling method on thing
+                (apply method (cons tclass (cons thing args)))
+                (let [(parent (getprop tclass 'parent #f))]
+                    (if parent
+                        (c-invoke parent thing method-name args)
+                        (error "No such method"))))))
+
+The way we call the method in this case at "[REF1]" in the code is slightly
+different from the non-class approach where the only additional argument
+it received was the thing itself. In this case, we're also passing the class
+as well to the method. This is to meet a common need in such systems to extend
+methods by calling on a "super class"'s behaviour under some conditions. So,
+a method may decide that the parent class of the given ``tclass`` may know
+better and delegate the task to it. So without knowing ``tclass`` (the
+class of ``thing``), it cannot make that call.
+
+When using such ``getprop`` and ``setprop!``, the step of creating a value also
+means associating the value with its class at creation time using ``setprop!``
+so that method invocations can happen.
+
+.. admonition:: **Reflect**
+
+    We need to ``(setprop! val 'class class-of-val)`` even for simple values
+    like integers. So obviously this approach is not very efficient if we have
+    to do that. However, we can specialize ``getprop`` and ``setprop!``
+    themselves to make this more efficient and so we don't store one entry for
+    2, one for 3, another for 42, and so on, if we are guaranteed that property
+    and method lookups are common for all the numbers. 
+
 Message passing "paradigm"
 --------------------------
 
 Consider our polymorphic invocation ``(invoke value 'as-string)``. If we
-abstact out the value from this expression, we get ``(lambda (x) (invoke x
+abstract out the value from this expression, we get ``(lambda (x) (invoke x
 'as-string))``. The concept embodied by this lambda can also be thought of
 as "sending the message ``'as-string`` to ``x``". Note that in this case
 we also expect a result to be returned from that invocation.
@@ -463,19 +582,21 @@ ability to abstractly represent, store and send entire messages independent of
 objects. This is not quite true of languages like C++, although you can bend
 the language to this mode through some gymnastics.
 
+.. note:: Method invocation is one implementation of the notion of message passing.
+
 Asynchronous message passing is yet another implementation of the idea, where
 the object to which the message is being sent may not act on the message by the
 time the message sending completes. Now, are there languages where this
-approach is applied? Indeed, the Erlang (and its derivative Elixir) language
-has the notion of "process" which behaves like our objects that can receive and
-respond to messages asynchronously. Processes in Erlang are very lightweight --
-you can create hundreds of thousands or even millions of processes on modern
-computers without overwhelming the system -- and in some sense are more hard
-core objects than other languages. Is Erlang an esoteric language that nobody
-uses? I'll leave you with the thought that when you send a message though
-Whatsapp, it is forwarded to your recipient by an Erlang program. Yup Whatsapp
-was for a long time just one big machine running a highly concurrent Erlang
-program to handle all the message sending.
+approach is applied? Indeed, the Erlang (and its syntactic variant "Elixir")
+language has the notion of "process" which behaves like our objects, which can
+receive and respond to messages asynchronously. Processes in Erlang are very
+lightweight -- you can create hundreds of thousands or even millions of
+processes on modern computers without overwhelming the system -- and in some
+sense are more hard core objects than other languages. Is Erlang an esoteric
+language that nobody uses? I'll leave you with the thought that when you send a
+message though Whatsapp, it is forwarded to your recipient by an Erlang
+program. Yup Whatsapp was for a long time just one big machine running a highly
+concurrent Erlang program to handle all the message sending.
 
 
 Multiple argument dispatch

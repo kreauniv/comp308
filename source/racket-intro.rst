@@ -475,15 +475,59 @@ method. Hint: Do it mechanically at first, paying attention to the parentheses.
 You may want to refer to how lambda expressions simplify when applied to values
 in the preceding text.
 
+Feet wet
+~~~~~~~~
+
 .. code-block:: racket
 
     ; 0
+    (/ (- 45 15) (+ 45 (+ 5 5) 5))
+
+    ; 1
+    (length (list 1 3 7 15))
+
+    ; 2
+    ((sqrt (- 3 4)) display)
+
+    ; 3
+    (third (append '(1 2) (append '(3) '(4 5))))
+
+    ; 4
+    (if (< (string-length "hello") 4)
+        (apply + '(2 3 4))
+        (apply - '(2 3 4)))
+
+    ; 5
+    (apply (if (< (string-length "hello") 4) + -) '(2 3 4))
+
+    ; 6
+    ((if (< (string-length "hello") 4) + *) 2 3 4)
+
+    ; 7 
     (list (+ 3 4 5 6)
           (* 14 (+ 10 5))
           (string-append "hello" " " "world"))
+
+    ; 8
     (if (= (remainder 8 2) 0)
         (quotient 8 2)
         (+ (* 3 8) 1))
+
+    ; 9
+    (equal? (cons 1 (cons 2 '())) (list 1 2))
+    (equal? (cons 1 (cons 2 empty)) '(1 2))
+
+
+
+Ankle deep
+~~~~~~~~~~
+
+For this section, remember that if ``f`` is a lambda expression
+of the form ``(lambda (x) (- x 12))``, then `(f 24)` is expected to
+evaluate to the same expression as `(- 24 12)` -- i.e. the argument ``24``
+is used to replace occurrences of ``x`` within the body of the ``lambda``.
+
+.. code-block:: racket
 
     ; 1
     ((lambda (x) 

@@ -651,7 +651,7 @@ types of the arguments.
 
 .. code:: racket
 
-   (define (multiapply method-name list-of-args)
+   (define (multiapply method-name . list-of-args)
         (let ([method (getprop method-name (map get-type list-of-args)
                                (λ (method-name list-of-args)
                                     (error "What do we do if method is not found?")))])
@@ -679,7 +679,8 @@ origin on a 2D plane.
 .. code:: racket
 
     (define (dist pt)
-        (sqrt (+ (* (Point-x pt) (Point-x pt)) (* (Point-y pt) (Point-y pt)))))
+        (sqrt (+ (* (Point-x pt) (Point-x pt))
+                 (* (Point-y pt) (Point-y pt)))))
 
 Now, we may have a Point that uses integers for x and y or floats for x and y.
 So our specification of ``dist`` really should use a dispatcher to generalize
@@ -690,14 +691,9 @@ over those types.
     (define (mdist pt)
         (multiapply 
             'sqrt
-            (list (multiapply 
-                    '+
-                    (list (multiapply 
-                            '*
-                            (list (Point-x pt) (Point-x pt)))
-                          (multiapply 
-                            '*
-                            (list (Point-y pt) (Point-y pt))))))))
+            (multiapply '+
+                        (multiapply '* (Point-x pt) (Point-x pt))
+                        (multiapply '* (Point-y pt) (Point-y pt)))))
 
 As a first step, if we automatically rewrite the previous ``dist`` procedure
 to use multiple argument dispatch, then we can install it as the target method

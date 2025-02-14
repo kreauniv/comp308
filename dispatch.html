@@ -605,7 +605,90 @@ should be invoked?”.</p>
 to include predicates that work over all the given arguments, it is overwhelming
 to provide implementations that branch over specific values. A more manageable
 situation is to branch over the collective <strong>types</strong> of the arguments.</p>
-<p>(to be continued)</p>
+<p>We will use the same “property list” structure for dispatch of multimethods.
+The “thing” will be the name of the multimethod, the “property” will be a list
+of types of the arguments and the value will be a procedure to apply over the
+arguments. We will call the procedure that does this dispatch as <code class="docutils literal notranslate"><span class="pre">multiapply</span></code>
+since it looks pretty much like <code class="docutils literal notranslate"><span class="pre">apply</span></code> except that it dispatches over the
+types of the arguments.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">multiapply</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="n">list-of-args</span><span class="p">)</span>
+<span class="w">     </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">method</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="n">get-type</span><span class="w"> </span><span class="n">list-of-args</span><span class="p">)</span>
+<span class="w">                            </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">method-name</span><span class="w"> </span><span class="n">list-of-args</span><span class="p">)</span>
+<span class="w">                                 </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;What do we do if method is not found?&quot;</span><span class="p">)))])</span>
+<span class="w">         </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="n">list-of-args</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>We used <code class="docutils literal notranslate"><span class="pre">(map</span> <span class="pre">get-type</span> <span class="pre">list-of-args)</span></code> to turn the list of argument values
+into a list a types that we can search against. However, thus far our <code class="docutils literal notranslate"><span class="pre">getprop</span></code>
+has been matching the <code class="docutils literal notranslate"><span class="pre">thing</span></code> and <code class="docutils literal notranslate"><span class="pre">property</span></code> fields explicitly as values.</p>
+<p>Let’s look at <code class="docutils literal notranslate"><span class="pre">get-type</span></code> a little closer. What should, say, <code class="docutils literal notranslate"><span class="pre">(get-type</span>
+<span class="pre">2.5)</span></code> result in? Should it be <code class="docutils literal notranslate"><span class="pre">'real</span></code> or <code class="docutils literal notranslate"><span class="pre">'float32</span></code> or <code class="docutils literal notranslate"><span class="pre">'float64</span></code> or
+<code class="docutils literal notranslate"><span class="pre">'complexf32</span></code> and so on? Because as given, <code class="docutils literal notranslate"><span class="pre">2.5</span></code> can be all of those. So
+<code class="docutils literal notranslate"><span class="pre">get-type</span></code> is not intended to pick out a vague notion of “what kind of value
+is this?” but is expected to provide a term that captures “what exact concrete
+type is this value?”. In this case, <code class="docutils literal notranslate"><span class="pre">2.5</span></code> would probably have the concrete
+type as <code class="docutils literal notranslate"><span class="pre">'float32</span></code> and so <code class="docutils literal notranslate"><span class="pre">(get-type</span> <span class="pre">2.5)</span></code> should provide us with the
+concrete type <code class="docutils literal notranslate"><span class="pre">'float32</span></code>.</p>
+<p>As far as dispatch goes, once we have the concrete types of the arguments, we can
+search our proplist for a defined method and dispatch to it. However what do we have to
+do to setup all of those method procedures in the first place? For example,
+consider a simple <code class="docutils literal notranslate"><span class="pre">dist</span></code> function that computes the distance of a point from the
+origin on a 2D plane.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">dist</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="n">Point-x</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Point-x</span><span class="w"> </span><span class="n">pt</span><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="n">Point-y</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Point-y</span><span class="w"> </span><span class="n">pt</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>Now, we may have a Point that uses integers for x and y or floats for x and y.
+So our specification of <code class="docutils literal notranslate"><span class="pre">dist</span></code> really should use a dispatcher to generalize
+over those types.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">mdist</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="n">multiapply</span>
+<span class="w">        </span><span class="o">&#39;</span><span class="ss">sqrt</span>
+<span class="w">        </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="p">(</span><span class="n">multiapply</span>
+<span class="w">                </span><span class="o">&#39;</span><span class="ss">+</span>
+<span class="w">                </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="p">(</span><span class="n">multiapply</span>
+<span class="w">                        </span><span class="o">&#39;</span><span class="ss">*</span>
+<span class="w">                        </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="p">(</span><span class="n">Point-x</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Point-x</span><span class="w"> </span><span class="n">pt</span><span class="p">)))</span>
+<span class="w">                      </span><span class="p">(</span><span class="n">multiapply</span>
+<span class="w">                        </span><span class="o">&#39;</span><span class="ss">*</span>
+<span class="w">                        </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="p">(</span><span class="n">Point-y</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Point-y</span><span class="w"> </span><span class="n">pt</span><span class="p">))))))))</span>
+</pre></div>
+</div>
+<p>As a first step, if we automatically rewrite the previous <code class="docutils literal notranslate"><span class="pre">dist</span></code> procedure
+to use multiple argument dispatch, then we can install it as the target method
+for all permissible types of <code class="docutils literal notranslate"><span class="pre">Point</span></code> values it can handle.</p>
+<p>However, we can do better than that!</p>
+<p>Note that there aren’t that many variations of <code class="docutils literal notranslate"><span class="pre">Point</span></code> values. We have, perhaps
+<code class="docutils literal notranslate"><span class="pre">Point{Int16}</span></code>, <code class="docutils literal notranslate"><span class="pre">Point{Int32}</span></code>, <code class="docutils literal notranslate"><span class="pre">Point{Float32}</span></code>, <code class="docutils literal notranslate"><span class="pre">Point{Float64}</span></code>
+and such. This is not an indefinitely large list. So given that we know what
+kind of a point we have at hand for which we wish to dispatch, we can do the
+following -</p>
+<ol class="arabic simple">
+<li><p>Don’t install then generic method by default because it is doing the same
+work over and over.</p></li>
+<li><p>When a method lookup fails, then lookup an appropriate method like <code class="docutils literal notranslate"><span class="pre">dist</span></code>
+which meets the type of point that we have. This matching algorithm is more
+complex than the <code class="docutils literal notranslate"><span class="pre">getprop</span></code> we’ve been doing so far, but let’s assume it
+exists for the moment.</p></li>
+<li><p>Generate a specialized version of the generic <code class="docutils literal notranslate"><span class="pre">dist</span></code> where all the
+would-be <code class="docutils literal notranslate"><span class="pre">multiapply</span></code> points are now resolved right away.</p></li>
+<li><p>Install the specialized version against the specific <code class="docutils literal notranslate"><span class="pre">Point</span></code> type we have
+at hand right now.</p></li>
+<li><p>Call the specialized version on the <code class="docutils literal notranslate"><span class="pre">Point</span></code> we have.</p></li>
+</ol>
+<p>Say we got a <code class="docutils literal notranslate"><span class="pre">Point{Float32}</span></code> for which we needed to compute <code class="docutils literal notranslate"><span class="pre">dist</span></code>,
+the first time we get it we incur the cost of generating a specialized method
+for it. The next time we encounter another <code class="docutils literal notranslate"><span class="pre">Point{Float32}</span></code>, the specialized
+method will be located in our <code class="docutils literal notranslate"><span class="pre">getprop</span></code> list and we can simply call it.
+Furthermore, this lookup will work transitively when we’re generating the
+specialized methods also.</p>
+<p>This is roughly how Julia works to resolve its methods. The code we write can
+be generic like the <code class="docutils literal notranslate"><span class="pre">dist</span></code> above. Based on the specific types we give as
+arguments, the Julia compiler will generate specialized versions that it will
+then cache in its (more efficient) variation of property list. Given that
+functions are likely to be called with only a handful of different types in a
+given application, the closure of all of these specialization steps will result
+in a stable body of highly efficient code.</p>
 </section>
 </section>
 

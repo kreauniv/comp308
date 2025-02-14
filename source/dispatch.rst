@@ -580,7 +580,12 @@ object-oriented languages", by which they mean that every value is an object
 and anything that happens is dictated by a method invocation. This corresponds
 roughly to "everything is a lambda" in its universality, but at some level the
 system provides some built-in facilities without which we won't be able to get
-anything valuable done at all.
+anything valuable done at all. "Pure OOP" languages like Smalltalk and Self
+take this idea all the way. For example, ``True`` and ``False`` are two
+subclasses of ``Boolean`` both of which have an ``if:else:`` method. The
+implementation of ``if:else:`` for ``True`` will pick the ``if:`` branch and
+the implementation of the method for ``False`` will pick the ``else:`` branch.
+The language uses method dispatch even for its control structures!
 
 The "anything that happens has to be by method invocation" restriction is not
 as trivial as it might seem. For example, here are some --
@@ -610,4 +615,31 @@ Multiple argument dispatch
 --------------------------
 
 So far, we looked at dispatching over the first argument of a procedure, which led
-us to object oriented languages. What if we can dispatch over multiple argument types?
+us to object oriented languages. OOP languages often resolve operator specialization
+typically seen in mathematical domains in a somewhat arbitrary manner. For example,
+when adding two numbers :math:`c + r` where :math:`c` is a complex number and :math:`r`
+is a real number, should the :math:`+` procedure be associated with the "complex number"
+type or the real number type?
+
+Even in non-mathematical situations this problem can arise. For example, many
+languages support an expression of the form ``s.charAt(i)`` where ``s`` is a
+string and ``i`` is an integer. This expression is expected to get the character
+at the position ``i`` within the string ``s``. What stops us from expressing the
+same operation as ``i.charWithin(s)``, where we ask the integer ``i`` to find 
+the character at that position within the given string ``s``.
+
+While we may be drawn by familiarity to one or the other choice, there is no
+conceptual difference between the two ways of expressing the computation. Languages
+such as Common Lisp and Julia include the notion of "multimethods" to address
+this dichotomy.
+
+Multimethods put the procedure up front instead of the "object" and ask "given
+the particular values of the arguments, which implementation of this procedure
+should be invoked?".
+
+While this looks like an extension of our original idea of "extensible procedures"
+to include predicates that work over all the given arguments, it is overwhelming
+to provide implementations that branch over specific values. A more manageable
+situation is to branch over the collective **types** of the arguments.
+
+(to be continued)

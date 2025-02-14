@@ -10,7 +10,6 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   work
    intro
    racket-intro
    lambda
@@ -27,6 +26,7 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    errornot 
    objects
    objects-self
+   dispatch
    generators
    appsem
    types

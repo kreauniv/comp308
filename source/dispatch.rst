@@ -642,4 +642,99 @@ to include predicates that work over all the given arguments, it is overwhelming
 to provide implementations that branch over specific values. A more manageable
 situation is to branch over the collective **types** of the arguments.
 
-(to be continued)
+We will use the same "property list" structure for dispatch of multimethods.
+The "thing" will be the name of the multimethod, the "property" will be a list
+of types of the arguments and the value will be a procedure to apply over the
+arguments. We will call the procedure that does this dispatch as ``multiapply``
+since it looks pretty much like ``apply`` except that it dispatches over the
+types of the arguments.
+
+.. code:: racket
+
+   (define (multiapply method-name list-of-args)
+        (let ([method (getprop method-name (map get-type list-of-args)
+                               (λ (method-name list-of-args)
+                                    (error "What do we do if method is not found?")))])
+            (apply method list-of-args)))
+
+We used ``(map get-type list-of-args)`` to turn the list of argument values
+into a list a types that we can search against. However, thus far our ``getprop``
+has been matching the ``thing`` and ``property`` fields explicitly as values.
+
+Let's look at ``get-type`` a little closer. What should, say, ``(get-type
+2.5)`` result in? Should it be ``'real`` or ``'float32`` or ``'float64`` or
+``'complexf32`` and so on? Because as given, ``2.5`` can be all of those. So
+``get-type`` is not intended to pick out a vague notion of "what kind of value
+is this?" but is expected to provide a term that captures "what exact concrete
+type is this value?". In this case, ``2.5`` would probably have the concrete
+type as ``'float32`` and so ``(get-type 2.5)`` should provide us with the
+concrete type ``'float32``.
+
+As far as dispatch goes, once we have the concrete types of the arguments, we can
+search our proplist for a defined method and dispatch to it. However what do we have to
+do to setup all of those method procedures in the first place? For example,
+consider a simple ``dist`` function that computes the distance of a point from the
+origin on a 2D plane.
+
+.. code:: racket
+
+    (define (dist pt)
+        (sqrt (+ (* (Point-x pt) (Point-x pt)) (* (Point-y pt) (Point-y pt)))))
+
+Now, we may have a Point that uses integers for x and y or floats for x and y.
+So our specification of ``dist`` really should use a dispatcher to generalize
+over those types.
+
+.. code:: racket
+
+    (define (mdist pt)
+        (multiapply 
+            'sqrt
+            (list (multiapply 
+                    '+
+                    (list (multiapply 
+                            '*
+                            (list (Point-x pt) (Point-x pt)))
+                          (multiapply 
+                            '*
+                            (list (Point-y pt) (Point-y pt))))))))
+
+As a first step, if we automatically rewrite the previous ``dist`` procedure
+to use multiple argument dispatch, then we can install it as the target method
+for all permissible types of ``Point`` values it can handle.
+
+However, we can do better than that!
+
+Note that there aren't that many variations of ``Point`` values. We have, perhaps
+``Point{Int16}``, ``Point{Int32}``, ``Point{Float32}``, ``Point{Float64}``
+and such. This is not an indefinitely large list. So given that we know what
+kind of a point we have at hand for which we wish to dispatch, we can do the
+following -
+
+1. Don't install then generic method by default because it is doing the same
+   work over and over.
+2. When a method lookup fails, then lookup an appropriate method like ``dist``
+   which meets the type of point that we have. This matching algorithm is more
+   complex than the ``getprop`` we've been doing so far, but let's assume it
+   exists for the moment.
+3. Generate a specialized version of the generic ``dist`` where all the
+   would-be ``multiapply`` points are now resolved right away. 
+4. Install the specialized version against the specific ``Point`` type we have
+   at hand right now.
+5. Call the specialized version on the ``Point`` we have.
+
+Say we got a ``Point{Float32}`` for which we needed to compute ``dist``, 
+the first time we get it we incur the cost of generating a specialized method
+for it. The next time we encounter another ``Point{Float32}``, the specialized
+method will be located in our ``getprop`` list and we can simply call it.
+Furthermore, this lookup will work transitively when we're generating the
+specialized methods also.
+
+This is roughly how Julia works to resolve its methods. The code we write can
+be generic like the ``dist`` above. Based on the specific types we give as
+arguments, the Julia compiler will generate specialized versions that it will
+then cache in its (more efficient) variation of property list. Given that
+functions are likely to be called with only a handful of different types in a
+given application, the closure of all of these specialization steps will result
+in a stable body of highly efficient code.
+

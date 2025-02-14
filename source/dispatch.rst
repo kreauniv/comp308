@@ -1,5 +1,6 @@
 Polymorphism via dispatch
 =========================
+(CURRENTLY INCOMPLETE)
 
 Note: This section is expected to supercede the discussion on :doc:`objects`.
 

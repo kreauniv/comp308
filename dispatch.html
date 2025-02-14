@@ -551,7 +551,12 @@ object-oriented languages”, by which they mean that every value is an object
 and anything that happens is dictated by a method invocation. This corresponds
 roughly to “everything is a lambda” in its universality, but at some level the
 system provides some built-in facilities without which we won’t be able to get
-anything valuable done at all.</p>
+anything valuable done at all. “Pure OOP” languages like Smalltalk and Self
+take this idea all the way. For example, <code class="docutils literal notranslate"><span class="pre">True</span></code> and <code class="docutils literal notranslate"><span class="pre">False</span></code> are two
+subclasses of <code class="docutils literal notranslate"><span class="pre">Boolean</span></code> both of which have an <code class="docutils literal notranslate"><span class="pre">if:else:</span></code> method. The
+implementation of <code class="docutils literal notranslate"><span class="pre">if:else:</span></code> for <code class="docutils literal notranslate"><span class="pre">True</span></code> will pick the <code class="docutils literal notranslate"><span class="pre">if:</span></code> branch and
+the implementation of the method for <code class="docutils literal notranslate"><span class="pre">False</span></code> will pick the <code class="docutils literal notranslate"><span class="pre">else:</span></code> branch.
+The language uses method dispatch even for its control structures!</p>
 <p>The “anything that happens has to be by method invocation” restriction is not
 as trivial as it might seem. For example, here are some –</p>
 <ol class="arabic simple">
@@ -578,7 +583,29 @@ and objects have different existences in these languages.</p>
 <section id="multiple-argument-dispatch">
 <h2>Multiple argument dispatch<a class="headerlink" href="#multiple-argument-dispatch" title="Link to this heading">¶</a></h2>
 <p>So far, we looked at dispatching over the first argument of a procedure, which led
-us to object oriented languages. What if we can dispatch over multiple argument types?</p>
+us to object oriented languages. OOP languages often resolve operator specialization
+typically seen in mathematical domains in a somewhat arbitrary manner. For example,
+when adding two numbers <span class="math notranslate nohighlight">\(c + r\)</span> where <span class="math notranslate nohighlight">\(c\)</span> is a complex number and <span class="math notranslate nohighlight">\(r\)</span>
+is a real number, should the <span class="math notranslate nohighlight">\(+\)</span> procedure be associated with the “complex number”
+type or the real number type?</p>
+<p>Even in non-mathematical situations this problem can arise. For example, many
+languages support an expression of the form <code class="docutils literal notranslate"><span class="pre">s.charAt(i)</span></code> where <code class="docutils literal notranslate"><span class="pre">s</span></code> is a
+string and <code class="docutils literal notranslate"><span class="pre">i</span></code> is an integer. This expression is expected to get the character
+at the position <code class="docutils literal notranslate"><span class="pre">i</span></code> within the string <code class="docutils literal notranslate"><span class="pre">s</span></code>. What stops us from expressing the
+same operation as <code class="docutils literal notranslate"><span class="pre">i.charWithin(s)</span></code>, where we ask the integer <code class="docutils literal notranslate"><span class="pre">i</span></code> to find
+the character at that position within the given string <code class="docutils literal notranslate"><span class="pre">s</span></code>.</p>
+<p>While we may be drawn by familiarity to one or the other choice, there is no
+conceptual difference between the two ways of expressing the computation. Languages
+such as Common Lisp and Julia include the notion of “multimethods” to address
+this dichotomy.</p>
+<p>Multimethods put the procedure up front instead of the “object” and ask “given
+the particular values of the arguments, which implementation of this procedure
+should be invoked?”.</p>
+<p>While this looks like an extension of our original idea of “extensible procedures”
+to include predicates that work over all the given arguments, it is overwhelming
+to provide implementations that branch over specific values. A more manageable
+situation is to branch over the collective <strong>types</strong> of the arguments.</p>
+<p>(to be continued)</p>
 </section>
 </section>
 

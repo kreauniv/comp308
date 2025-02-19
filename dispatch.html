@@ -441,11 +441,11 @@ of <code class="docutils literal notranslate"><span class="pre">B</span></code> 
 the programmer to decide which of the two orders to choose. Due to the nature
 of the inheritance pattern, this is referred to as “the diamond problem” in OOP
 literature.</p>
-<figure class="align-center" id="id2">
+<figure class="align-center" id="id3">
 <img alt="The &quot;diamond problem&quot; of class inheritance." src="_images/diamond.png" />
 <figcaption>
 <p><span class="caption-number">Fig. 5 </span><span class="caption-text">When two “base classes” a.k.a. “parent classes” of a class themselves
-share the same base class, we have a “diamond problem” at hand.</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
+share the same base class, we have a “diamond problem” at hand.</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
 </section>
@@ -608,10 +608,10 @@ situation is to branch over the collective <strong>types</strong> of the argumen
 <p>We will use the same “property list” structure for dispatch of multimethods.
 The “thing” will be the name of the multimethod, the “property” will be a list
 of types of the arguments and the value will be a procedure to apply over the
-arguments. We will call the procedure that does this dispatch as <code class="docutils literal notranslate"><span class="pre">multiapply</span></code>
+arguments. We will call the procedure that does this dispatch as <code class="docutils literal notranslate"><span class="pre">mapply</span></code>
 since it looks pretty much like <code class="docutils literal notranslate"><span class="pre">apply</span></code> except that it dispatches over the
-types of the arguments.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">multiapply</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">list-of-args</span><span class="p">)</span>
+types of the arguments, and the <code class="docutils literal notranslate"><span class="pre">m</span></code> stands for “multi-method”.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">mapply</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">list-of-args</span><span class="p">)</span>
 <span class="w">     </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">method</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="n">get-type</span><span class="w"> </span><span class="n">list-of-args</span><span class="p">)</span>
 <span class="w">                            </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">method-name</span><span class="w"> </span><span class="n">list-of-args</span><span class="p">)</span>
 <span class="w">                                 </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;What do we do if method is not found?&quot;</span><span class="p">)))])</span>
@@ -643,31 +643,40 @@ origin on a 2D plane.</p>
 So our specification of <code class="docutils literal notranslate"><span class="pre">dist</span></code> really should use a dispatcher to generalize
 over those types.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">mdist</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="n">multiapply</span>
+<span class="w">    </span><span class="p">(</span><span class="n">mapply</span>
 <span class="w">        </span><span class="o">&#39;</span><span class="ss">sqrt</span>
-<span class="w">        </span><span class="p">(</span><span class="n">multiapply</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">+</span>
-<span class="w">                    </span><span class="p">(</span><span class="n">multiapply</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">*</span><span class="w"> </span><span class="p">(</span><span class="n">Point-x</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Point-x</span><span class="w"> </span><span class="n">pt</span><span class="p">))</span>
-<span class="w">                    </span><span class="p">(</span><span class="n">multiapply</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">*</span><span class="w"> </span><span class="p">(</span><span class="n">Point-y</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Point-y</span><span class="w"> </span><span class="n">pt</span><span class="p">)))))</span>
+<span class="w">        </span><span class="p">(</span><span class="n">mapply</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">+</span>
+<span class="w">                </span><span class="p">(</span><span class="n">mapply</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">*</span><span class="w"> </span><span class="p">(</span><span class="n">Point-x</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Point-x</span><span class="w"> </span><span class="n">pt</span><span class="p">))</span>
+<span class="w">                </span><span class="p">(</span><span class="n">mapply</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">*</span><span class="w"> </span><span class="p">(</span><span class="n">Point-y</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Point-y</span><span class="w"> </span><span class="n">pt</span><span class="p">)))))</span>
 </pre></div>
 </div>
 <p>As a first step, if we automatically rewrite the previous <code class="docutils literal notranslate"><span class="pre">dist</span></code> procedure
 to use multiple argument dispatch, then we can install it as the target method
-for all permissible types of <code class="docutils literal notranslate"><span class="pre">Point</span></code> values it can handle.</p>
+for all permissible types of <code class="docutils literal notranslate"><span class="pre">Point</span></code> values it can handle. <a class="footnote-reference brackets" href="#mapply" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a></p>
 <p>However, we can do better than that!</p>
 <p>Note that there aren’t that many variations of <code class="docutils literal notranslate"><span class="pre">Point</span></code> values. We have, perhaps
 <code class="docutils literal notranslate"><span class="pre">Point{Int16}</span></code>, <code class="docutils literal notranslate"><span class="pre">Point{Int32}</span></code>, <code class="docutils literal notranslate"><span class="pre">Point{Float32}</span></code>, <code class="docutils literal notranslate"><span class="pre">Point{Float64}</span></code>
 and such. This is not an indefinitely large list. So given that we know what
 kind of a point we have at hand for which we wish to dispatch, we can do the
 following -</p>
-<ol class="arabic simple">
-<li><p>Don’t install then generic method by default because it is doing the same
-work over and over.</p></li>
+<ol class="arabic">
+<li><p>Don’t install the generic method by default because it is doing the same
+work over and over every time it is called – worth eliminating.</p></li>
 <li><p>When a method lookup fails, then lookup an appropriate method like <code class="docutils literal notranslate"><span class="pre">dist</span></code>
 which meets the type of point that we have. This matching algorithm is more
 complex than the <code class="docutils literal notranslate"><span class="pre">getprop</span></code> we’ve been doing so far, but let’s assume it
 exists for the moment.</p></li>
 <li><p>Generate a specialized version of the generic <code class="docutils literal notranslate"><span class="pre">dist</span></code> where all the
-would-be <code class="docutils literal notranslate"><span class="pre">multiapply</span></code> points are now resolved right away.</p></li>
+would-be <code class="docutils literal notranslate"><span class="pre">mapply</span></code> points are now resolved right away. For example, we might
+generate a specialization of <code class="docutils literal notranslate"><span class="pre">dist</span></code> for <code class="docutils literal notranslate"><span class="pre">Point{Float32}</span></code> to be this -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">dist-Point&lt;f32&gt;</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="n">sqrt&lt;f32&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">+&lt;f32&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">\*&lt;f32&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Point&lt;f32&gt;-x</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Point&lt;f32&gt;-x</span><span class="w"> </span><span class="n">pt</span><span class="p">))</span>
+<span class="w">                       </span><span class="p">(</span><span class="n">\*&lt;f32&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Point&lt;f32&gt;-y</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Point&lt;f32&gt;-y</span><span class="w"> </span><span class="n">pt</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>Note that doing this involves performing type inference of all the intermediate
+compute steps to determine the individual specializations required.</p>
+</li>
 <li><p>Install the specialized version against the specific <code class="docutils literal notranslate"><span class="pre">Point</span></code> type we have
 at hand right now.</p></li>
 <li><p>Call the specialized version on the <code class="docutils literal notranslate"><span class="pre">Point</span></code> we have.</p></li>
@@ -685,6 +694,43 @@ then cache in its (more efficient) variation of property list. Given that
 functions are likely to be called with only a handful of different types in a
 given application, the closure of all of these specialization steps will result
 in a stable body of highly efficient code.</p>
+<section id="auto-generating-a-specialization-of-a-method">
+<h3>Auto-generating a specialization of a method<a class="headerlink" href="#auto-generating-a-specialization-of-a-method" title="Link to this heading">¶</a></h3>
+<p>So we have the code for <code class="docutils literal notranslate"><span class="pre">dist</span></code> as given in the previous section. We also know
+that a point being passed to it in an expression is of type <code class="docutils literal notranslate"><span class="pre">Point{Float32}</span></code>.
+How do we generate a specialization of the method for this type?</p>
+<p>In essence, we’re performing the <code class="docutils literal notranslate"><span class="pre">mapply</span></code> operations at “code generation
+time”. Let’s see what we need in order to determine which method to use for
+<code class="docutils literal notranslate"><span class="pre">'*</span></code> in <code class="docutils literal notranslate"><span class="pre">(mapply</span> <span class="pre">'*</span> <span class="pre">(Point-x</span> <span class="pre">pt)</span> <span class="pre">(Point-x</span> <span class="pre">pt))</span></code>. Given a declaration of the
+type of <code class="docutils literal notranslate"><span class="pre">'*</span></code> as something like (using Haskell notation) <code class="docutils literal notranslate"><span class="pre">(Num</span> <span class="pre">t)</span> <span class="pre">=&gt;</span> <span class="pre">t</span> <span class="pre">-&gt;</span> <span class="pre">t</span>
+<span class="pre">-&gt;</span> <span class="pre">t</span></code>, and that <code class="docutils literal notranslate"><span class="pre">pt</span> <span class="pre">::</span> <span class="pre">Point{Float32}</span></code>, we can infer that <code class="docutils literal notranslate"><span class="pre">(Point-x</span> <span class="pre">pt)</span> <span class="pre">::</span>
+<span class="pre">Float32</span></code> and therefore we need to resolve this method application to be
+specialized to the type list <code class="docutils literal notranslate"><span class="pre">('Float32</span> <span class="pre">'Float32)</span></code>. If we then assume that
+various such specializations of <code class="docutils literal notranslate"><span class="pre">'*</span></code> are available as a base in the system,
+we can substitute the <code class="docutils literal notranslate"><span class="pre">(mapply</span> <span class="pre">...)</span></code> expression with (in pseudo code)
+<code class="docutils literal notranslate"><span class="pre">(*-Float32-&gt;Float32-&gt;Float32</span> <span class="pre">(Point-x</span> <span class="pre">pt)</span> <span class="pre">(Point-x</span> <span class="pre">pt))</span></code>. Here we’re using
+the symbol <code class="docutils literal notranslate"><span class="pre">*-Float32-&gt;Float32-&gt;Float32</span></code> to refer to the specific function
+variant of <code class="docutils literal notranslate"><span class="pre">*</span></code> that works on this particular type combination.</p>
+<p>Notice that in order to do this, we need some type annotations for our functions,
+especially the base library of functions, and also a suitable type inference
+mechanism using which we can determine the type of a function application only
+given the types of the arguments and (optionally) any type annotation(s) available
+for the function being applied.</p>
+<p>This brings us then to the topic of type systems and type inference
+(<a class="reference internal" href="types.html"><span class="doc">Types: Checking some program invariants statically</span></a>). While that section deals with types as a mechanism to constrain
+the meaning of programs and to check their correctness, we see here that type
+systems can also be useful for determining program operation by helping with
+dispatch.</p>
+<p class="rubric">footnotes</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="mapply" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>We should be doing <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">mapply</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Point-x</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">mapply</span>
+<span class="o">&#39;</span><span class="ss">Point-y</span><span class="w"> </span><span class="n">pt</span><span class="p">)</span></code> as well, but I skipped that for brevity and the point is
+sufficiently made by the other <code class="docutils literal notranslate"><span class="pre">mapply</span></code> mentions.</p>
+</aside>
+</aside>
+</section>
 </section>
 </section>
 

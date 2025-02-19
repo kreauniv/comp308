@@ -645,13 +645,13 @@ situation is to branch over the collective **types** of the arguments.
 We will use the same "property list" structure for dispatch of multimethods.
 The "thing" will be the name of the multimethod, the "property" will be a list
 of types of the arguments and the value will be a procedure to apply over the
-arguments. We will call the procedure that does this dispatch as ``multiapply``
+arguments. We will call the procedure that does this dispatch as ``mapply``
 since it looks pretty much like ``apply`` except that it dispatches over the
-types of the arguments.
+types of the arguments, and the ``m`` stands for "multi-method".
 
 .. code:: racket
 
-   (define (multiapply method-name . list-of-args)
+   (define (mapply method-name . list-of-args)
         (let ([method (getprop method-name (map get-type list-of-args)
                                (λ (method-name list-of-args)
                                     (error "What do we do if method is not found?")))])
@@ -689,15 +689,16 @@ over those types.
 .. code:: racket
 
     (define (mdist pt)
-        (multiapply 
+        (mapply 
             'sqrt
-            (multiapply '+
-                        (multiapply '* (Point-x pt) (Point-x pt))
-                        (multiapply '* (Point-y pt) (Point-y pt)))))
+            (mapply '+
+                    (mapply '* (Point-x pt) (Point-x pt))
+                    (mapply '* (Point-y pt) (Point-y pt)))))
 
 As a first step, if we automatically rewrite the previous ``dist`` procedure
 to use multiple argument dispatch, then we can install it as the target method
-for all permissible types of ``Point`` values it can handle.
+for all permissible types of ``Point`` values it can handle. [#mapply]_
+
 
 However, we can do better than that!
 
@@ -707,14 +708,25 @@ and such. This is not an indefinitely large list. So given that we know what
 kind of a point we have at hand for which we wish to dispatch, we can do the
 following -
 
-1. Don't install then generic method by default because it is doing the same
-   work over and over.
+1. Don't install the generic method by default because it is doing the same
+   work over and over every time it is called -- worth eliminating.
 2. When a method lookup fails, then lookup an appropriate method like ``dist``
    which meets the type of point that we have. This matching algorithm is more
    complex than the ``getprop`` we've been doing so far, but let's assume it
    exists for the moment.
 3. Generate a specialized version of the generic ``dist`` where all the
-   would-be ``multiapply`` points are now resolved right away. 
+   would-be ``mapply`` points are now resolved right away. For example, we might
+   generate a specialization of ``dist`` for ``Point{Float32}`` to be this -
+
+   .. code:: racket
+
+        (define (dist-Point<f32> pt)
+            (sqrt<f32> (+<f32> (\*<f32> (Point<f32>-x pt) (Point<f32>-x pt))
+                               (\*<f32> (Point<f32>-y pt) (Point<f32>-y pt)))))
+
+   Note that doing this involves performing type inference of all the intermediate
+   compute steps to determine the individual specializations required.
+
 4. Install the specialized version against the specific ``Point`` type we have
    at hand right now.
 5. Call the specialized version on the ``Point`` we have.
@@ -734,3 +746,41 @@ functions are likely to be called with only a handful of different types in a
 given application, the closure of all of these specialization steps will result
 in a stable body of highly efficient code.
 
+Auto-generating a specialization of a method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+So we have the code for ``dist`` as given in the previous section. We also know
+that a point being passed to it in an expression is of type ``Point{Float32}``.
+How do we generate a specialization of the method for this type?
+
+In essence, we're performing the ``mapply`` operations at "code generation
+time". Let's see what we need in order to determine which method to use for
+``'*`` in ``(mapply '* (Point-x pt) (Point-x pt))``. Given a declaration of the
+type of ``'*`` as something like (using Haskell notation) ``(Num t) => t -> t
+-> t``, and that ``pt :: Point{Float32}``, we can infer that ``(Point-x pt) ::
+Float32`` and therefore we need to resolve this method application to be
+specialized to the type list ``('Float32 'Float32)``. If we then assume that
+various such specializations of ``'*`` are available as a base in the system,
+we can substitute the ``(mapply ...)`` expression with (in pseudo code)
+``(*-Float32->Float32->Float32 (Point-x pt) (Point-x pt))``. Here we're using
+the symbol ``*-Float32->Float32->Float32`` to refer to the specific function
+variant of ``*`` that works on this particular type combination.
+
+Notice that in order to do this, we need some type annotations for our functions,
+especially the base library of functions, and also a suitable type inference
+mechanism using which we can determine the type of a function application only
+given the types of the arguments and (optionally) any type annotation(s) available
+for the function being applied.
+
+This brings us then to the topic of type systems and type inference
+(:doc:`types`). While that section deals with types as a mechanism to constrain
+the meaning of programs and to check their correctness, we see here that type
+systems can also be useful for determining program operation by helping with
+dispatch.
+
+.. rubric:: footnotes
+
+
+.. [#mapply] We should be doing :rkt:`(mapply 'Point-x pt)` and :rkt:`(mapply
+   'Point-y pt)` as well, but I skipped that for brevity and the point is
+   sufficiently made by the other ``mapply`` mentions.

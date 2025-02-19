@@ -57,10 +57,10 @@ replace(Sym, NewSym, id(Sym), id(NewSym)).
 replace(Sym, NewSym, add(A,B), add(NewA, NewB)) :-
     replace(Sym, NewSym, A, NewA),
     replace(Sym, NewSym, B, NewB).
-replace(Sym, NewSym, sub(A,B), add(NewA, NewB)) :-
+replace(Sym, NewSym, sub(A,B), sub(NewA, NewB)) :-
     replace(Sym, NewSym, A, NewA),
     replace(Sym, NewSym, B, NewB).
-replace(Sym, NewSym, mul(A,B), add(NewA, NewB)) :-
+replace(Sym, NewSym, mul(A,B), mul(NewA, NewB)) :-
     replace(Sym, NewSym, A, NewA),
     replace(Sym, NewSym, B, NewB).
 replace(Sym, NewSym, if(B,Then,Else), if(NewB, NewThen, NewElse)) :-

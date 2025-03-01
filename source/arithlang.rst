@@ -4,43 +4,6 @@ A language for arithmetic
 This starter language is based on the original PLAI course, but adapted
 to the setting we're doing it in.
 
-Growing a language
-------------------
-
-We're about to launch off a precipice in our efforts to figure out a language
-for composing pictures. When we set out on such a task in any domain, there are
-a few things we need to do to build up our understanding of the domain first.
-For what are you going to build a language for if you don't understand it in the
-first place? We'll need to --
-
-1. Get a sense of the ":index:`vocabulary`" we want for working with pictures.
-
-2. Get a sense of how we wish to be able to generate pictures, transform them
-   or combine more than one to form a new picture.
-
-3. Figure out the essence of picture composition -- i.e. a minimal ":index:`core
-   language`" in which we we can express the ideas we're interested in. Translate
-   more specific ideas into this core language.
-
-Note that we do not need to get all of this right at the first shot. We can
-take some reasonable steps and improve what we have at hand when we recognize
-the opportunity. To do that effectively, we'll need to keep our eye on the
-mentioned "minimal core" as we go along.
-
-.. index:: Guy Steele, Growing a language talk
-
-.. admonition:: **Credits**
-
-    This section is named in honour of an amazing talk of the same title by Guy
-    Steele, the co-creator of Scheme - `Growing a language, by Guy Steele
-    <gal_>`_ (youtube link) given in 1998. It is a fantastic talk and a great
-    performance & delivery, that I much recommend students watch and
-    contemplate on. The beginning of the talk may unfortunately put off some as
-    it appears sexist, but Guy is aware of it and explains himself a little
-    into the talk. So do press on.
-
-.. _gal: https://www.youtube.com/watch?v=_ahvzDzKdB0
-
 Language structure
 ------------------
 
@@ -58,7 +21,8 @@ Let's consider 2 categories of arithmetical expressions that students gave examp
 1. "Core" such as literal numbers, addition, multiplication and reciprocal.
 
 2. "Sugar" such as subtraction and division. The reason we call these
-   as "sugar" is that these can be rewritten in terms of the "Core" terms.
+   as "sugar" is that these can be rewritten in terms of the "Core" terms,
+   so that our interpreter will not have to deal with these terms.
 
 We'll also need to be able to write functions on top of such expressions.
 

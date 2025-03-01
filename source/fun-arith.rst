@@ -1,5 +1,5 @@
-Functions and scope
-===================
+Functions and scope (arithmetic track)
+======================================
 
 Thus far, we can construct basic arithmetic expressions in our language
 and run them through our interpreter :rkt:`interp-v2` after desugaring

@@ -41,7 +41,7 @@ This structure captures what we need to specify a function. We'll identify a
 function by its name, we'll identify its argument (a.k.a. ":index:`formal
 parameter`") using a symbol and we'll give an expression as the
 body of the function. In other words, we're interested in functions that
-compute pictures (via the interpreter). 
+compute numeric results (via the interpreter). 
 
 In our language so far, we can only call our functions with numbers as values.
 However, we committed early on that all our "core expressions" will reduce to

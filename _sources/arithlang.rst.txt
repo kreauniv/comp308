@@ -4,43 +4,6 @@ A language for arithmetic
 This starter language is based on the original PLAI course, but adapted
 to the setting we're doing it in.
 
-Growing a language
-------------------
-
-We're about to launch off a precipice in our efforts to figure out a language
-for composing pictures. When we set out on such a task in any domain, there are
-a few things we need to do to build up our understanding of the domain first.
-For what are you going to build a language for if you don't understand it in the
-first place? We'll need to --
-
-1. Get a sense of the ":index:`vocabulary`" we want for working with pictures.
-
-2. Get a sense of how we wish to be able to generate pictures, transform them
-   or combine more than one to form a new picture.
-
-3. Figure out the essence of picture composition -- i.e. a minimal ":index:`core
-   language`" in which we we can express the ideas we're interested in. Translate
-   more specific ideas into this core language.
-
-Note that we do not need to get all of this right at the first shot. We can
-take some reasonable steps and improve what we have at hand when we recognize
-the opportunity. To do that effectively, we'll need to keep our eye on the
-mentioned "minimal core" as we go along.
-
-.. index:: Guy Steele, Growing a language talk
-
-.. admonition:: **Credits**
-
-    This section is named in honour of an amazing talk of the same title by Guy
-    Steele, the co-creator of Scheme - `Growing a language, by Guy Steele
-    <gal_>`_ (youtube link) given in 1998. It is a fantastic talk and a great
-    performance & delivery, that I much recommend students watch and
-    contemplate on. The beginning of the talk may unfortunately put off some as
-    it appears sexist, but Guy is aware of it and explains himself a little
-    into the talk. So do press on.
-
-.. _gal: https://www.youtube.com/watch?v=_ahvzDzKdB0
-
 Language structure
 ------------------
 
@@ -58,7 +21,8 @@ Let's consider 2 categories of arithmetical expressions that students gave examp
 1. "Core" such as literal numbers, addition, multiplication and reciprocal.
 
 2. "Sugar" such as subtraction and division. The reason we call these
-   as "sugar" is that these can be rewritten in terms of the "Core" terms.
+   as "sugar" is that these can be rewritten in terms of the "Core" terms,
+   so that our interpreter will not have to deal with these terms.
 
 We'll also need to be able to write functions on top of such expressions.
 
@@ -98,9 +62,9 @@ easy for us to write an :index:`interpreter` for such expressions.
     #lang racket
     (require racket/match)
 
-    ; Our interpreter takes a "picture expression" and computes a picture
+    ; Our interpreter takes a "arithmetic expression" and computes a number
     ; by interpreting the instructions in it. Since these expressions can
-    ; themselves contain other picture expressions, the interpreter is
+    ; themselves contain other arithmetic expressions, the interpreter is
     ; invoked recursively to compute them.
     (define interp-v1
         (λ (aexpr)
@@ -218,30 +182,4 @@ our terms and the values they reduce to.
 
     (define (interpS-v2 aexpr) (interp-v2 (desugar-v2 aexpr)))
 
-
-Why bother?
-~~~~~~~~~~~
-
-We already had good enough functions that we can make use of to construct
-pictures. Why would we bother to make such an "interpreter" that so blatantly
-uses the same functions to do the same thing?
-
-One part of the answer is that we're trying to understand programming
-languages through the construction of such interpreters. 
-
-The second part is the process that we went through here. We modelled a domain
-using plain functions to understand what we're building first. We then turned
-the kinds of expressions we wish to construct into an "abstract syntax tree"
-and built an "interpreter" to build what we want. Even if we do not build a
-full fledged programming language and stop here, we've done a powerful and
-highly under-used program transformation or "refactoring" technique called
-":index:`defunctionalization`". It is called so because we took what's
-initially a set of functions and turned calculations using those functions into
-a pure data structure -- the AST. The advantage of this is that this AST can
-now be stored on mass media and transmitted over networks, which most host
-languages will not let you do with ordinary functions, especially if they have
-variables they close over.
-
-We're however going to go further than defunctionalization and build "proper"
-programming ability into our arithmetic language.
 

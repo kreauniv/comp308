@@ -62,9 +62,9 @@ easy for us to write an :index:`interpreter` for such expressions.
     #lang racket
     (require racket/match)
 
-    ; Our interpreter takes a "picture expression" and computes a picture
+    ; Our interpreter takes a "arithmetic expression" and computes a number
     ; by interpreting the instructions in it. Since these expressions can
-    ; themselves contain other picture expressions, the interpreter is
+    ; themselves contain other arithmetic expressions, the interpreter is
     ; invoked recursively to compute them.
     (define interp-v1
         (λ (aexpr)
@@ -182,30 +182,4 @@ our terms and the values they reduce to.
 
     (define (interpS-v2 aexpr) (interp-v2 (desugar-v2 aexpr)))
 
-
-Why bother?
-~~~~~~~~~~~
-
-We already had good enough functions that we can make use of to construct
-pictures. Why would we bother to make such an "interpreter" that so blatantly
-uses the same functions to do the same thing?
-
-One part of the answer is that we're trying to understand programming
-languages through the construction of such interpreters. 
-
-The second part is the process that we went through here. We modelled a domain
-using plain functions to understand what we're building first. We then turned
-the kinds of expressions we wish to construct into an "abstract syntax tree"
-and built an "interpreter" to build what we want. Even if we do not build a
-full fledged programming language and stop here, we've done a powerful and
-highly under-used program transformation or "refactoring" technique called
-":index:`defunctionalization`". It is called so because we took what's
-initially a set of functions and turned calculations using those functions into
-a pure data structure -- the AST. The advantage of this is that this AST can
-now be stored on mass media and transmitted over networks, which most host
-languages will not let you do with ordinary functions, especially if they have
-variables they close over.
-
-We're however going to go further than defunctionalization and build "proper"
-programming ability into our arithmetic language.
 

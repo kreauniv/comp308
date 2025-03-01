@@ -15,10 +15,12 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    lambda
    church
    piclang
+   arithlang
    machine
    notional-machine
    growing
    fun
+   fun-arith
    stacks-and-scope
    fun-in-piclang
    mutations

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>A language for arithmetic &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5cb08e4e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="A mental model for the machine" href="machine.html" />
+    <link rel="prev" title="A language for pictures" href="piclang.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="a-language-for-arithmetic">
+<h1>A language for arithmetic<a class="headerlink" href="#a-language-for-arithmetic" title="Link to this heading">¶</a></h1>
+<p>This starter language is based on the original PLAI course, but adapted
+to the setting we’re doing it in.</p>
+<section id="growing-a-language">
+<h2>Growing a language<a class="headerlink" href="#growing-a-language" title="Link to this heading">¶</a></h2>
+<p>We’re about to launch off a precipice in our efforts to figure out a language
+for composing pictures. When we set out on such a task in any domain, there are
+a few things we need to do to build up our understanding of the domain first.
+For what are you going to build a language for if you don’t understand it in the
+first place? We’ll need to –</p>
+<ol class="arabic simple">
+<li><p>Get a sense of the “<span class="target" id="index-0"></span>vocabulary” we want for working with pictures.</p></li>
+<li><p>Get a sense of how we wish to be able to generate pictures, transform them
+or combine more than one to form a new picture.</p></li>
+<li><p>Figure out the essence of picture composition – i.e. a minimal “<span class="target" id="index-1"></span>core
+language” in which we we can express the ideas we’re interested in. Translate
+more specific ideas into this core language.</p></li>
+</ol>
+<p>Note that we do not need to get all of this right at the first shot. We can
+take some reasonable steps and improve what we have at hand when we recognize
+the opportunity. To do that effectively, we’ll need to keep our eye on the
+mentioned “minimal core” as we go along.</p>
+<div class="admonition-credits admonition" id="index-2">
+<p class="admonition-title"><strong>Credits</strong></p>
+<p>This section is named in honour of an amazing talk of the same title by Guy
+Steele, the co-creator of Scheme - <a class="reference external" href="https://www.youtube.com/watch?v=_ahvzDzKdB0">Growing a language, by Guy Steele</a> (youtube link) given in 1998. It is a fantastic talk and a great
+performance &amp; delivery, that I much recommend students watch and
+contemplate on. The beginning of the talk may unfortunately put off some as
+it appears sexist, but Guy is aware of it and explains himself a little
+into the talk. So do press on.</p>
+</div>
+</section>
+<section id="language-structure">
+<h2>Language structure<a class="headerlink" href="#language-structure" title="Link to this heading">¶</a></h2>
+<p>We’ll choose to implement an “expression-based language”, where
+everything is an “expression” and all expressions reduce to “values”.
+We’ll also choose to do this using “eager evaluation”, meaning
+the reduction of an argument to a function, for example, is not
+delayed until the point where the argument is required.</p>
+</section>
+<section id="a-plausible-vocabulary">
+<h2>A plausible vocabulary<a class="headerlink" href="#a-plausible-vocabulary" title="Link to this heading">¶</a></h2>
+<p>Let’s consider 2 categories of arithmetical expressions that students gave examples of –</p>
+<ol class="arabic simple">
+<li><p>“Core” such as literal numbers, addition, multiplication and reciprocal.</p></li>
+<li><p>“Sugar” such as subtraction and division. The reason we call these
+as “sugar” is that these can be rewritten in terms of the “Core” terms.</p></li>
+</ol>
+<p>We’ll also need to be able to write functions on top of such expressions.</p>
+</section>
+<section id="a-first-step-to-making-an-interpreter">
+<h2>A first step to making an interpreter<a class="headerlink" href="#a-first-step-to-making-an-interpreter" title="Link to this heading">¶</a></h2>
+<p>In Racket, we can evaluate arithmetic expressions like this -</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">15</span><span class="p">)</span><span class="w"> </span><span class="mi">24</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>What we’re going to consider now is suppose we’re given the literal
+list <code class="docutils literal notranslate"><span class="pre">'(*</span> <span class="pre">(-</span> <span class="pre">2</span> <span class="pre">4)</span> <span class="pre">(*</span> <span class="pre">(-</span> <span class="pre">10</span> <span class="pre">15)</span> <span class="pre">24))</span></code>, how do we write an “interpreter”
+procedure that will compute the resultant answer.</p>
+<p>Initially, we’ll restrict ourselves to the core terms <code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>
+and <code class="docutils literal notranslate"><span class="pre">inv</span></code> and we’ll define the “sugar” terms <code class="docutils literal notranslate"><span class="pre">-</span></code> and <code class="docutils literal notranslate"><span class="pre">/</span></code> in terms
+of these.</p>
+<p>The first order of affairs therefore is to convert expressions containing
+a mixture of core and sugar terms into expressions that consist only of core
+terms.</p>
+<div class="admonition-note admonition">
+<p class="admonition-title"><strong>Note</strong></p>
+<p>The reason for having a small core language with a growable “syntactic
+sugar” on top is that the core language becomes easier to reason about,
+since every new addition to the core language needs to be consistent
+with the other facilities we’ve already added.</p>
+</div>
+<p>The <code class="code highlight racket docutils literal highlight-racket"><span class="n">racket/match</span></code> library provides a <code class="code highlight racket docutils literal highlight-racket"><span class="k">match</span></code> macro that makes it
+easy for us to write an <span class="target" id="index-3"></span>interpreter for such expressions.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="kn">#lang </span><span class="nn">racket</span>
+<span class="p">(</span><span class="k">require</span><span class="w"> </span><span class="n">racket/match</span><span class="p">)</span>
+
+<span class="c1">; Our interpreter takes a &quot;picture expression&quot; and computes a picture</span>
+<span class="c1">; by interpreting the instructions in it. Since these expressions can</span>
+<span class="c1">; themselves contain other picture expressions, the interpreter is</span>
+<span class="c1">; invoked recursively to compute them.</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">interp-v1</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">aexpr</span><span class="p">)</span>
+<span class="w">       </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">aexpr</span>
+<span class="w">         </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">+</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v1</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v1</span><span class="w"> </span><span class="n">b</span><span class="p">))]</span>
+<span class="w">         </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">*</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v1</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v1</span><span class="w"> </span><span class="n">b</span><span class="p">))]</span>
+<span class="w">         </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">inv</span><span class="w"> </span><span class="n">a</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v1</span><span class="w"> </span><span class="n">a</span><span class="p">))]</span>
+<span class="w">         </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="p">(</span><span class="nb">raise-argument-error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">interp-v1</span><span class="w"> </span><span class="s2">&quot;Arithmetic expression&quot;</span><span class="w"> </span><span class="n">aexpr</span><span class="p">)])))</span>
+</pre></div>
+</div>
+<p>We also need to define what our “sugar terms” mean. The process of converting
+an expression containing sugar terms to a core-only expression is something we’ll
+call “desugar”.</p>
+<div class="highlight-scheme notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nf">desugar-v1</span><span class="w"> </span><span class="nv">aexpr</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="nv">aexpr</span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="ss">&#39;-</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="nv">b</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="ss">&#39;+</span><span class="w"> </span><span class="p">(</span><span class="nf">desugar-v1</span><span class="w"> </span><span class="nv">a</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="ss">&#39;*</span><span class="w"> </span><span class="mi">-1</span><span class="w"> </span><span class="p">(</span><span class="nf">desugar-v1</span><span class="w"> </span><span class="nv">b</span><span class="p">)))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="ss">&#39;/</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="nv">b</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="ss">&#39;*</span><span class="w"> </span><span class="p">(</span><span class="nf">desugar-v1</span><span class="w"> </span><span class="nv">a</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="ss">&#39;inv</span><span class="w"> </span><span class="p">(</span><span class="nf">desugar-v1</span><span class="w"> </span><span class="nv">b</span><span class="p">)))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="ss">&#39;+</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="nv">b</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="ss">&#39;+</span><span class="w"> </span><span class="p">(</span><span class="nf">desugar-v1</span><span class="w"> </span><span class="nv">a</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">desugar-v1</span><span class="w"> </span><span class="nv">b</span><span class="p">))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="ss">&#39;*</span><span class="w"> </span><span class="nv">a</span><span class="w"> </span><span class="nv">b</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="ss">&#39;*</span><span class="w"> </span><span class="p">(</span><span class="nf">desugar-v1</span><span class="w"> </span><span class="nv">a</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nf">desugar-v1</span><span class="w"> </span><span class="nv">b</span><span class="p">))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="ss">&#39;inv</span><span class="w"> </span><span class="nv">a</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="ss">&#39;inv</span><span class="w"> </span><span class="p">(</span><span class="nf">desugar-v1</span><span class="w"> </span><span class="nv">a</span><span class="p">))]</span>
+<span class="w">        </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="nv">aexpr</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>Observe the following -</p>
+<ol class="arabic simple">
+<li><p>To desugar a term, we must  desugar any expressions that the term may contain
+as well.</p></li>
+<li><p>The desugar process must define it for all core terms in addition to the
+sugar terms.</p></li>
+<li><p>Our implementation merely borrows the meanings of those operations from Racket
+directly. Unless we do this consciously and specify what we want in our language,
+we should borrowing the implementation of the underlying language into the
+language you’re constructing can be a dangerous thing to do. For example, our
+from our interpreter, we cannot say what’ll happen when we reduce <code class="docutils literal notranslate"><span class="pre">'(inv</span> <span class="pre">0)</span></code>.
+In this case, we’ll encounter the Racket “divide by zero” error and our language
+has nothing to say about such errors at this point.</p></li>
+</ol>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>What are our options for capturing this “divide by zero” situation?</p>
+</div>
+<section id="an-alternative-representation">
+<h3>An alternative representation<a class="headerlink" href="#an-alternative-representation" title="Link to this heading">¶</a></h3>
+<p>We represented the “program” as simply an s-expression. Our program in this
+case consisted of a single expression which our interpret “evaluated”. More
+typically when working on programming languages, the sub-expressions we used
+are given their own data structure and a tree is made by composing these
+sub-expressions. The tree is referred to as the “<span class="target" id="index-4"></span>abstract syntax tree”
+as it captures the syntactic structure of the program, leaving aside (i.e.
+absracting) the sequence of characters from which it s constructed.</p>
+<p>In the interest of being explicit with aspects of our language and the procedures
+we define on expressions in our language, we’ll use Racket structs to represent
+our terms and the values they reduce to.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Core terms</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">NumC</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">AddC</span><span class="w"> </span><span class="p">(</span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">MulC</span><span class="w"> </span><span class="p">(</span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">InvC</span><span class="w"> </span><span class="p">(</span><span class="n">e1</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+
+<span class="c1">; Sugar terms.</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">SubS</span><span class="w"> </span><span class="p">(</span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">DivS</span><span class="w"> </span><span class="p">(</span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+
+<span class="c1">; Value types.</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">NumV</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+
+<span class="c1">; Takes a &quot;core-only expression&quot; and produces a &quot;value&quot; struct.</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v2</span><span class="w"> </span><span class="n">aexpr</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">aexpr</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">AddC</span><span class="w"> </span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">NumV</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v2</span><span class="w"> </span><span class="n">e1</span><span class="p">))</span>
+<span class="w">                  </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v2</span><span class="w"> </span><span class="n">e2</span><span class="p">))))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">MulC</span><span class="w"> </span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">NumV</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v2</span><span class="w"> </span><span class="n">e1</span><span class="p">))</span>
+<span class="w">                  </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v2</span><span class="w"> </span><span class="n">e2</span><span class="p">))))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">InvC</span><span class="w"> </span><span class="n">e1</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">NumV</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v2</span><span class="w"> </span><span class="n">e1</span><span class="p">))))]</span>
+<span class="w">        </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="p">(</span><span class="nb">raise-argument-error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">arith-expression</span><span class="w"> </span><span class="s2">&quot;Invalid expression&quot;</span><span class="w"> </span><span class="n">aexpr</span><span class="p">)]))</span>
+
+<span class="c1">; Takes a mixed core+sugar expression and transforms it to a</span>
+<span class="c1">; core-only expression.</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">desugar-v2</span><span class="w"> </span><span class="n">aexpr</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">aexpr</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">SubS</span><span class="w"> </span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">AddC</span><span class="w"> </span><span class="p">(</span><span class="n">desugar-v2</span><span class="w"> </span><span class="n">e1</span><span class="p">)</span>
+<span class="w">               </span><span class="p">(</span><span class="n">MulC</span><span class="w"> </span><span class="p">(</span><span class="n">NumC</span><span class="w"> </span><span class="mi">-1</span><span class="p">)</span>
+<span class="w">                     </span><span class="p">(</span><span class="n">desugar-v2</span><span class="w"> </span><span class="n">e2</span><span class="p">)))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">DivS</span><span class="w"> </span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">MulC</span><span class="w"> </span><span class="p">(</span><span class="n">desugar-v2</span><span class="w"> </span><span class="n">e1</span><span class="p">)</span>
+<span class="w">               </span><span class="p">(</span><span class="n">InvC</span><span class="w"> </span><span class="p">(</span><span class="n">desugar-v2</span><span class="w"> </span><span class="n">e2</span><span class="p">)))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">AddC</span><span class="w"> </span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">AddC</span><span class="w"> </span><span class="p">(</span><span class="n">desugar-v2</span><span class="w"> </span><span class="n">e1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">desugar-v2</span><span class="w"> </span><span class="n">e2</span><span class="p">))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">MulC</span><span class="w"> </span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">MulC</span><span class="w"> </span><span class="p">(</span><span class="n">desugar-v2</span><span class="w"> </span><span class="n">e1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">desugar-v2</span><span class="w"> </span><span class="n">e2</span><span class="p">))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">InvC</span><span class="w"> </span><span class="n">e1</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">InvC</span><span class="w"> </span><span class="p">(</span><span class="n">desugar-v2</span><span class="w"> </span><span class="n">e1</span><span class="p">))]</span>
+
+<span class="w">         </span><span class="p">(</span><span class="n">NumV</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v2</span><span class="w"> </span><span class="n">e1</span><span class="p">))</span>
+<span class="w">                  </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v2</span><span class="w"> </span><span class="n">e2</span><span class="p">))))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">MulC</span><span class="w"> </span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">NumV</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v2</span><span class="w"> </span><span class="n">e1</span><span class="p">))</span>
+<span class="w">                  </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v2</span><span class="w"> </span><span class="n">e2</span><span class="p">))))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">InvC</span><span class="w"> </span><span class="n">e1</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">NumV</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v2</span><span class="w"> </span><span class="n">e1</span><span class="p">))))]</span>
+<span class="w">        </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="p">(</span><span class="nb">raise-argument-error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">arith-expression</span><span class="w"> </span><span class="s2">&quot;Invalid expression&quot;</span><span class="w"> </span><span class="n">aexpr</span><span class="p">)])</span>
+
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">interpS-v2</span><span class="w"> </span><span class="n">aexpr</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v2</span><span class="w"> </span><span class="p">(</span><span class="n">desugar-v2</span><span class="w"> </span><span class="n">aexpr</span><span class="p">)))</span>
+</pre></div>
+</div>
+</section>
+<section id="why-bother">
+<h3>Why bother?<a class="headerlink" href="#why-bother" title="Link to this heading">¶</a></h3>
+<p>We already had good enough functions that we can make use of to construct
+pictures. Why would we bother to make such an “interpreter” that so blatantly
+uses the same functions to do the same thing?</p>
+<p>One part of the answer is that we’re trying to understand programming
+languages through the construction of such interpreters.</p>
+<p>The second part is the process that we went through here. We modelled a domain
+using plain functions to understand what we’re building first. We then turned
+the kinds of expressions we wish to construct into an “abstract syntax tree”
+and built an “interpreter” to build what we want. Even if we do not build a
+full fledged programming language and stop here, we’ve done a powerful and
+highly under-used program transformation or “refactoring” technique called
+“<span class="target" id="index-5"></span>defunctionalization”. It is called so because we took what’s
+initially a set of functions and turned calculations using those functions into
+a pure data structure – the AST. The advantage of this is that this AST can
+now be stored on mass media and transmitted over networks, which most host
+languages will not let you do with ordinary functions, especially if they have
+variables they close over.</p>
+<p>We’re however going to go further than defunctionalization and build “proper”
+programming ability into our arithmetic language.</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Comp308: Principles of Programming Languages</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
+<li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">λ - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="church.html">Lambda - via β-abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">A language for arithmetic</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#growing-a-language">Growing a language</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#language-structure">Language structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#a-plausible-vocabulary">A plausible vocabulary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#a-first-step-to-making-an-interpreter">A first step to making an interpreter</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notional-machine.html">Notional machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun.html">Functions and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun-arith.html">Functions and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stacks-and-scope.html">Stacks and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun-in-piclang.html">Functions in PicLang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mutations.html">Mutations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="control.html">Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="errornot.html">On the choice between “error” and “do something reasonable” in design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="objects.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="objects-self.html">Objects - the Self way</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dispatch.html">Polymorphism via dispatch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appsem.html">Alternative application semantics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="types.html">Types: Checking some program invariants statically</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="piclang.html" title="previous chapter">A language for pictures</a></li>
+      <li>Next: <a href="machine.html" title="next chapter">A mental model for the machine</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Srikumar K. S..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/arithlang.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

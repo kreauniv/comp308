@@ -1,6 +1,10 @@
 Functions and scope
 ===================
 
+.. admonition:: **Note**
+    
+    For the arithmetic track, see :doc:`fun-arith`.
+
 Thus far, we can construct expressions (type :rkt:`PicExprC`) in our "PicLang"
 and run them through our interpreter (we'll indulge a bit and also refer to it
 as a "picture synthesizer") to produce a "picture" which we can "render" to a

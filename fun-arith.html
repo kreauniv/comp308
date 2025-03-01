@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>Functions and scope &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=3d3fbe02" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5cb08e4e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Stacks and scope" href="stacks-and-scope.html" />
+    <link rel="prev" title="Functions and scope" href="fun.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="functions-and-scope">
+<h1>Functions and scope<a class="headerlink" href="#functions-and-scope" title="Link to this heading">¶</a></h1>
+<p>Thus far, we can construct basic arithmetic expressions in our language
+and run them through our interpreter <code class="code highlight racket docutils literal highlight-racket"><span class="n">interp-v2</span></code> after desugaring
+it using <code class="code highlight racket docutils literal highlight-racket"><span class="n">desugar-v2</span></code> as defined in the previous section.</p>
+<p>Notice that instead of defining <code class="code highlight racket docutils literal highlight-racket"><span class="n">SubS</span></code> as a sugar term and expanding
+it before we run it through our interpreter, we could’ve handled it within
+our interpreter in terms, but in terms of our core terms like this -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v3</span><span class="w"> </span><span class="n">aexpr</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">aexpr</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">SubC</span><span class="w"> </span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">interp-v3</span><span class="w"> </span><span class="p">(</span><span class="n">AddC</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v3</span><span class="w"> </span><span class="n">e1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">MulC</span><span class="w"> </span><span class="p">(</span><span class="n">NumC</span><span class="w"> </span><span class="mi">-1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v3</span><span class="w"> </span><span class="n">e2</span><span class="p">))))]</span>
+<span class="w">        </span><span class="c1">;...and so on for the others...</span>
+<span class="w">        </span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Here, we’re defining a new construct that has a pattern into which we’re substituting
+the reductions of the corresponding “arguments” and reducing the result using our
+other core expressions. In other words, we’re defining a function “(sub a b)” as a
+“pattern” like this - <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">sub</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="mi">-1</span><span class="w"> </span><span class="n">b</span><span class="p">)))</span></code>.</p>
+<p>We’d obviously like to have this facility within our language as well! … so
+that the programmer can define their own functions in terms of core language
+features and reuse them.</p>
+<section id="defining-functions">
+<h2>Defining functions<a class="headerlink" href="#defining-functions" title="Link to this heading">¶</a></h2>
+<p>Towards this, we’ll consider a function definition structure that captures
+the essence of a general enough function within our language.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">FunC</span><span class="w"> </span><span class="p">(</span><span class="n">arg</span><span class="w"> </span><span class="n">expr</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This structure captures what we need to specify a function. We’ll identify a
+function by its name, we’ll identify its argument (a.k.a. “<span class="target" id="index-0"></span>formal
+parameter”) using a symbol and we’ll give an expression as the
+body of the function. In other words, we’re interested in functions that
+compute pictures (via the interpreter).</p>
+<p>In our language so far, we can only call our functions with numbers as values.
+However, we committed early on that all our “core expressions” will reduce to
+values. Which means we’ll need to define a value type for the values that
+“function terms” reduce to.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">FunV</span><span class="w"> </span><span class="p">(</span><span class="n">argname</span><span class="w"> </span><span class="n">expr</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This is no different from <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunC</span></code>, but we’ll keep the struct different
+so we can keep track of all the possible return values of our interpreter
+functions. Here, <code class="code highlight racket docutils literal highlight-racket"><span class="n">argname</span></code> is expected to be a symbol and <code class="code highlight racket docutils literal highlight-racket"><span class="n">expr</span></code>
+is expected to be an expression.</p>
+<p>Ok we have function expressions. Now we need to be able to apply them.
+So we need to capture that as an expression as well.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">ApplyC</span><span class="w"> </span><span class="p">(</span><span class="n">fexpr</span><span class="w"> </span><span class="n">vexpr</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>“Application” is the process of taking a function value, associating its
+“formal parameters” with a value computed from a given value expression
+and evaluating the body of the function given this association.</p>
+<p>Oh boy! We have a slew of notions at this point to capture. So let’s
+break that down.</p>
+<p>First off, we need a way to reference the slots into which the actual
+argument value should be used within the function body. We’ll use the
+following for that –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">IdC</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>… where the <code class="code highlight racket docutils literal highlight-racket"><span class="n">id</span></code> field is a symbol.</p>
+<p>Let’s try to write our interpreter based on these. We’ll leave the desugaring as
+an exercise since it is all recursive processing of the abstract syntax tree.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v4</span><span class="w"> </span><span class="n">aexpr</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">aexpr</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">FunC</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">body</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">FunV</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">body</span><span class="p">)]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">ApplyC</span><span class="w"> </span><span class="n">fexpr</span><span class="w"> </span><span class="n">vexpr</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">fval</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v4</span><span class="w"> </span><span class="n">fexpr</span><span class="p">)]</span>
+<span class="w">               </span><span class="p">[</span><span class="n">vval</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v4</span><span class="w"> </span><span class="n">vexpr</span><span class="p">)])</span>
+<span class="w">            </span><span class="c1">; some how associate vval with</span>
+<span class="w">            </span><span class="c1">; the argname in the fval and</span>
+<span class="w">            </span><span class="c1">; call the interpreter on the body</span>
+<span class="w">            </span><span class="p">)]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">IdC</span><span class="w"> </span><span class="n">id</span><span class="p">)</span>
+<span class="w">         </span><span class="c1">; Somehow lookup the current value of id</span>
+<span class="w">         </span><span class="c1">; and return the value that it is associated</span>
+<span class="w">         </span><span class="c1">; with</span>
+<span class="w">         </span><span class="p">]</span>
+<span class="w">        </span><span class="c1">;...other terms...</span>
+<span class="w">        </span><span class="p">))</span>
+</pre></div>
+</div>
+<p>So we see that we need a mechanism to associate ids with values
+that can be extended and passed through our interpreter as it is
+processing each term.</p>
+<p>We call such an association an “environment” – i.e. an “environment”
+is (effectively) a set of associations between identifiers and
+values. Since an environment maps ids to values, we can model it using
+functions like this –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; The &quot;empty environment&quot; does not know about any identifier.</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">empty-env</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="p">)</span>
+<span class="w">                     </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">env</span><span class="w"> </span><span class="s2">&quot;Unknown identifier ~s&quot;</span><span class="w"> </span><span class="n">id</span><span class="p">)))</span>
+
+<span class="c1">; Given an environment, we can lookup the value corresponding</span>
+<span class="c1">; to an identifier by just calling it like a function.</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">lookup</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">id</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">env</span><span class="w"> </span><span class="n">id</span><span class="p">))</span>
+
+<span class="c1">; We an extend an environment to include an id by wrapping</span>
+<span class="c1">; a given environment in an additional check for the new</span>
+<span class="c1">; association.</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">extend</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">id2</span><span class="p">)</span>
+<span class="w">       </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">equal?</span><span class="w"> </span><span class="n">id2</span><span class="w"> </span><span class="n">id</span><span class="p">)</span>
+<span class="w">           </span><span class="n">val</span>
+<span class="w">           </span><span class="p">(</span><span class="n">lookup</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">id2</span><span class="p">))))</span>
+</pre></div>
+</div>
+<p>With such an environment at hand, we can now define our unfinished
+interpreter like this -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v4</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">aexpr</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">aexpr</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">FunC</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">body</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">FunV</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">body</span><span class="p">)]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">ApplyC</span><span class="w"> </span><span class="n">fexpr</span><span class="w"> </span><span class="n">vexpr</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">fval</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v4</span><span class="w"> </span><span class="n">fexpr</span><span class="p">)]</span>
+<span class="w">               </span><span class="p">[</span><span class="n">vval</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v4</span><span class="w"> </span><span class="n">vexpr</span><span class="p">)])</span>
+<span class="w">            </span><span class="p">(</span><span class="n">interp-v4</span><span class="w"> </span><span class="p">(</span><span class="n">extend</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="p">(</span><span class="n">FunV-argname</span><span class="w"> </span><span class="n">fval</span><span class="p">)</span><span class="w"> </span><span class="n">vval</span><span class="p">)</span>
+<span class="w">                       </span><span class="p">(</span><span class="n">FunV-expr</span><span class="w"> </span><span class="n">fval</span><span class="p">)))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">IdC</span><span class="w"> </span><span class="n">id</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">lookup</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">id</span><span class="p">)]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">AddC</span><span class="w"> </span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">NumV</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v4</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">e1</span><span class="p">))</span>
+<span class="w">                  </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v4</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">e2</span><span class="p">))))]</span>
+<span class="w">        </span><span class="c1">;...handle other terms...</span>
+<span class="w">        </span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Ok this is <em>some</em> language we’ve implemented certainly, but is it the one we
+want? – i.e. something that behaves like SMoL in this regard.</p>
+<p>To understand what is lacking in this language, we need to understand
+what defines a valid versus invalid expression that may include functions.
+In order to produce a value as a result, the expression that we pass
+to our interpreter must not have any “free variables”. If it did, then
+when we get to those variables in the evaluation process, we’ll encounter
+(or at least we expect to encounter) an error.</p>
+<p>Consider the following Racket expression -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="w"> </span><span class="mi">10</span><span class="p">)))</span>
+<span class="w"> </span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">x</span><span class="p">))</span><span class="w"> </span><span class="mi">3</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>This expression has no free variables and is well formed according to
+lambda calculus. However, our interpreter will fail on it. Can you see why?</p>
+</section>
+<section id="lexical-dynamic-environments">
+<h2>Lexical &amp; dynamic environments<a class="headerlink" href="#lexical-dynamic-environments" title="Link to this heading">¶</a></h2>
+<p>The <code class="code highlight racket docutils literal highlight-racket"><span class="n">env</span></code> argument in our <code class="code highlight racket docutils literal highlight-racket"><span class="n">interp-v4</span></code> function captures the
+state of the environment at the point a term is being evaluated. To
+evaluate some nested expressions, this environment may be extended,
+such as when we’re “applying” a function to a value.</p>
+<p>The value of the <code class="code highlight racket docutils literal highlight-racket"><span class="n">env</span></code> argument at the point of entry into the
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">interp</span></code> function is therefore called the “dynamic environment”,
+because it is in the process of computing the final result, while the
+computation is still not finished yet.</p>
+<p>In particular when our interpreter is evaluating a <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunC</span></code> term to produce
+a <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunV</span></code> value, the meaning of the identifiers used in the body of the
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">FunC</span></code> term are to be considered in relation to the dynamic environment in
+which this term is being evaluated – i.e. at the point at which the
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">FunV</span></code> is being constructed. In this particular case, since the
+<strong>meaning</strong> of the function is determined by the context in which it is being
+<strong>created</strong> and not <strong>applied</strong>, this dynamic environment is also considered to
+be the “lexical environment” of the function. Since the body of the function is
+to be interpreted with only the additional fact of the binding for its
+argument, we need to extend the lexical environment of a function when
+computing an application, and not the dynamic environment at application time.</p>
+<p>Without this “lexical environment”, the function cannot be interpreted
+correctly when applied. Therefore we need to keep this environment around.</p>
+<p>The word “lexical” for this environment is used because this environment
+can be gleaned off the local (i.e. “lexical”) source code within which
+the function expression exists by considering all the identifiers defined
+in the enclosing expressions up to the top level … which is often a short
+way away from the point at which the function expression is given.</p>
+<p>Since we need to capture this in our <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunV</span></code>, we need to alter its
+definition to be –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">FunV</span><span class="w"> </span><span class="p">(</span><span class="n">lexenv</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">expr</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>… and based on that our interpreter needs to be modified to –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v5</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">aexpr</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">aexpr</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">FunC</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">body</span><span class="p">)</span>
+<span class="w">         </span><span class="c1">; Note that we&#39;re storing away the dynamic environment</span>
+<span class="w">         </span><span class="c1">; at the point the function value is created, as its</span>
+<span class="w">         </span><span class="c1">; lexical environment.</span>
+<span class="w">         </span><span class="p">(</span><span class="n">FunV</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">body</span><span class="p">)]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">ApplyC</span><span class="w"> </span><span class="n">fexpr</span><span class="w"> </span><span class="n">vexpr</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">fval</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v5</span><span class="w"> </span><span class="n">fexpr</span><span class="p">)]</span>
+<span class="w">               </span><span class="p">[</span><span class="n">vval</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v5</span><span class="w"> </span><span class="n">vexpr</span><span class="p">)])</span>
+<span class="w">            </span><span class="c1">; Here, we have to extend the &quot;lexical environment&quot;</span>
+<span class="w">            </span><span class="c1">; of the function with the new binding and evaluate it,</span>
+<span class="w">            </span><span class="c1">; instead of extending the dynamic environment at the</span>
+<span class="w">            </span><span class="c1">; call point.</span>
+<span class="w">            </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">fval</span>
+<span class="w">                </span><span class="p">[(</span><span class="n">FunV</span><span class="w"> </span><span class="n">lexenv</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">body</span><span class="p">)</span>
+<span class="w">                 </span><span class="p">(</span><span class="n">interp-v4</span><span class="w"> </span><span class="p">(</span><span class="n">extend</span><span class="w"> </span><span class="n">lexenv</span><span class="w"> </span><span class="n">argname</span><span class="w"> </span><span class="n">vval</span><span class="p">)</span><span class="w"> </span><span class="n">body</span><span class="p">)]</span>
+<span class="w">                </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;Not a function, so can&#39;t apply&quot;</span><span class="p">)]))]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">IdC</span><span class="w"> </span><span class="n">id</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">lookup</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">id</span><span class="p">)]</span>
+<span class="w">        </span><span class="p">[(</span><span class="n">AddC</span><span class="w"> </span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="n">NumV</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v5</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">e1</span><span class="p">))</span>
+<span class="w">                  </span><span class="p">(</span><span class="n">NumV-n</span><span class="w"> </span><span class="p">(</span><span class="n">interp-v5</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">e2</span><span class="p">))))]</span>
+<span class="w">        </span><span class="c1">;...handle other terms...</span>
+<span class="w">        </span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Complete the interpreter and the corresponding <code class="code highlight racket docutils literal highlight-racket"><span class="n">desugar</span></code> function
+and test the various cases you think might be problematic, to see
+whether it performs correctly – i.e. works where it should and errors
+out where it is faced with an invalid expression.</p>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Define a sugar expression <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">LetS</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">vexpr</span><span class="w"> </span><span class="n">bodyexpr</span><span class="p">)</span></code> which binds the
+given identifier to the value of the given expression within the bodyexpr.
+You can define this in terms of <code class="code highlight racket docutils literal highlight-racket"><span class="n">FunC</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">ApplyC</span></code>.</p>
+</div>
+<div class="admonition-exercise admonition">
+<p class="admonition-title"><strong>Exercise</strong></p>
+<p>Make the language more complete by adding support for boolean values,
+logical operations and branching. Define the following new terms and their
+behaviours in the <code class="code highlight racket docutils literal highlight-racket"><span class="n">interp</span></code> function and the <code class="code highlight racket docutils literal highlight-racket"><span class="n">desugar</span></code> function.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">BoolV</span><span class="w"> </span><span class="p">(</span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span><span class="w"> </span><span class="c1">; b = #t or #f</span>
+
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">TrueC</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">FalseC</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">AndC</span><span class="w"> </span><span class="p">(</span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">OrC</span><span class="w"> </span><span class="p">(</span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">NotC</span><span class="w"> </span><span class="p">(</span><span class="n">e1</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">IfC</span><span class="w"> </span><span class="p">(</span><span class="n">boolexpr</span><span class="w"> </span><span class="n">thenexpr</span><span class="w"> </span><span class="n">elseexpr</span><span class="p">)</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The slots named <code class="code highlight racket docutils literal highlight-racket"><span class="n">e1</span></code>, <code class="code highlight racket docutils literal highlight-racket"><span class="n">e2</span></code> etc are expected to be
+expressions (potential sugar terms as well), but which in this
+context are valid only if they evaluate to boolean values.</p>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Comp308: Principles of Programming Languages</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
+<li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">λ - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="church.html">Lambda - via β-abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arithlang.html">A language for arithmetic</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notional-machine.html">Notional machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun.html">Functions and scope</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Functions and scope</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#defining-functions">Defining functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lexical-dynamic-environments">Lexical &amp; dynamic environments</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="stacks-and-scope.html">Stacks and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun-in-piclang.html">Functions in PicLang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mutations.html">Mutations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="control.html">Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="errornot.html">On the choice between “error” and “do something reasonable” in design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="objects.html">Objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="objects-self.html">Objects - the Self way</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dispatch.html">Polymorphism via dispatch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appsem.html">Alternative application semantics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="types.html">Types: Checking some program invariants statically</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="fun.html" title="previous chapter">Functions and scope</a></li>
+      <li>Next: <a href="stacks-and-scope.html" title="next chapter">Stacks and scope</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Srikumar K. S..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/fun-arith.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

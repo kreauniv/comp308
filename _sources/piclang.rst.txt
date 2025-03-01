@@ -1,6 +1,10 @@
 A language for pictures
 =======================
 
+.. admonition:: **Note**
+
+    For the track based on arithmetic expressions, see :doc:`arithlang`.
+
 The original PLAI course used arithmetic to introduce some ideas. On polling,
 students seemed more inclined towards picking something more interesting like
 picture composition. So we'll take that track. I hasten to add that there'll be

@@ -64,7 +64,7 @@ meaning of the program. However, when we rewrite it in SSA form as --
 
 .. code-block:: racket
 
-    (let ([x 3] [y 4]))
+    (let ([x 3] [y 4])
         (define v1 (+ x y))   ; ssa-line1
         (define v2 (/ v1 2))  ; ssa-line2
         (define v3 (* v1 5))  ; ssa-line3

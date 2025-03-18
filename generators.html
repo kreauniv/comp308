@@ -37,430 +37,515 @@
 <p>In <a class="reference internal" href="control.html"><span class="doc">Control</span></a>, we implemented a rudimentary way to define and work with
 generators in our small stack-based language. In this section, we’ll see how
 Racket provides us with full continuations that can be used for this purpose.</p>
+<section id="seeing-continuations-through-abstraction">
+<h2>Seeing continuations through β-abstraction<a class="headerlink" href="#seeing-continuations-through-abstraction" title="Link to this heading">¶</a></h2>
+<p>In an eager evaluation language, the order in which computations happen
+to produce the value of a given expression is known from the structure of
+the expression – i.e. “statically”. It is possible to make this order
+explicit, as it is done in compilers, by transforming them to a form
+known as “static single assignment form” or “SSA form” for short. <a class="footnote-reference brackets" href="#ssa" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="ssa" role="note">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>We won’t be dealing with all cases of SSA. Just enough to give
+an idea of what “the rest of the computation” means.</p>
+</aside>
+</aside>
+<p>Consider our now familiar expression - the distance calculator between
+two points on a plane –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x1</span><span class="w"> </span><span class="n">x2</span><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y1</span><span class="w"> </span><span class="n">y2</span><span class="p">))))</span>
+<span class="c1">; we consider x1, x2, y1 and y2 to be bound variables,</span>
+<span class="c1">; perhaps by an enclosing λ</span>
+</pre></div>
+</div>
+<p>We can expression the sequence of calculations that happen here by rewriting
+it in such a way that each calculation’s result gets assigned to a variable.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">()</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">v1</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x1</span><span class="w"> </span><span class="n">x2</span><span class="p">))</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">v2</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">v1</span><span class="p">))</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">v3</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y1</span><span class="w"> </span><span class="n">y2</span><span class="p">))</span>
+<span class="w">    </span><span class="c1">;------------ the &quot;rest of the computation&quot;</span>
+<span class="w">    </span><span class="c1">;------------ after (- y1 y2) is computed</span>
+<span class="w">    </span><span class="c1">;------------ follows below.</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">v4</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">v3</span><span class="p">))</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">v5</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">v2</span><span class="w"> </span><span class="n">v4</span><span class="p">))</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">v6</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="n">v5</span><span class="p">))</span>
+<span class="w">    </span><span class="n">v6</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>An important aspects of SSA form is that variables introduced are assigned only
+once (“single assignment”) based on the “static” analysis of the code.
+Compilers do this transformation because it helps optimizers figure out
+dependencies easier than if multiple assignments we permitted. For instance,
+exchanging the definition order of <code class="docutils literal notranslate"><span class="pre">v2</span></code> and <code class="docutils literal notranslate"><span class="pre">v3</span></code> won’t affect the result.
+However, consider the following expression -</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">x</span><span class="w"> </span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">y</span><span class="w"> </span><span class="mi">4</span><span class="p">])</span>
+<span class="w">    </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">))</span><span class="w"> </span><span class="c1">; line1</span>
+<span class="w">    </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="c1">; line2</span>
+<span class="w">    </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="mi">5</span><span class="p">))</span><span class="w"> </span><span class="c1">; line3</span>
+<span class="w">    </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">))</span><span class="w"> </span><span class="c1">; line4</span>
+<span class="w">    </span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Notice that exchanging <code class="docutils literal notranslate"><span class="pre">line2</span></code> and <code class="docutils literal notranslate"><span class="pre">line3</span></code>  changes the
+meaning of the program. However, when we rewrite it in SSA form as –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">x</span><span class="w"> </span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">y</span><span class="w"> </span><span class="mi">4</span><span class="p">]))</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">v1</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">))</span><span class="w">   </span><span class="c1">; ssa-line1</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">v2</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">v1</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span><span class="w">  </span><span class="c1">; ssa-line2</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">v3</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">v1</span><span class="w"> </span><span class="mi">5</span><span class="p">))</span><span class="w">  </span><span class="c1">; ssa-line3</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">v4</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">v3</span><span class="w"> </span><span class="n">v2</span><span class="p">))</span><span class="w"> </span><span class="c1">; ssa-line4</span>
+<span class="w">    </span><span class="n">v4</span><span class="err">)</span>
+</pre></div>
+</div>
+<p>… <code class="docutils literal notranslate"><span class="pre">ssa-line2</span></code> and <code class="docutils literal notranslate"><span class="pre">ssa-line3</span></code> can be exchanged without changing the
+meaning of the program. This analysis is much easier to do in SSA form for
+compiler writers.</p>
+<p>Since at any point we know the “next expression that can be evaluated”,
+we can use that knowledge to transform the original distance calculation
+expression through β-abstraction to make clear the execution order like
+below –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x2</span><span class="w"> </span><span class="n">x1</span><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y2</span><span class="w"> </span><span class="n">y1</span><span class="p">))))</span>
+<span class="c1">; β-abstract over (- x2 x1)</span>
+<span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y2</span><span class="w"> </span><span class="n">y1</span><span class="p">)))))</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x2</span><span class="w"> </span><span class="n">x1</span><span class="p">))</span>
+<span class="c1">; Now β-abstract over the first λ term</span>
+<span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x2</span><span class="w"> </span><span class="n">x1</span><span class="p">)))</span>
+<span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y2</span><span class="w"> </span><span class="n">y1</span><span class="p">))))))</span>
+</pre></div>
+</div>
+<p>Here, <code class="docutils literal notranslate"><span class="pre">f1</span></code> is a real function that captures “the rest of the computation”
+up to the <code class="docutils literal notranslate"><span class="pre">sqrt</span></code> calculation (it is said to be “delimited” at that point)
+and the <code class="docutils literal notranslate"><span class="pre">v1</span></code> identifier is analogous to our first SSA form line.</p>
+<p>We can continue this process with the insides of the second λ term to
+produce the complete form through this sequence of transformations –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x2</span><span class="w"> </span><span class="n">x1</span><span class="p">)))</span>
+<span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y2</span><span class="w"> </span><span class="n">y1</span><span class="p">))))))</span>
+<span class="c1">; =&gt;</span>
+<span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x2</span><span class="w"> </span><span class="n">x1</span><span class="p">)))</span>
+<span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f2</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">v1</span><span class="p">)))</span>
+<span class="w">          </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">v2</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y2</span><span class="w"> </span><span class="n">y1</span><span class="p">))))))))</span>
+<span class="c1">; =&gt;</span>
+<span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x2</span><span class="w"> </span><span class="n">x1</span><span class="p">)))</span>
+<span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f2</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">v1</span><span class="p">)))</span>
+<span class="w">          </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v2</span><span class="p">)</span><span class="w"> </span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f3</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f3</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y2</span><span class="w"> </span><span class="n">y1</span><span class="p">)))</span>
+<span class="w">                   </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v3</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">v2</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">v3</span><span class="p">)))))))))</span>
+<span class="c1">; =&gt;</span>
+<span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x2</span><span class="w"> </span><span class="n">x1</span><span class="p">)))</span>
+<span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f2</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">v1</span><span class="p">)))</span>
+<span class="w">          </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v2</span><span class="p">)</span><span class="w"> </span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f3</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f3</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y2</span><span class="w"> </span><span class="n">y1</span><span class="p">)))</span>
+<span class="w">                   </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v3</span><span class="p">)</span><span class="w"> </span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f4</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f4</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">v3</span><span class="p">)))</span>
+<span class="w">                            </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v4</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">v2</span><span class="w"> </span><span class="n">v4</span><span class="p">))))))))))</span>
+<span class="c1">; =&gt;</span>
+<span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x2</span><span class="w"> </span><span class="n">x1</span><span class="p">)))</span>
+<span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f2</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">v1</span><span class="p">)))</span>
+<span class="w">          </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v2</span><span class="p">)</span><span class="w"> </span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f3</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f3</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y2</span><span class="w"> </span><span class="n">y1</span><span class="p">)))</span>
+<span class="w">                   </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v3</span><span class="p">)</span><span class="w"> </span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f4</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f4</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">v3</span><span class="p">)))</span>
+<span class="w">                            </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v4</span><span class="p">)</span><span class="w"> </span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f5</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f5</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">v2</span><span class="w"> </span><span class="n">v4</span><span class="p">)))</span>
+<span class="w">                                     </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v5</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="n">v5</span><span class="p">)))))))))))</span>
+</pre></div>
+</div>
+<p>The functions <code class="docutils literal notranslate"><span class="pre">f1</span></code>, <code class="docutils literal notranslate"><span class="pre">f2</span></code>, .. all represent the remaining computations
+to be done at each point and <code class="docutils literal notranslate"><span class="pre">v1</span></code>, <code class="docutils literal notranslate"><span class="pre">v2</span></code> all get the results of each
+computation step as it happens.</p>
+</section>
+<section id="delimited-continuations">
+<h2>Delimited continuations<a class="headerlink" href="#delimited-continuations" title="Link to this heading">¶</a></h2>
+<p>We now make a small step that’s a giant leap of sorts.</p>
+<p>Within the λ where we use the <code class="docutils literal notranslate"><span class="pre">f1</span></code>, <code class="docutils literal notranslate"><span class="pre">f2</span></code> etc., we have
+expressions of the form <code class="docutils literal notranslate"><span class="pre">(f1</span> <span class="pre">(-</span> <span class="pre">x2</span> <span class="pre">x1))</span></code> and so on. We now
+ask “what if we had a magic operator <code class="docutils literal notranslate"><span class="pre">magic</span></code> that made this
+<code class="docutils literal notranslate"><span class="pre">f1</span></code> available for us at the point we’re calculating <code class="docutils literal notranslate"><span class="pre">(-</span> <span class="pre">x2</span> <span class="pre">x1)</span></code>?”</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">START</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="n">magic</span><span class="w"> </span><span class="n">f1</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x2</span><span class="w"> </span><span class="n">x1</span><span class="p">))))</span>
+<span class="w">                </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y2</span><span class="w"> </span><span class="n">y1</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>… where we’ve also marked the outer most expression up to which
+we consider “the rest of the computation” to happen.</p>
+<p>Thing is, this “<code class="docutils literal notranslate"><span class="pre">magic</span></code> operator” exists in racket via the <code class="docutils literal notranslate"><span class="pre">control</span></code>
+module. <code class="docutils literal notranslate"><span class="pre">START</span></code> is called <code class="docutils literal notranslate"><span class="pre">reset</span></code> and <code class="docutils literal notranslate"><span class="pre">magic</span></code> is called <code class="docutils literal notranslate"><span class="pre">shift</span></code>.
+The function made available by <code class="docutils literal notranslate"><span class="pre">shift</span></code> is called a “delimited continuation”
+since its range is delimited by the surrounding <code class="docutils literal notranslate"><span class="pre">reset</span></code>.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">require</span><span class="w"> </span><span class="n">racket/control</span><span class="p">)</span>
+<span class="p">(</span><span class="n">reset</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="n">shift</span><span class="w"> </span><span class="n">f1</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x2</span><span class="w"> </span><span class="n">x1</span><span class="p">))))</span>
+<span class="w">                </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y2</span><span class="w"> </span><span class="n">y1</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>Ok so what? Now we ask ourselves “what kind of super powers having
+the <code class="docutils literal notranslate"><span class="pre">f1</span></code> at that point gets us?” To see what happens in the
+forms below, remember that, for the cases we’re looking at,</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">reset</span><span class="w"> </span><span class="n">...A...</span><span class="w"> </span><span class="p">(</span><span class="n">shift</span><span class="w"> </span><span class="n">f1</span><span class="w"> </span><span class="n">...B...</span><span class="p">)</span><span class="w"> </span><span class="n">...C...</span><span class="p">)</span>
+<span class="c1">; is equivalent to</span>
+<span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="p">)</span><span class="w"> </span><span class="n">...B...</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="n">...A...</span><span class="w"> </span><span class="n">v1</span><span class="w"> </span><span class="n">...C...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Consider what would be the result of the following expression –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">reset</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="n">shift</span><span class="w"> </span><span class="n">f1</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span>
+<span class="w">                </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y2</span><span class="w"> </span><span class="n">y1</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>Here, we are not using <code class="docutils literal notranslate"><span class="pre">f1</span></code> at all. The equivalent form therefore
+looks like –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f1</span><span class="p">)</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y2</span><span class="w"> </span><span class="n">y1</span><span class="p">))))))</span>
+</pre></div>
+</div>
+<p>Clearly, the entire computation that the second λ stands for has
+been completely discarded. In other words, we’ve gained the power
+to choose to abort the computation based on the local decisions
+up to a given outer term identified by <code class="docutils literal notranslate"><span class="pre">reset</span></code>. For example,
+we could’ve made it conditional like so –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">reset</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="n">shift</span><span class="w"> </span><span class="n">f1</span><span class="w"> </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">&gt;</span><span class="w"> </span><span class="n">x2</span><span class="w"> </span><span class="n">x1</span><span class="p">)</span>
+<span class="w">                                      </span><span class="p">(</span><span class="n">f1</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">x2</span><span class="w"> </span><span class="n">x1</span><span class="p">))</span>
+<span class="w">                                      </span><span class="mi">0</span><span class="p">)))</span>
+<span class="w">                </span><span class="p">(</span><span class="n">square</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">y2</span><span class="w"> </span><span class="n">y1</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>When <code class="docutils literal notranslate"><span class="pre">x2</span> <span class="pre">&lt;=</span> <span class="pre">x1</span></code>, the entire expression will evaluate to 0.
+We could’ve chosen to produce an error term or anything else
+that we please as well.</p>
+<p>For another simple example, consider –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">reset</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="p">(</span><span class="n">shift</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="w"> </span><span class="mi">10</span><span class="p">)))))</span>
+</pre></div>
+</div>
+<p>To find out what this means, we can rewrite it to –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="w"> </span><span class="mi">10</span><span class="p">)))</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="n">v</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Reducing that, we see that the expression computes to <code class="docutils literal notranslate"><span class="pre">20</span></code>
+by adding <code class="docutils literal notranslate"><span class="pre">5</span></code> twice.</p>
+<p>Within the <code class="docutils literal notranslate"><span class="pre">shift</span></code> block, we can do anything else that Racket
+permits us to do with functions since these delimited continuation
+functions are effectively ordinary functions – like …</p>
+<ol class="arabic simple">
+<li><p>Storing it away in a variable or data structure for later use.</p></li>
+<li><p>Applying it twice.</p></li>
+<li><p>Mapping it over a list of values.</p></li>
+<li><p>…. and so on</p></li>
+</ol>
+</section>
 <section id="call-cc-and-let-cc">
 <h2><code class="code highlight racket docutils literal highlight-racket"><span class="nb">call/cc</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="k">let/cc</span></code><a class="headerlink" href="#call-cc-and-let-cc" title="Link to this heading">¶</a></h2>
-<p>When working with our now-familiar “distance” function, <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">dy</span><span class="p">)))</span></code>,
-we saw how we can get “the rest of the computation that’s supposed to happen after <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span></code>”
-by β-abstracting over <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span></code> to get <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">dx2</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">dx2</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">dy</span><span class="p">))))</span></code>. Racket/Scheme
-provide access to this function for us. We just have to ask!</p>
+<p>Racket also provides un-delimited continuations via the <code class="docutils literal notranslate"><span class="pre">let/cc</span></code> construct
+which desugars to <code class="docutils literal notranslate"><span class="pre">call/cc</span></code> as shown below –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">&lt;identifier&gt;</span>
+<span class="w">    </span><span class="n">&lt;body&gt;...</span><span class="p">)</span>
+<span class="c1">; =&gt; desugar =&gt;</span>
+<span class="p">(</span><span class="nb">call/cc</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">&lt;identifier&gt;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">&lt;body&gt;...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">&lt;identifier&gt;</span></code> given is bound to the continuation at the point
+and thus made available to the <code class="docutils literal notranslate"><span class="pre">..body..</span></code> code. The <code class="docutils literal notranslate"><span class="pre">let/cc</span></code> is
+visually easier to relate to and so we’ll use that, but understand
+that it desugars to <code class="docutils literal notranslate"><span class="pre">call/cc</span></code> like above and therefore <code class="docutils literal notranslate"><span class="pre">call/cc</span></code>
+is the more fundamental operator here.</p>
 <div class="admonition-terminology admonition">
 <p class="admonition-title"><strong>Terminology</strong></p>
-<p>The function that represents “the rest of the computation” at any given evaluation point
-(i.e. sub-expression) is called the <strong>current continuation</strong> at that point. This function
-will differ depending on which sub-expression is under consideration, since what remains
-to be done will differ.</p>
+<p><code class="docutils literal notranslate"><span class="pre">call/cc</span></code> stands for the much longer name <code class="docutils literal notranslate"><span class="pre">call-with-current-continuation</span></code>.</p>
 </div>
-<p>In the “distance” expression, to get access to the current continuation at the
-time we’re evaluating the <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span></code> (note that the language talks about
-the <strong>dynamic</strong> state of the program, not its lexical structure) can be obtained
-using <code class="code highlight racket docutils literal highlight-racket"><span class="nb">call/cc</span></code> (read as “call with current continuation”) like this –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nb">sqrt</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">call/cc</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">k</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dx</span><span class="p">))))</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">dy</span><span class="w"> </span><span class="n">dy</span><span class="p">)))</span>
-</pre></div>
-</div>
-<p>The entire <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="nb">call/cc</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">k</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dx</span><span class="p">))))</span></code> is simply equivalent to <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span></code>.</p>
-<p>One way to understand this is to think of the <code class="code highlight racket docutils literal highlight-racket"><span class="n">k</span></code> continuation as labeling
-the dynamic return point of the <code class="code highlight racket docutils literal highlight-racket"><span class="nb">call/cc</span></code> invocation that is providing it.
-So call <code class="code highlight racket docutils literal highlight-racket"><span class="n">k</span></code> with some value will result in the entire <code class="code highlight racket docutils literal highlight-racket"><span class="nb">call/cc</span></code>
-expression that provided that <code class="code highlight racket docutils literal highlight-racket"><span class="n">k</span></code> completing its computation with the
-value as its result. In the above code, we’re supplying <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span></code> to
-<code class="code highlight racket docutils literal highlight-racket"><span class="n">k</span></code>, and so the whole <code class="code highlight racket docutils literal highlight-racket"><span class="nb">call/cc</span></code> expression is equivalent to <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="nb">*</span>
-<span class="n">dx</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span></code>. So you could think of it as <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="nb">call/cc</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">return</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">return</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">dx</span>
-<span class="n">dx</span><span class="p">))))</span></code> and that would be correct.</p>
-<p>It can get quite cumbersome to write lambdas every time we use <code class="code highlight racket docutils literal highlight-racket"><span class="nb">call/cc</span></code>, so
-Racket/Scheme provides some syntactic sugar for it – <code class="code highlight racket docutils literal highlight-racket"><span class="k">let/cc</span></code> that is convenient.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="n">...some-expression-using-k...</span><span class="p">)</span>
-<span class="c1">; desugars into</span>
-<span class="p">(</span><span class="nb">call/cc</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="n">..some-expression-using-k...</span><span class="p">))</span>
-</pre></div>
-</div>
-<p>i.e., <code class="code highlight racket docutils literal highlight-racket"><span class="k">let/cc</span></code> introduces the local variable <code class="code highlight racket docutils literal highlight-racket"><span class="n">k</span></code> into the expression
-much like <code class="code highlight racket docutils literal highlight-racket"><span class="k">let</span></code>.</p>
-<p>You could ask “so what?”. Having access to the current continuation as a value
-gives us many super powers – we can implement many different types of control
-flow within our program with this as a primitive. For example, since the
-continuation is available as a value, we can store it away to be called later
-on. This is what we need to implement generators.</p>
-</section>
-<section id="python-generators">
-<h2>Python generators<a class="headerlink" href="#python-generators" title="Link to this heading">¶</a></h2>
-<p>In python, you can return from a function in two ways –</p>
+<p>There are some differences from the <code class="docutils literal notranslate"><span class="pre">reset</span></code> / <code class="docutils literal notranslate"><span class="pre">shift</span></code> pair though.</p>
 <ol class="arabic simple">
-<li><p>Using the <code class="docutils literal notranslate"><span class="pre">return</span> <span class="pre">&lt;value&gt;</span></code> statement.</p></li>
-<li><p>Using the <code class="docutils literal notranslate"><span class="pre">yield</span> <span class="pre">&lt;value&gt;</span></code> statement.</p></li>
+<li><p>The continuation function provided by <code class="docutils literal notranslate"><span class="pre">let/cc</span></code> does not itself return to
+the call point. We saw that with the delimited continuation provided by
+<code class="docutils literal notranslate"><span class="pre">shift</span></code>, we can call it as many times as we want, even doing compositions
+like <code class="docutils literal notranslate"><span class="pre">(f1</span> <span class="pre">(f1</span> <span class="pre">10))</span></code>. Since the continuation provided by <code class="docutils literal notranslate"><span class="pre">let/cc</span></code> does
+not itself “return” to its call point, if <code class="docutils literal notranslate"><span class="pre">f1</span></code> were such a <code class="docutils literal notranslate"><span class="pre">let/cc</span></code>
+contination, the double call would just be equivalent to <code class="docutils literal notranslate"><span class="pre">(f1</span> <span class="pre">10)</span></code>. In
+other words, a call to a <code class="docutils literal notranslate"><span class="pre">let/cc</span></code> provided continuation function is
+<strong>always</strong> a tail call whether it occurs in a tail position or not.</p></li>
+<li><p>The value of the body of code in <code class="docutils literal notranslate"><span class="pre">let/cc</span></code> becomes the value of the
+<code class="docutils literal notranslate"><span class="pre">let/cc</span></code> block, as though there was an implicit call to the continuation
+at the end. This is different from the case of <code class="docutils literal notranslate"><span class="pre">shift</span></code> where the body of
+<code class="docutils literal notranslate"><span class="pre">shift</span></code> aborts the entire calculation if it does not use the continuation
+function. It is easy to see why <code class="docutils literal notranslate"><span class="pre">let/cc</span></code> has this implicit call at the end
+because such an abort will essentially be an exit from the program (in
+single threaded cases) which is not what we usually want. So the
+continuation function provided by <code class="docutils literal notranslate"><span class="pre">let/cc</span></code> can be seen as a “jump out of
+the <code class="docutils literal notranslate"><span class="pre">let/cc</span></code> block with this value” procedure.</p></li>
 </ol>
-<p>While <code class="code highlight racket docutils literal highlight-racket"><span class="n">return</span></code> finishes the calculations that the function was doing, <code class="code highlight racket docutils literal highlight-racket"><span class="n">yield</span></code>
-merely suspends it at that state. It means you can resume from that dynamic point
-and continue on to the next <code class="code highlight racket docutils literal highlight-racket"><span class="n">yield</span></code>. While all code that follows <code class="code highlight racket docutils literal highlight-racket"><span class="n">return</span></code>
-is dead code, you can have multiple <code class="code highlight racket docutils literal highlight-racket"><span class="n">yield</span></code> statements in the code and the function
-will suspend every time it encounters such a <code class="code highlight racket docutils literal highlight-racket"><span class="n">yield</span></code>.</p>
-<p>A function that uses <code class="code highlight racket docutils literal highlight-racket"><span class="n">yield</span></code> is called a “generator” in python. Similar
-constructs in other languages may be called “co-routines” or “asynchronous
-functions” when combined with event loops. Though some subtle differences exist
-between these various presentations exist, they’re all basically the same idea
-underneath – the idea of “reified continuations”. The word “reified” in CS is
-used to mean “made real” – i.e. made into a value that can be used like a
-value.</p>
-<p>Consider the following code sequence.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">silly_gen</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating &#39;one&#39;&quot;</span><span class="p">);</span>
-    <span class="k">yield</span> <span class="s2">&quot;one&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating &#39;two&#39;&quot;</span><span class="p">);</span>
-    <span class="k">yield</span> <span class="s2">&quot;two&quot;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating 3&quot;</span><span class="p">);</span>
-    <span class="k">yield</span> <span class="mi">3</span><span class="p">;</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating 4&quot;</span><span class="p">);</span>
-    <span class="k">yield</span> <span class="mi">4</span><span class="p">;</span>
-
-<span class="n">g</span> <span class="o">=</span> <span class="n">silly_gen</span><span class="p">();</span> <span class="c1"># Prints nothing</span>
-<span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
-<span class="c1">#&gt; Generating &#39;one&#39;</span>
-<span class="c1">#&gt; &#39;one&#39;</span>
-<span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
-<span class="c1">#&gt; Generating &#39;two&#39;</span>
-<span class="c1">#&gt; &#39;two&#39;</span>
-<span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
-<span class="c1">#&gt; Generating 3</span>
-<span class="c1">#&gt; 3</span>
-<span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
-<span class="c1">#&gt; Generating 4</span>
-<span class="c1">#&gt; 4</span>
-<span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
-<span class="c1">#&gt; Traceback (most recent call last):</span>
-<span class="c1">#&gt; File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;</span>
-<span class="c1">#&gt; StopIteration</span>
-<span class="c1">#</span>
-<span class="c1"># (This last bit could differ depending on where you run this code)</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">f</span>
+<span class="w">        </span><span class="p">(</span><span class="nb">displayln</span><span class="w"> </span><span class="s2">&quot;one&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="n">f</span><span class="w"> </span><span class="mi">10</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="nb">displayln</span><span class="w"> </span><span class="s2">&quot;two&quot;</span><span class="p">)))</span>
 </pre></div>
 </div>
-<p>What’s happening there?</p>
+<p>The above will print <code class="docutils literal notranslate"><span class="pre">one</span></code> and then evaluate to the result <code class="docutils literal notranslate"><span class="pre">15</span></code>. The
+<code class="docutils literal notranslate"><span class="pre">(displayln</span> <span class="pre">&quot;two&quot;)</span></code> never gets a chance to run because the call to the
+continuation <code class="docutils literal notranslate"><span class="pre">f</span></code> aborts everything that follows <code class="docutils literal notranslate"><span class="pre">(f</span> <span class="pre">10)</span></code>. The <code class="docutils literal notranslate"><span class="pre">10</span></code>
+essentially becomes the value of the entire <code class="docutils literal notranslate"><span class="pre">let/cc</span></code> expression, leaving us
+with <code class="docutils literal notranslate"><span class="pre">(+</span> <span class="pre">5</span> <span class="pre">10)</span></code> as the result.</p>
+<p><code class="docutils literal notranslate"><span class="pre">let/cc</span></code> (i.e. <code class="docutils literal notranslate"><span class="pre">call/cc</span></code>) gives us an operator using which we can implement
+any of our familiar imperative control constructs like while/repeat/break/continue,
+and also those considered more “modern” such as “async/await” and generators. We’ll
+look at generators next. For this reason, <code class="docutils literal notranslate"><span class="pre">call/cc</span></code> is often referred to as
+“the ultimate <code class="docutils literal notranslate"><span class="pre">goto</span></code>”.</p>
+</section>
+<section id="super-power-time-generators">
+<h2>Super power time - generators<a class="headerlink" href="#super-power-time-generators" title="Link to this heading">¶</a></h2>
+<p>Python generators generalize the notion of <code class="docutils literal notranslate"><span class="pre">return</span></code> from a function to
+“temporarily return” using <code class="docutils literal notranslate"><span class="pre">yield</span></code>, by saving away the computational state
+so that it can be resumed later. See the sample below –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">three</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">msg</span> <span class="o">+</span> <span class="s2">&quot; 1&quot;</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="mi">1</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">msg</span> <span class="o">+</span> <span class="s2">&quot; 2&quot;</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="mi">2</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">msg</span> <span class="o">+</span> <span class="s2">&quot; 3&quot;</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="mi">3</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+<span class="o">&gt;</span> <span class="n">g</span> <span class="o">=</span> <span class="n">three</span><span class="p">(</span><span class="s2">&quot;step&quot;</span><span class="p">)</span>
+<span class="o">&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="n">step</span> <span class="mi">1</span>
+<span class="mi">1</span>
+<span class="o">&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="n">step</span> <span class="mi">2</span>
+<span class="mi">2</span>
+<span class="o">&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="n">step</span> <span class="mi">3</span>
+<span class="mi">3</span>
+<span class="o">&gt;</span> <span class="nb">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="n">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+<span class="n">File</span> <span class="s2">&quot;&lt;stdin&gt;&quot;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">1</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="ne">StopIteration</span>
+</pre></div>
+</div>
+<p>You can see how the function uses “yield” to temporarily pause its computation
+which is subsequently resumed by <code class="docutils literal notranslate"><span class="pre">next(g)</span></code>. In the line <code class="docutils literal notranslate"><span class="pre">g</span> <span class="pre">=</span> <span class="pre">three(&quot;step&quot;)</span></code>,
+the function has actually not started any computations at all, as evidenced
+by “step 1” not being printed out at that point. Only upon calling <code class="docutils literal notranslate"><span class="pre">next(g)</span></code>
+is the computation started.</p>
+<p>Generators, due to their ability to suspend and resume computations, find
+many uses in python code, including a form of lazy generation of infinite
+sequences like this squares generator –</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">squaresFrom</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>Try it out on your own to see that it doesn’t complete and yields
+one square number at a time.</p>
+<p>We can construct this facility given <code class="docutils literal notranslate"><span class="pre">let/cc</span></code>/<code class="docutils literal notranslate"><span class="pre">call/cc</span></code> as shown
+below –</p>
+<p>What we’re looking for is a procedure <code class="docutils literal notranslate"><span class="pre">generator</span></code> that takes a <code class="docutils literal notranslate"><span class="pre">λ</span></code>
+function standing for the body of the generator code and uses <code class="docutils literal notranslate"><span class="pre">yield</span></code>
+to pause and resume computation just like the python version.
+In our case, we’ll provide this <code class="docutils literal notranslate"><span class="pre">yield</span></code> as an argument to the λ function
+given to the <code class="docutils literal notranslate"><span class="pre">generator</span></code> procedure. We want to be able to do the equivalent
+of <code class="docutils literal notranslate"><span class="pre">next(g)</span></code> with the result. In our case, we can simplify that by having
+<code class="docutils literal notranslate"><span class="pre">generator</span></code> return a function that can be called like <code class="docutils literal notranslate"><span class="pre">(g</span> <span class="pre">val)</span></code> where the
+passed value will be returned from the <code class="docutils literal notranslate"><span class="pre">yield</span></code> call to resume the
+computation.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="p">(</span><span class="n">generator</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="p">)</span>
+<span class="w">              </span><span class="p">(</span><span class="nb">displayln</span><span class="w"> </span><span class="s2">&quot;step 1&quot;</span><span class="p">)</span>
+<span class="w">              </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">              </span><span class="p">(</span><span class="nb">displayln</span><span class="w"> </span><span class="s2">&quot;step 2&quot;</span><span class="p">)</span>
+<span class="w">              </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
+<span class="w">              </span><span class="p">(</span><span class="nb">displayln</span><span class="w"> </span><span class="s2">&quot;step 3&quot;</span><span class="p">)</span>
+<span class="w">              </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
+<span class="w">              </span><span class="no">#f</span><span class="p">)))</span>
+<span class="nb">&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">g</span><span class="w"> </span><span class="s2">&quot;one&quot;</span><span class="p">)</span>
+<span class="n">step</span><span class="w"> </span><span class="mi">1</span>
+<span class="mi">1</span>
+<span class="nb">&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">g</span><span class="w"> </span><span class="s2">&quot;two&quot;</span><span class="p">)</span>
+<span class="n">step</span><span class="w"> </span><span class="mi">2</span>
+<span class="mi">2</span>
+<span class="nb">&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">g</span><span class="w"> </span><span class="s2">&quot;three&quot;</span><span class="p">)</span>
+<span class="n">step</span><span class="w"> </span><span class="mi">3</span>
+<span class="mi">3</span>
+<span class="nb">&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">g</span><span class="w"> </span><span class="s2">&quot;four&quot;</span><span class="p">)</span>
+<span class="no">#f</span>
+</pre></div>
+</div>
+<p>In python, the <code class="docutils literal notranslate"><span class="pre">StopIteration</span></code> exception is merely a convention used to
+temrinate sequences produced by generators. We can choose any such convention
+ourselves.</p>
+<p>From the above example with <code class="docutils literal notranslate"><span class="pre">generator</span></code>, a few observations can be made –</p>
 <ol class="arabic simple">
-<li><p>With the first call to <code class="code highlight racket docutils literal highlight-racket"><span class="n">silly_gen</span><span class="p">()</span></code>, we create a “generator object” that
-can suspend and resume computations. No computation has actually started just yet though,
-as noted by “Generating ‘one’” not being printed at that point.</p></li>
-<li><p>Every time we cann <code class="code highlight racket docutils literal highlight-racket"><span class="n">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>, we resume the generator and cause it to
-run until the next <code class="code highlight racket docutils literal highlight-racket"><span class="n">yield</span></code>. The return value of the <code class="code highlight racket docutils literal highlight-racket"><span class="n">next</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code> call
-is what was given as the value in <code class="code highlight racket docutils literal highlight-racket"><span class="n">yield</span><span class="w"> </span><span class="n">&lt;value&gt;</span></code>.</p></li>
-<li><p>Once we run out of yields, python arranges to terminate the code by raising
-an exception named <code class="code highlight racket docutils literal highlight-racket"><span class="n">StopIteration</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">generator</span></code> returns a λ function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">(yield</span> <span class="pre">1)</span></code> is “returning” to the exit point of <code class="docutils literal notranslate"><span class="pre">(g</span> <span class="pre">&quot;one&quot;)</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">(g</span> <span class="pre">&quot;two&quot;)</span></code> is “returning” to the exit point of <code class="docutils literal notranslate"><span class="pre">(yield</span> <span class="pre">1)</span></code> within the
+generator λ.</p></li>
 </ol>
-<p>We’ll now see how to implement that in Racket. The idea is that in any language
-that gives us the equivalent of <code class="code highlight racket docutils literal highlight-racket"><span class="nb">call/cc</span></code> (like our stack language to which
-we gave that power in <a class="reference internal" href="control.html"><span class="doc">Control</span></a>), we can follow the same thinking. What we
-won’t do here is to develop generator <strong>syntax</strong> in Racket. We’ll merely show how
-to mechanically produce generator-like behaviour. Once you learn how to define
-your own syntax in Racket, it then becomes a simple matter to mechanically translate
-generator code to produce the necessary constructs.</p>
-</section>
-<section id="generators-in-racket">
-<h2>Generators in Racket<a class="headerlink" href="#generators-in-racket" title="Link to this heading">¶</a></h2>
-<p>We want to be able to write something like this –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">generator</span><span class="w"> </span><span class="p">(</span><span class="n">a</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="n">c</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="s2">&quot;one&quot;</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="s2">&quot;two&quot;</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="mi">4</span><span class="p">))</span>
+<p>Based on those, the implementation would look something like this –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">generator</span><span class="w"> </span><span class="n">fn</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">return</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
+<span class="w">        </span><span class="c1">; Handles the final return from the generator</span>
+<span class="w">        </span><span class="c1">; procedure</span>
+<span class="w">        </span><span class="n">&lt;return-body-code&gt;</span>
+<span class="w">        </span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
+<span class="w">        </span><span class="c1">; Handles yielding back to the generator&#39;s</span>
+<span class="w">        </span><span class="c1">; call point.</span>
+<span class="w">        </span><span class="n">&lt;yield-body-code&gt;</span>
+<span class="w">        </span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">cont</span><span class="w"> </span><span class="no">#f</span><span class="p">)</span><span class="w"> </span><span class="c1">; Var to remember exit point of yield</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="no">#f</span><span class="p">)</span><span class="w">  </span><span class="c1">; Var to remember exit point of call to g.</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="c1">; Because ``g`` takes a single argument</span>
+<span class="w">      </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="c1">; Because we need to remember the exit point</span>
+<span class="w">                </span><span class="c1">; of each call to ``g``.</span>
+<span class="w">        </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="n">c</span><span class="p">)</span><span class="w">    </span><span class="c1">; Remember where the next yield should return to.</span>
+<span class="w">        </span><span class="n">&lt;resume-code&gt;</span>
+<span class="w">            </span><span class="c1">; Either continue by supplying the val to the exit</span>
+<span class="w">            </span><span class="c1">; point of the last yield, or call the given function</span>
+<span class="w">            </span><span class="c1">; to start the computation.</span>
+<span class="w">            </span><span class="p">)</span>
 </pre></div>
 </div>
-<p>… as a parallel to the python code.</p>
-<p>Let’s start with treating the generator as an ordinary lambda –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">return</span>
-<span class="w">       </span><span class="c1">;...</span>
-<span class="w">       </span><span class="p">))</span>
+<p>We remembered the return point of a generator function (<code class="docutils literal notranslate"><span class="pre">g</span></code>)
+in the variable named <code class="docutils literal notranslate"><span class="pre">ret</span></code>. So it is clear that <code class="docutils literal notranslate"><span class="pre">yield</span></code> must return
+to that point. Furthermore, yield must remember where the generator
+function must continue to when it is called, putting those two together,
+we see that the implementation of <code class="docutils literal notranslate"><span class="pre">yield</span></code> must be like this –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">c</span>
+<span class="w">        </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">cont</span><span class="w"> </span><span class="n">c</span><span class="p">)</span><span class="w"> </span><span class="c1">; Remember where to continue.</span>
+<span class="w">        </span><span class="p">(</span><span class="n">ret</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
 </pre></div>
 </div>
-<p>The <code class="code highlight racket docutils literal highlight-racket"><span class="n">return</span></code> captures the dynamic continuation point at the point of call
-of <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">gen</span><span class="p">)</span></code>. We will need to return something to that point to help
-control the progress of the generator. What could the “yield” point look like?</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">return</span>
-<span class="w">        </span><span class="c1">;...</span>
-<span class="w">        </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">resume</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="s2">&quot;one&quot;</span><span class="w"> </span><span class="n">resume</span><span class="p">)))</span>
-<span class="w">        </span><span class="p">))</span>
+<p>Within the generator function, we need to first find out whether the
+<code class="docutils literal notranslate"><span class="pre">fn</span></code> function was called at all (and hit a <code class="docutils literal notranslate"><span class="pre">yield</span></code> point) in order
+to decide what to do. If <code class="docutils literal notranslate"><span class="pre">cont</span></code> is <code class="docutils literal notranslate"><span class="pre">#f</span></code>, it means the function
+wasn’t called, since it would’ve hit a <code class="docutils literal notranslate"><span class="pre">yield</span></code> call which would’ve
+modified <code class="docutils literal notranslate"><span class="pre">cont</span></code> to be a procedure. So we see that the <code class="docutils literal notranslate"><span class="pre">&lt;resume-code&gt;</span></code>
+part needs to be –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="n">cont</span>
+<span class="w">    </span><span class="p">(</span><span class="n">cont</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="n">return</span><span class="w"> </span><span class="p">(</span><span class="n">fn</span><span class="w"> </span><span class="n">yield</span><span class="p">)))</span><span class="w"> </span><span class="c1">; Starts the function going.</span>
 </pre></div>
 </div>
-<p>The “list of two values” is a placeholder mechanism to pass on the resume point to the
-point at which <code class="code highlight racket docutils literal highlight-racket"><span class="n">next</span></code> call is happening. We’re yet to determine the <code class="code highlight racket docutils literal highlight-racket"><span class="n">yield</span></code> though.
-What should <code class="code highlight racket docutils literal highlight-racket"><span class="n">yield</span></code> be? If we treat it as a function that doesn’t return to the point
-(unless resumed), we can see that it is essentially a continuation. What continuation is it
-though?</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Think about it for a bit and see if you can answer it.</p>
-</div>
-<p>The yield continuation is expected to come from the caller’s dynamic call
-point. So we need a mechanism for the caller to pass their continuation into
-the generator so it can yield contro back to that call point when it wants to
-pause.</p>
-<p>We therefore see that there are two bits of shared state information we need to
-have for each generator instance – one channel passes a resume continuation
-from the generator to the caller and another channel passes a yield
-continuation from the caller into the generator. Let’s use a box for each of these.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">return</span>
-<span class="w">        </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">yield-box</span><span class="w"> </span><span class="p">(</span><span class="nb">box</span><span class="w"> </span><span class="no">#f</span><span class="p">))</span>
-<span class="w">        </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">resume-box</span><span class="w"> </span><span class="p">(</span><span class="nb">box</span><span class="w"> </span><span class="no">#f</span><span class="p">))</span>
-<span class="w">        </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="p">((</span><span class="nb">unbox</span><span class="w"> </span><span class="n">yield-box</span><span class="p">)</span><span class="w"> </span><span class="n">val</span><span class="p">))</span>
-<span class="w">        </span><span class="c1">;...</span>
-<span class="w">        </span><span class="p">))</span>
+<p>The <code class="docutils literal notranslate"><span class="pre">return</span></code> function is similar to <code class="docutils literal notranslate"><span class="pre">yield</span></code>, but must set things
+up so that it would be an error to continue to call the generator function
+after its completion.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">return</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
+<span class="w">    </span><span class="c1">; By setting cont to be an error generating procedure,</span>
+<span class="w">    </span><span class="c1">; we prevent any further jumps into the function ``fn``.</span>
+<span class="w">    </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">cont</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="w">                  </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;End of generator function&quot;</span><span class="p">)))</span>
+<span class="w">    </span><span class="p">(</span><span class="n">ret</span><span class="w"> </span><span class="n">val</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>… but we want “yield” to also enable resumption. For that we can roll the
-<code class="code highlight racket docutils literal highlight-racket"><span class="k">let/cc</span><span class="w"> </span><span class="n">resume</span></code> into the yield and put that continuation into the
-<code class="code highlight racket docutils literal highlight-racket"><span class="n">resume-box</span></code>.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">return</span>
-<span class="w">        </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">yield-box</span><span class="w"> </span><span class="p">(</span><span class="nb">box</span><span class="w"> </span><span class="n">return</span><span class="p">))</span>
-<span class="w">        </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">resume-box</span><span class="w"> </span><span class="p">(</span><span class="nb">box</span><span class="w"> </span><span class="no">#f</span><span class="p">))</span>
-<span class="w">        </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
-<span class="w">            </span><span class="c1">; Mark the point where we want the code that calls &quot;next&quot;</span>
-<span class="w">            </span><span class="c1">; to resume from.</span>
-<span class="w">            </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">resume</span>
-<span class="w">                </span><span class="c1">; Store this resume point in the resume-box accessible to</span>
-<span class="w">                </span><span class="c1">; the generator user.</span>
-<span class="w">                </span><span class="p">(</span><span class="nb">set-box!</span><span class="w"> </span><span class="n">resume-box</span><span class="w"> </span><span class="n">resume</span><span class="p">)</span>
-<span class="w">                </span><span class="c1">; Return to the caller at the marked yield point provided by</span>
-<span class="w">                </span><span class="c1">; the caller. In the very first instance, this will return to</span>
-<span class="w">                </span><span class="c1">; the point where the generator is being created by calling</span>
-<span class="w">                </span><span class="c1">; (gen). In that case alone, we pass the caller both the</span>
-<span class="w">                </span><span class="c1">; yield-box and resume-box.</span>
-<span class="w">                </span><span class="p">((</span><span class="nb">unbox</span><span class="w"> </span><span class="n">yield-box</span><span class="p">)</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
-<span class="w">        </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="n">yield-box</span><span class="w"> </span><span class="n">resume-box</span><span class="p">))</span><span class="w"> </span><span class="c1">; Pass the channels to the caller at</span>
-<span class="w">                                             </span><span class="c1">; the generator creation point.</span>
-
-<span class="w">        </span><span class="c1">; Ordinary generator code using yield like a function.</span>
-<span class="w">        </span><span class="c1">; ...</span>
-<span class="w">        </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="s2">&quot;one&quot;</span><span class="p">)</span>
-<span class="w">        </span><span class="c1">; ...</span>
-<span class="w">        </span><span class="p">))</span>
-
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="p">(</span><span class="n">gen</span><span class="p">))</span>
-<span class="c1">; g is now a list of yield-box and resume-box</span>
-
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">next</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">yield</span>
-<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">yield-box</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="n">g</span><span class="p">)]</span>
-<span class="w">              </span><span class="p">[</span><span class="n">resume-box</span><span class="w"> </span><span class="p">(</span><span class="nb">second</span><span class="w"> </span><span class="n">g</span><span class="p">)])</span>
-<span class="w">            </span><span class="p">(</span><span class="nb">set-box!</span><span class="w"> </span><span class="n">yield-box</span><span class="w"> </span><span class="n">yield</span><span class="p">)</span>
-<span class="w">            </span><span class="p">((</span><span class="nb">unbox</span><span class="w"> </span><span class="n">resume-box</span><span class="p">)</span><span class="w"> </span><span class="n">val</span><span class="p">))))</span>
-
-
-<span class="p">(</span><span class="n">next</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="no">#f</span><span class="p">)</span><span class="w"> </span><span class="c1">; The value is currently unused, but could be used if needed.</span>
-<span class="w">            </span><span class="c1">; As much as the generator is capable of passing a value back</span>
-<span class="w">            </span><span class="c1">; to the caller, the caller can also pass values back into the</span>
-<span class="w">            </span><span class="c1">; generator which will become the result of the (yield ..)</span>
-<span class="w">            </span><span class="c1">; expression.</span>
+<p>Putting it all together, we have –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">generator</span><span class="w"> </span><span class="n">fn</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">exit-point-of-yield-call</span>
+<span class="w">            </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">cont</span><span class="w"> </span><span class="n">exit-point-of-yield-call</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="n">ret</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">return</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">cont</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;End of generator function&quot;</span><span class="p">)))</span>
+<span class="w">        </span><span class="p">(</span><span class="n">ret</span><span class="w"> </span><span class="n">val</span><span class="p">))</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">cont</span><span class="w"> </span><span class="no">#f</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="no">#f</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">exit-point-of-g-call</span>
+<span class="w">            </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="n">exit-point-of-g-call</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="n">cont</span>
+<span class="w">                </span><span class="p">(</span><span class="n">cont</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
+<span class="w">                </span><span class="p">(</span><span class="n">return</span><span class="w"> </span><span class="p">(</span><span class="n">fn</span><span class="w"> </span><span class="n">yield</span><span class="p">))))))</span>
 </pre></div>
 </div>
-<p>Notice how the beginning part of the generator is completely independent of what the
-generator actually does – i.e. it is “boiler plate code” that can be auto generated.</p>
 <div class="admonition-exercise admonition">
 <p class="admonition-title"><strong>Exercise</strong></p>
-<p>Try out the above version of the generator on your own. Explore what’s
-possible with this. In particular explore the idea of the yield function
-itself being a first class value in our scheme of things. This is <strong>more</strong>
-powerful than Python generators where <code class="code highlight racket docutils literal highlight-racket"><span class="n">yield</span></code> is a keyword and not
-a value that can be passed out. In our case, for example, you can pass this
-yield funciton down as arguments to other functions as well.</p>
-</div>
-<p>Let’s see if we can absorb the boiler plate code into a reusable function.
-Given we’re representing the generator state as a pair of boxes that contain
-continuations, we can start there and model our generator as a lambda that
-takes an extra parameter as its first argument, called <code class="code highlight racket docutils literal highlight-racket"><span class="n">yield</span></code>.</p>
-<p>i.e. we want to write our generator as –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">lambda</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="n">arg1</span><span class="w"> </span><span class="n">arg2</span><span class="w"> </span><span class="k">...</span><span class="p">)</span>
-<span class="w">    </span><span class="c1">;...</span>
-<span class="w">    </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
-<span class="w">    </span><span class="c1">;...</span>
-<span class="w">    </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
-<span class="w">    </span><span class="c1">;...</span>
-<span class="w">    </span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">generator</span><span class="w"> </span><span class="n">genfn</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">return</span>
-<span class="w">        </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">yield-box</span><span class="w"> </span><span class="p">(</span><span class="nb">box</span><span class="w"> </span><span class="n">return</span><span class="p">))</span>
-<span class="w">        </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">resume-box</span><span class="w"> </span><span class="p">(</span><span class="nb">box</span><span class="w"> </span><span class="no">#f</span><span class="p">))</span>
-<span class="w">        </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
-<span class="w">            </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">resume</span>
-<span class="w">                </span><span class="p">(</span><span class="nb">set-box!</span><span class="w"> </span><span class="n">resume-box</span><span class="w"> </span><span class="n">resume</span><span class="p">)</span>
-<span class="w">                </span><span class="p">((</span><span class="nb">unbox</span><span class="w"> </span><span class="n">yield-box</span><span class="p">)</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
-<span class="w">        </span><span class="c1">; Pass the generator state to the caller for use by &quot;next&quot;.</span>
-<span class="w">        </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="n">yield-box</span><span class="w"> </span><span class="n">resume-box</span><span class="p">))</span>
-<span class="w">        </span><span class="c1">; Call the generator function with our newly minted &quot;yield&quot; function</span>
-<span class="w">        </span><span class="c1">; as the first argument.</span>
-<span class="w">        </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">genfn</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="n">yield</span><span class="w"> </span><span class="n">args</span><span class="p">))))</span>
-</pre></div>
-</div>
-<p>Now, we can easily write the above python code like this –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="p">(</span><span class="n">generator</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="n">yield</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="s2">&quot;one&quot;</span><span class="w"> </span><span class="s2">&quot;two&quot;</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="p">)))))</span>
-<span class="c1">; Note that we can&#39;t map the yield function like this in Python</span>
-<span class="c1">; because in Python yield is not a function or a value that works</span>
-<span class="c1">; as one.</span>
-<span class="p">(</span><span class="n">next</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="no">#f</span><span class="p">)</span>
-<span class="p">(</span><span class="n">next</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="no">#f</span><span class="p">)</span>
-<span class="p">(</span><span class="n">next</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="no">#f</span><span class="p">)</span>
-<span class="p">(</span><span class="n">next</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="no">#f</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>You can also make <code class="code highlight racket docutils literal highlight-racket"><span class="n">generator</span></code> a bit more convenient to use by
-uncurrying the <code class="code highlight racket docutils literal highlight-racket"><span class="n">args</span></code>.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">generator</span><span class="w"> </span><span class="n">genfn</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="k">lambda</span><span class="w"> </span><span class="n">args</span>
-<span class="w">        </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">return</span>
-<span class="w">            </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">yield-box</span><span class="w"> </span><span class="p">(</span><span class="nb">box</span><span class="w"> </span><span class="n">return</span><span class="p">))</span>
-<span class="w">            </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">resume-box</span><span class="w"> </span><span class="p">(</span><span class="nb">box</span><span class="w"> </span><span class="no">#f</span><span class="p">))</span>
-<span class="w">            </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
-<span class="w">                </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">resume</span>
-<span class="w">                    </span><span class="p">(</span><span class="nb">set-box!</span><span class="w"> </span><span class="n">resume-box</span><span class="w"> </span><span class="n">resume</span><span class="p">)</span>
-<span class="w">                    </span><span class="p">((</span><span class="nb">unbox</span><span class="w"> </span><span class="n">yield-box</span><span class="p">)</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
-<span class="w">            </span><span class="c1">; Pass the generator state to the caller for use by &quot;next&quot;.</span>
-<span class="w">            </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="n">yield-box</span><span class="w"> </span><span class="n">resume-box</span><span class="p">))</span>
-<span class="w">            </span><span class="c1">; Call the generator function with our newly minted &quot;yield&quot; function</span>
-<span class="w">            </span><span class="c1">; as the first argument.</span>
-<span class="w">            </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">genfn</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="n">yield</span><span class="w"> </span><span class="n">args</span><span class="p">)))))</span>
-
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">gen</span><span class="w"> </span><span class="p">(</span><span class="n">generator</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">for-each</span><span class="w"> </span><span class="n">yield</span><span class="w"> </span><span class="o">&#39;</span><span class="p">(</span><span class="s2">&quot;one&quot;</span><span class="w"> </span><span class="s2">&quot;two&quot;</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="p">)))))</span>
-<span class="c1">; With this form, the function `generator` works like a word that</span>
-<span class="c1">; declares the given lambda function to be a generator. You can then call</span>
-<span class="c1">; the produced functions to make make independently evolving generator instances.</span>
-
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="p">(</span><span class="n">gen</span><span class="p">))</span>
-<span class="p">(</span><span class="n">next</span><span class="w"> </span><span class="n">g</span><span class="w"> </span><span class="no">#f</span><span class="p">)</span>
-<span class="c1">;...</span>
-</pre></div>
-</div>
-<p>Enjoy … and the journey always continues on!</p>
-<div class="admonition-exercise admonition">
-<p class="admonition-title"><strong>Exercise</strong></p>
-<p>Notice that if you call <code class="code highlight racket docutils literal highlight-racket"><span class="n">next</span></code> one too many a time, you get an error.
-How can you arrange for the generator to finish its calculations
-gracefully?</p>
-<p><strong>Hint</strong>: Attend to where the result expression of the genfn is returning
-its value to. Where should it return to? .. and what can it possibly return
-to signal the end?</p>
+<p>Test out <code class="docutils literal notranslate"><span class="pre">generator</span></code> using the example above.</p>
 </div>
 </section>
-<section id="search-as-a-language-feature">
-<h2>Search as a language feature<a class="headerlink" href="#search-as-a-language-feature" title="Link to this heading">¶</a></h2>
-<p>Many popular languages today have a language feature usually going by the name
-“set comprehension”, “list comprehension”, “array comprehension” or “dictionary
-comprehension”. The essence of these constructs is nested for-loop iteration
-where values are produced based on the for loop iterations which meet some
-criteria expressed as a boolean constraint on the values being enumerated.</p>
-<p>Generators are closely linked with comprehensions and languages like Julia even
-make generators use the same syntax as comprehensions. So it is not unreasonable
-to expect that the ideas we developed above can serve to explore a space of
-variable values that need to meet some constraints. For example, let’s consider
-a toy problem of finding pythagorean triplets.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">pytriplets</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="o">*</span><span class="n">y</span> <span class="o">==</span> <span class="n">z</span><span class="o">*</span><span class="n">z</span><span class="p">:</span>
-                    <span class="k">yield</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">)</span>
+<section id="differences-from-python-s-generators">
+<h2>Differences from Python’s generators<a class="headerlink" href="#differences-from-python-s-generators" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">yield</span></code> is a reserved word in Python whereas the <code class="docutils literal notranslate"><span class="pre">yield</span></code> argument
+in our generator implementation is an ordinary first class function.
+Therefore <code class="docutils literal notranslate"><span class="pre">(map</span> <span class="pre">yield</span> <span class="pre">(list</span> <span class="pre">1</span> <span class="pre">2</span> <span class="pre">3))</span></code> is value whereas that is
+not possible with Python’s <code class="docutils literal notranslate"><span class="pre">yield</span></code> keyword.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">(yield</span> <span class="pre">x)</span></code> looks and behaves like a normal function call.
+Python’s yield is a statement when written like <code class="docutils literal notranslate"><span class="pre">yield</span> <span class="pre">val</span></code>
+and an expression that can be resumed with a value when written
+as <code class="docutils literal notranslate"><span class="pre">(yield</span> <span class="pre">val)</span></code> (here the parentheses stand for grouping, so
+it is the same as <code class="docutils literal notranslate"><span class="pre">((yield</span> <span class="pre">val))</span></code>).</p></li>
+<li><p>When the generator function in Python completes with a return, it
+can no longer be jumped into and it will indicate that with a <code class="docutils literal notranslate"><span class="pre">StopIteration</span></code>
+exception. In our case, we can choose our own protocol on how to
+finish it .. either by using a known sentinel value or by raising
+an error like Python does.</p></li>
+<li><p>Python embeds its generator capabilities into constructs like
+list comprehension and for loops. We haven’t done anything like
+that with our generators … yet, but we can of course use the
+same protocol to implement similar behaviours.</p></li>
+</ol>
+</section>
+<section id="uses-for-generators">
+<h2>Uses for generators<a class="headerlink" href="#uses-for-generators" title="Link to this heading">¶</a></h2>
+<p>The ability to pause and resume computation that lexically looks like a single
+sequence of operations is a valuable design tool in organizing many kinds of
+systems.</p>
+<section id="async-await">
+<h3>Async/Await<a class="headerlink" href="#async-await" title="Link to this heading">¶</a></h3>
+<p>In particular, this is useful when considering event loops that service browser
+interfaces or server-side programs. Of late, this mechanism is usually
+presented in languages using the keywords <code class="docutils literal notranslate"><span class="pre">async</span></code> and <code class="docutils literal notranslate"><span class="pre">await</span></code>, where
+<code class="docutils literal notranslate"><span class="pre">async</span></code> marks a function for such asynchronous processing (analogous to
+<code class="docutils literal notranslate"><span class="pre">generator</span></code> in our case) and <code class="docutils literal notranslate"><span class="pre">await</span></code> performs the equivalent of <code class="docutils literal notranslate"><span class="pre">yield</span></code>,
+but returns control to the event loop instead.</p>
+<p>In Javascript, for example, an object called a <code class="docutils literal notranslate"><span class="pre">Promise</span></code> plays the role
+of capturing a computation that “promises” to produce a value in the future.
+Such a promise is constructed like this –</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="ow">new</span><span class="w"> </span><span class="nb">Promise</span><span class="p">(</span><span class="kd">function</span><span class="w"> </span><span class="p">(</span><span class="nx">resolve</span><span class="p">,</span><span class="w"> </span><span class="nx">reject</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">....</span><span class="w"> </span><span class="nx">code</span><span class="w"> </span><span class="p">...</span>
+<span class="w">    </span><span class="nx">resolve</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span><span class="w"> </span><span class="c1">// When the computation completed successfully.</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="w">    </span><span class="nx">reject</span><span class="p">(</span><span class="nx">value</span><span class="p">);</span><span class="w"> </span><span class="c1">// When it completes with an error.</span>
+<span class="p">})</span>
 </pre></div>
 </div>
-<p>How can we model this kind of searching using our scheme of things. First off,
-we need to realize that the inner-most for loop gets to run fully for each of
-the outer for loops – i.e. the search is <strong>depth first</strong>. This kind of a
-search can be modeled using a stack, where the top state of the stack captures
-the state of the inner loop. Similar to what we did above, we will need
-<code class="code highlight racket docutils literal highlight-racket"><span class="n">yield</span></code> to be modeled as “try to find one more case”.  One other point to
-note here is that there is a role played by the “else” part of the if – it
-tries the next possible set of values for x,y,z. We’ll model that instead of
-yield directly, because with search, we’re interested in finding one solution
-(at least for starters).</p>
-<p>And what we’ll use here is a stack of continuations!</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">stack</span><span class="w"> </span><span class="p">(</span><span class="nb">box</span><span class="w"> </span><span class="nb">empty</span><span class="p">))</span>
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="nb">set-box!</span><span class="w"> </span><span class="n">stack</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="p">(</span><span class="nb">unbox</span><span class="w"> </span><span class="n">stack</span><span class="p">))))</span>
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">pop</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">top</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="p">(</span><span class="nb">unbox</span><span class="w"> </span><span class="n">stack</span><span class="p">))])</span>
-<span class="w">        </span><span class="p">(</span><span class="nb">set-box!</span><span class="w"> </span><span class="n">stack</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="p">(</span><span class="nb">unbox</span><span class="w"> </span><span class="n">stack</span><span class="p">)))</span>
-<span class="w">        </span><span class="n">top</span><span class="p">))</span>
+<div class="admonition-notice admonition">
+<p class="admonition-title"><strong>Notice</strong></p>
+<p>Do you notice the similarity between the way <code class="docutils literal notranslate"><span class="pre">Promise</span></code> is structured
+and our <code class="docutils literal notranslate"><span class="pre">generator</span></code> function? While somewhat similar, they’re also
+different in that <code class="docutils literal notranslate"><span class="pre">yield</span></code> can be used multiple times whereas <code class="docutils literal notranslate"><span class="pre">resolve</span></code>
+and <code class="docutils literal notranslate"><span class="pre">reject</span></code> can only be called once.</p>
+</div>
+<p>The form <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">&lt;expr&gt;</span></code> then expects <code class="docutils literal notranslate"><span class="pre">&lt;expr&gt;</span></code> to provide a <code class="docutils literal notranslate"><span class="pre">Promise</span></code>
+object and waits for it to complete, returning the value passed to <code class="docutils literal notranslate"><span class="pre">resolve</span></code>,
+or raising as error the value passed to <code class="docutils literal notranslate"><span class="pre">reject</span></code>.</p>
+<p>Thus, <code class="docutils literal notranslate"><span class="pre">async</span></code>/<code class="docutils literal notranslate"><span class="pre">await</span></code> in javascript desugars to generators that coordinate
+using <code class="docutils literal notranslate"><span class="pre">Promise</span></code> objects. The situation is similar in other language which may
+use slightly different terminology – for example <code class="docutils literal notranslate"><span class="pre">Future</span></code> may be used
+instead of <code class="docutils literal notranslate"><span class="pre">Promise</span></code>.</p>
+</section>
+<section id="search">
+<h3>Search<a class="headerlink" href="#search" title="Link to this heading">¶</a></h3>
+<p>Generators are useful to structure computations where values need to be
+produced “lazily”, for example, to explore search spaces. A variable
+that is permitted to take on a number of values according to some known
+constraints can be treated as a generator for those values, permitting
+the exploration of a search space across a number of such variables.</p>
+<p>One way to see this is to think of generators as sequences in the same footing
+as lists. “List of X” can for many such search/explore applications be
+re-presented as “Generator of X” without incurring the storage costs of lists.
+Common operations on lists such as <code class="docutils literal notranslate"><span class="pre">map</span></code> and <code class="docutils literal notranslate"><span class="pre">filter</span></code> translate well
+to generators as well. Much as mapping over a list produces another list,
+mapping over a generator produces another generator. And so is the case
+with filtering.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">g-map</span><span class="w"> </span><span class="n">fn</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="n">generator</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="n">loop</span><span class="w"> </span><span class="p">([</span><span class="n">v</span><span class="w"> </span><span class="p">(</span><span class="n">g</span><span class="w"> </span><span class="no">#f</span><span class="p">)])</span>
+<span class="w">            </span><span class="p">(</span><span class="k">when</span><span class="w"> </span><span class="n">v</span>
+<span class="w">                </span><span class="p">(</span><span class="k">begin</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="p">(</span><span class="n">fn</span><span class="w"> </span><span class="n">v</span><span class="p">))</span>
+<span class="w">                       </span><span class="p">(</span><span class="n">loop</span><span class="w"> </span><span class="p">(</span><span class="n">g</span><span class="w"> </span><span class="no">#f</span><span class="p">))))</span>
+<span class="w">            </span><span class="no">#f</span><span class="p">))))</span>
 
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">try-again</span><span class="p">)</span>
-<span class="w">    </span><span class="p">((</span><span class="n">pop</span><span class="p">)))</span>
-
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">ensure</span><span class="w"> </span><span class="n">bool</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="k">when</span><span class="w"> </span><span class="p">(</span><span class="nb">not</span><span class="w"> </span><span class="n">bool</span><span class="p">)</span>
-<span class="w">        </span><span class="p">(</span><span class="n">try-again</span><span class="p">)))</span>
-
-<span class="c1">; range produces one value at a time. If you don&#39;t</span>
-<span class="c1">; like it, you can call (try-again) to get another.</span>
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="n">n</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">return</span>
-<span class="w">        </span><span class="p">(</span><span class="k">let/cc</span><span class="w"> </span><span class="n">trynext</span>
-<span class="w">            </span><span class="p">(</span><span class="n">push</span><span class="w"> </span><span class="n">trynext</span><span class="p">)</span>
-<span class="w">            </span><span class="p">(</span><span class="n">return</span><span class="w"> </span><span class="n">m</span><span class="p">))</span>
-<span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">&lt;</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="n">n</span><span class="p">)</span>
-<span class="w">            </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="n">n</span><span class="p">)</span>
-<span class="w">            </span><span class="p">(</span><span class="n">try-again</span><span class="p">))))</span>
-
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">pytriplets</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="n">n</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">x</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="n">n</span><span class="p">)]</span>
-<span class="w">          </span><span class="p">[</span><span class="n">y</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="n">n</span><span class="p">)]</span>
-<span class="w">          </span><span class="p">[</span><span class="n">z</span><span class="w"> </span><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="n">n</span><span class="p">)])</span>
-<span class="w">        </span><span class="p">(</span><span class="n">ensure</span><span class="w"> </span><span class="p">(</span><span class="nb">equal?</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">y</span><span class="p">))))</span>
-<span class="w">        </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">z</span><span class="p">)))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">g-filter</span><span class="w"> </span><span class="n">fn</span><span class="w"> </span><span class="n">g</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="n">generator</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">yield</span><span class="p">)</span>
+<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="n">loop</span><span class="w"> </span><span class="p">([</span><span class="n">v</span><span class="w"> </span><span class="p">(</span><span class="n">g</span><span class="w"> </span><span class="no">#f</span><span class="p">)])</span>
+<span class="w">            </span><span class="p">(</span><span class="k">when</span><span class="w"> </span><span class="n">v</span>
+<span class="w">                </span><span class="p">(</span><span class="k">when</span><span class="w"> </span><span class="p">(</span><span class="n">fn</span><span class="w"> </span><span class="n">v</span><span class="p">)</span>
+<span class="w">                    </span><span class="p">(</span><span class="n">yield</span><span class="w"> </span><span class="n">v</span><span class="p">))</span>
+<span class="w">                </span><span class="p">(</span><span class="n">loop</span><span class="w"> </span><span class="p">(</span><span class="n">g</span><span class="w"> </span><span class="no">#f</span><span class="p">)))</span>
+<span class="w">            </span><span class="no">#f</span><span class="p">))))</span>
 </pre></div>
 </div>
-<p>Now, if you call, say, <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">pytriplets</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="mi">50</span><span class="p">)</span></code>, it will return a list
-of three numbers that form a triplet. If you’re not happy and want another,
-you can invoke <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">try-again</span><span class="p">)</span></code> to get the next one.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&gt;</span> <span class="p">(</span><span class="n">pytriplets</span> <span class="mi">10</span> <span class="mi">50</span><span class="p">)</span>
-<span class="s1">&#39;(10 24 26)</span>
-<span class="o">&gt;</span> <span class="p">(</span><span class="k">try</span><span class="o">-</span><span class="n">again</span><span class="p">)</span>
-<span class="s1">&#39;(12 16 20)</span>
-<span class="o">&gt;</span> <span class="p">(</span><span class="k">try</span><span class="o">-</span><span class="n">again</span><span class="p">)</span>
-<span class="s1">&#39;(12 35 37)</span>
-<span class="o">&gt;</span> <span class="p">(</span><span class="k">try</span><span class="o">-</span><span class="n">again</span><span class="p">)</span>
-<span class="s1">&#39;(14 48 50)</span>
-<span class="o">&gt;</span> <span class="p">(</span><span class="k">try</span><span class="o">-</span><span class="n">again</span><span class="p">)</span>
-<span class="s1">&#39;(15 20 25)</span>
-<span class="o">&gt;</span> <span class="p">(</span><span class="k">try</span><span class="o">-</span><span class="n">again</span><span class="p">)</span>
-<span class="s1">&#39;(15 36 39)</span>
-<span class="o">&gt;</span>
-</pre></div>
-</div>
-<p>That was fun, wasn’t it?</p>
-<div class="admonition-question admonition">
-<p class="admonition-title"><strong>Question</strong></p>
-<p>Notice that the next result isn’t being returned from the <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">try-again</span><span class="p">)</span></code>.
-Why is that? Do you want to change that behaviour? If so, how would you?
-Also, why is the result being printed out even though we aren’t writing it
-out explicitly and are simply returning a list from <code class="code highlight racket docutils literal highlight-racket"><span class="n">pytriplets</span></code>?</p>
-</div>
-<div class="admonition-terminology admonition">
-<p class="admonition-title"><strong>Terminology</strong></p>
-<p>This kind of behaviour is referred to as “non-determinism” in a language.
-We know that the program is quite deterministic alright, but the reason the
-term is used is that at the point where the <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="n">n</span><span class="p">)</span></code> function
-call returns, the result could be any value in the range that meets
-criteria that’s going to be specified <strong>later</strong> in the program. So at that
-point, we don’t truly know what value it is going to produce.</p>
-</div>
-<div class="admonition-exercise admonition">
-<p class="admonition-title"><strong>Exercise</strong></p>
-<p>Write an <code class="code highlight racket docutils literal highlight-racket"><span class="n">options</span></code> function similar to <code class="code highlight racket docutils literal highlight-racket"><span class="nb">range</span></code> that behaves like
-this – It takes any number of arguments and, just as range runs over integers
-from the first arg to the second arg, steps through the arguments one by one.
-In other words, <code class="code highlight racket docutils literal highlight-racket"><span class="n">options</span></code> can return any one of its arguments, and the
-value it returns can be decided by any constraints on the value that may appear
-in the code after the <code class="code highlight racket docutils literal highlight-racket"><span class="n">options</span></code> call.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">pytriplets</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">x</span><span class="w"> </span><span class="p">(</span><span class="n">options</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="mi">9</span><span class="p">)]</span>
-<span class="w">          </span><span class="p">[</span><span class="n">y</span><span class="w"> </span><span class="p">(</span><span class="n">options</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="mi">9</span><span class="p">)]</span>
-<span class="w">          </span><span class="p">[</span><span class="n">z</span><span class="w"> </span><span class="p">(</span><span class="n">options</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="mi">9</span><span class="p">)])</span>
-<span class="w">        </span><span class="p">(</span><span class="n">ensure</span><span class="w"> </span><span class="p">(</span><span class="nb">equal?</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">y</span><span class="p">))))</span>
-<span class="w">        </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">z</span><span class="p">)))</span>
-</pre></div>
-</div>
-<p>The above code should behave the same way as though <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="nb">range</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">9</span><span class="p">)</span></code> was
-used instead of <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">options</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="mi">8</span><span class="w"> </span><span class="mi">9</span><span class="p">)</span></code>. Except that in the case
-of <code class="code highlight racket docutils literal highlight-racket"><span class="n">options</span></code>, the values can be of any type.</p>
-</div>
+<p>In the above code, we’ve used the simple protocol that when a
+generator produces <code class="docutils literal notranslate"><span class="pre">#f</span></code>, it means it’s completed and no further
+calls are possible.</p>
+</section>
 </section>
 </section>
 
@@ -503,10 +588,12 @@ of <code class="code highlight racket docutils literal highlight-racket"><span c
 <li class="toctree-l1"><a class="reference internal" href="objects-self.html">Objects - the Self way</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dispatch.html">Polymorphism via dispatch</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Generators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#seeing-continuations-through-abstraction">Seeing continuations through β-abstraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#delimited-continuations">Delimited continuations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#call-cc-and-let-cc"><code class="code highlight racket docutils literal highlight-racket"><span class="nb">call/cc</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="k">let/cc</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#python-generators">Python generators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#generators-in-racket">Generators in Racket</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#search-as-a-language-feature">Search as a language feature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#super-power-time-generators">Super power time - generators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#differences-from-python-s-generators">Differences from Python’s generators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#uses-for-generators">Uses for generators</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="appsem.html">Alternative application semantics</a></li>

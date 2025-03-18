@@ -5,485 +5,586 @@ In :doc:`control`, we implemented a rudimentary way to define and work with
 generators in our small stack-based language. In this section, we'll see how
 Racket provides us with full continuations that can be used for this purpose.
 
+Seeing continuations through β-abstraction
+------------------------------------------
+
+In an eager evaluation language, the order in which computations happen
+to produce the value of a given expression is known from the structure of
+the expression -- i.e. "statically". It is possible to make this order
+explicit, as it is done in compilers, by transforming them to a form
+known as "static single assignment form" or "SSA form" for short. [#ssa]_
+
+.. [#ssa] We won't be dealing with all cases of SSA. Just enough to give
+   an idea of what "the rest of the computation" means.
+
+Consider our now familiar expression - the distance calculator between
+two points on a plane --
+
+.. code-block:: racket
+
+    (sqrt (+ (square (- x1 x2)) (square (- y1 y2))))
+    ; we consider x1, x2, y1 and y2 to be bound variables,
+    ; perhaps by an enclosing λ
+
+We can expression the sequence of calculations that happen here by rewriting
+it in such a way that each calculation's result gets assigned to a variable.
+
+.. code-block:: racket
+
+    (let ()
+        (define v1 (- x1 x2))
+        (define v2 (square v1))
+        (define v3 (- y1 y2))
+        ;------------ the "rest of the computation"
+        ;------------ after (- y1 y2) is computed
+        ;------------ follows below.
+        (define v4 (square v3))
+        (define v5 (+ v2 v4))
+        (define v6 (sqrt v5))
+        v6)
+
+An important aspects of SSA form is that variables introduced are assigned only
+once ("single assignment") based on the "static" analysis of the code.
+Compilers do this transformation because it helps optimizers figure out
+dependencies easier than if multiple assignments we permitted. For instance,
+exchanging the definition order of ``v2`` and ``v3`` won't affect the result.
+However, consider the following expression -
+
+.. code-block:: racket
+
+    (let ([x 3] [y 4])
+        (set! x (+ x y)) ; line1
+        (set! y (/ x 2)) ; line2
+        (set! x (* x 5)) ; line3
+        (set! x (- x y)) ; line4
+        x)
+
+Notice that exchanging ``line2`` and ``line3``  changes the
+meaning of the program. However, when we rewrite it in SSA form as --
+
+.. code-block:: racket
+
+    (let ([x 3] [y 4]))
+        (define v1 (+ x y))   ; ssa-line1
+        (define v2 (/ v1 2))  ; ssa-line2
+        (define v3 (* v1 5))  ; ssa-line3
+        (define v4 (- v3 v2)) ; ssa-line4
+        v4)
+
+... ``ssa-line2`` and ``ssa-line3`` can be exchanged without changing the
+meaning of the program. This analysis is much easier to do in SSA form for
+compiler writers.
+
+Since at any point we know the "next expression that can be evaluated",
+we can use that knowledge to transform the original distance calculation
+expression through β-abstraction to make clear the execution order like
+below --
+
+.. code-block:: racket
+
+    (sqrt (+ (square (- x2 x1)) (square (- y2 y1))))
+    ; β-abstract over (- x2 x1)
+    ((λ (v1) (sqrt (+ (square v1) (square (- y2 y1))))) (- x2 x1))
+    ; Now β-abstract over the first λ term
+    ((λ (f1) (f1 (- x2 x1)))
+     (λ (v1) (sqrt (+ (square v1) (square (- y2 y1))))))
+
+Here, ``f1`` is a real function that captures "the rest of the computation"
+up to the ``sqrt`` calculation (it is said to be "delimited" at that point)
+and the ``v1`` identifier is analogous to our first SSA form line.
+
+We can continue this process with the insides of the second λ term to
+produce the complete form through this sequence of transformations --
+
+.. code-block:: racket
+
+    ((λ (f1) (f1 (- x2 x1)))
+     (λ (v1) (sqrt (+ (square v1) (square (- y2 y1))))))
+    ; =>
+    ((λ (f1) (f1 (- x2 x1)))
+     (λ (v1) ((λ (f2) (f2 (square v1)))
+              (λ (v2) (sqrt (+ v2 (square (- y2 y1))))))))
+    ; =>
+    ((λ (f1) (f1 (- x2 x1)))
+     (λ (v1) ((λ (f2) (f2 (square v1)))
+              (λ (v2) ((λ (f3) (f3 (- y2 y1)))
+                       (λ (v3) (sqrt (+ v2 (square v3)))))))))
+    ; =>
+    ((λ (f1) (f1 (- x2 x1)))
+     (λ (v1) ((λ (f2) (f2 (square v1)))
+              (λ (v2) ((λ (f3) (f3 (- y2 y1)))
+                       (λ (v3) ((λ (f4) (f4 (square v3)))
+                                (λ (v4) (sqrt (+ v2 v4))))))))))
+    ; =>
+    ((λ (f1) (f1 (- x2 x1)))
+     (λ (v1) ((λ (f2) (f2 (square v1)))
+              (λ (v2) ((λ (f3) (f3 (- y2 y1)))
+                       (λ (v3) ((λ (f4) (f4 (square v3)))
+                                (λ (v4) ((λ (f5) (f5 (+ v2 v4)))
+                                         (λ (v5) (sqrt v5)))))))))))
+
+The functions ``f1``, ``f2``, .. all represent the remaining computations
+to be done at each point and ``v1``, ``v2`` all get the results of each
+computation step as it happens.
+
+Delimited continuations
+-----------------------
+
+We now make a small step that's a giant leap of sorts.
+
+Within the λ where we use the ``f1``, ``f2`` etc., we have
+expressions of the form ``(f1 (- x2 x1))`` and so on. We now
+ask "what if we had a magic operator ``magic`` that made this 
+``f1`` available for us at the point we're calculating ``(- x2 x1)``?"
+
+.. code-block:: racket
+
+    (START (sqrt (+ (square (magic f1 (f1 (- x2 x1))))
+                    (square (- y2 y1)))))
+
+... where we've also marked the outer most expression up to which
+we consider "the rest of the computation" to happen.
+
+Thing is, this "``magic`` operator" exists in racket via the ``control``
+module. ``START`` is called ``reset`` and ``magic`` is called ``shift``.
+The function made available by ``shift`` is called a "delimited continuation"
+since its range is delimited by the surrounding ``reset``.
+
+.. code-block:: racket
+
+    (require racket/control)
+    (reset (sqrt (+ (square (shift f1 (f1 (- x2 x1))))
+                    (square (- y2 y1)))))
+
+Ok so what? Now we ask ourselves "what kind of super powers having 
+the ``f1`` at that point gets us?" To see what happens in the
+forms below, remember that, for the cases we're looking at,
+
+.. code-block:: racket
+
+    (reset ...A... (shift f1 ...B...) ...C...)
+    ; is equivalent to
+    ((λ (f1) ...B...) (λ (v1) ...A... v1 ...C...))
+
+Consider what would be the result of the following expression --
+
+.. code-block:: racket
+
+    (reset (sqrt (+ (square (shift f1 0))
+                    (square (- y2 y1)))))
+
+Here, we are not using ``f1`` at all. The equivalent form therefore 
+looks like --
+
+.. code-block:: racket
+
+    ((λ (f1) 0) (λ (v1) (sqrt (+ (square v1) (square (- y2 y1))))))
+
+Clearly, the entire computation that the second λ stands for has
+been completely discarded. In other words, we've gained the power
+to choose to abort the computation based on the local decisions
+up to a given outer term identified by ``reset``. For example,
+we could've made it conditional like so --
+
+
+.. code-block:: racket
+
+    (reset (sqrt (+ (square (shift f1 (if (> x2 x1)
+                                          (f1 (- x2 x1))
+                                          0)))
+                    (square (- y2 y1)))))
+
+When ``x2 <= x1``, the entire expression will evaluate to 0.
+We could've chosen to produce an error term or anything else
+that we please as well.
+
+For another simple example, consider --
+
+.. code-block:: racket
+
+    (reset (+ 5 (shift f (f (f 10)))))
+
+To find out what this means, we can rewrite it to --
+
+.. code-block:: racket
+
+    ((λ (f) (f (f 10))) (λ (v) (+ 5 v)))
+
+Reducing that, we see that the expression computes to ``20``
+by adding ``5`` twice.
+
+Within the ``shift`` block, we can do anything else that Racket
+permits us to do with functions since these delimited continuation
+functions are effectively ordinary functions -- like ...
+
+1. Storing it away in a variable or data structure for later use.
+2. Applying it twice.
+3. Mapping it over a list of values.
+4. .... and so on
+
 :rkt:`call/cc` and :rkt:`let/cc`
 --------------------------------
 
-When working with our now-familiar "distance" function, :rkt:`(sqrt (+ (* dx dx) (* dy dy)))`,
-we saw how we can get "the rest of the computation that's supposed to happen after :rkt:`(* dx dx)`"
-by β-abstracting over :rkt:`(* dx dx)` to get :rkt:`(λ (dx2) (sqrt (+ dx2 (* dy dy))))`. Racket/Scheme
-provide access to this function for us. We just have to ask!
+Racket also provides un-delimited continuations via the ``let/cc`` construct
+which desugars to ``call/cc`` as shown below --
+
+.. code-block:: racket
+
+    (let/cc <identifier>
+        <body>...)
+    ; => desugar =>
+    (call/cc (λ (<identifier>)
+        <body>...))
+
+The ``<identifier>`` given is bound to the continuation at the point
+and thus made available to the ``..body..`` code. The ``let/cc`` is
+visually easier to relate to and so we'll use that, but understand 
+that it desugars to ``call/cc`` like above and therefore ``call/cc``
+is the more fundamental operator here.
 
 .. admonition:: **Terminology**
 
-    The function that represents "the rest of the computation" at any given evaluation point
-    (i.e. sub-expression) is called the **current continuation** at that point. This function
-    will differ depending on which sub-expression is under consideration, since what remains
-    to be done will differ.
+    ``call/cc`` stands for the much longer name ``call-with-current-continuation``.
 
-In the "distance" expression, to get access to the current continuation at the
-time we're evaluating the :rkt:`(* dx dx)` (note that the language talks about
-the **dynamic** state of the program, not its lexical structure) can be obtained
-using :rkt:`call/cc` (read as "call with current continuation") like this --
+There are some differences from the ``reset`` / ``shift`` pair though.
 
-.. code-block:: racket
+1. The continuation function provided by ``let/cc`` does not itself return to
+   the call point. We saw that with the delimited continuation provided by
+   ``shift``, we can call it as many times as we want, even doing compositions
+   like ``(f1 (f1 10))``. Since the continuation provided by ``let/cc`` does
+   not itself "return" to its call point, if ``f1`` were such a ``let/cc``
+   contination, the double call would just be equivalent to ``(f1 10)``. In
+   other words, a call to a ``let/cc`` provided continuation function is
+   **always** a tail call whether it occurs in a tail position or not.
 
-    (sqrt (+ (call/cc (λ (k) (k (* dx dx)))) (* dy dy)))
-
-The entire :rkt:`(call/cc (λ (k) (k (* dx dx))))` is simply equivalent to :rkt:`(* dx dx)`.
-
-One way to understand this is to think of the :rkt:`k` continuation as labeling
-the dynamic return point of the :rkt:`call/cc` invocation that is providing it.
-So call :rkt:`k` with some value will result in the entire :rkt:`call/cc`
-expression that provided that :rkt:`k` completing its computation with the
-value as its result. In the above code, we're supplying :rkt:`(* dx dx)` to
-:rkt:`k`, and so the whole :rkt:`call/cc` expression is equivalent to :rkt:`(*
-dx dx)`. So you could think of it as :rkt:`(call/cc (λ (return) (return (* dx
-dx))))` and that would be correct.
-
-It can get quite cumbersome to write lambdas every time we use :rkt:`call/cc`, so
-Racket/Scheme provides some syntactic sugar for it -- :rkt:`let/cc` that is convenient.
+2. The value of the body of code in ``let/cc`` becomes the value of the
+   ``let/cc`` block, as though there was an implicit call to the continuation
+   at the end. This is different from the case of ``shift`` where the body of
+   ``shift`` aborts the entire calculation if it does not use the continuation
+   function. It is easy to see why ``let/cc`` has this implicit call at the end
+   because such an abort will essentially be an exit from the program (in
+   single threaded cases) which is not what we usually want. So the
+   continuation function provided by ``let/cc`` can be seen as a "jump out of
+   the ``let/cc`` block with this value" procedure.
 
 .. code-block:: racket
 
-    (let/cc k ...some-expression-using-k...) 
-    ; desugars into 
-    (call/cc (λ (k) ..some-expression-using-k...))
+    (+ 5 (let/cc f
+            (displayln "one")
+            (f 10)
+            (displayln "two")))
 
-i.e., :rkt:`let/cc` introduces the local variable :rkt:`k` into the expression
-much like :rkt:`let`.
+The above will print ``one`` and then evaluate to the result ``15``. The
+``(displayln "two")`` never gets a chance to run because the call to the
+continuation ``f`` aborts everything that follows ``(f 10)``. The ``10``
+essentially becomes the value of the entire ``let/cc`` expression, leaving us
+with ``(+ 5 10)`` as the result.
 
-You could ask "so what?". Having access to the current continuation as a value
-gives us many super powers -- we can implement many different types of control
-flow within our program with this as a primitive. For example, since the
-continuation is available as a value, we can store it away to be called later
-on. This is what we need to implement generators.
+``let/cc`` (i.e. ``call/cc``) gives us an operator using which we can implement
+any of our familiar imperative control constructs like while/repeat/break/continue,
+and also those considered more "modern" such as "async/await" and generators. We'll
+look at generators next. For this reason, ``call/cc`` is often referred to as
+"the ultimate ``goto``".
 
-Python generators
------------------
+Super power time - generators
+-----------------------------
 
-In python, you can return from a function in two ways --
-
-1. Using the ``return <value>`` statement.
-
-2. Using the ``yield <value>`` statement.
-
-While :rkt:`return` finishes the calculations that the function was doing, :rkt:`yield`
-merely suspends it at that state. It means you can resume from that dynamic point
-and continue on to the next :rkt:`yield`. While all code that follows :rkt:`return`
-is dead code, you can have multiple :rkt:`yield` statements in the code and the function
-will suspend every time it encounters such a :rkt:`yield`.
-
-A function that uses :rkt:`yield` is called a "generator" in python. Similar
-constructs in other languages may be called "co-routines" or "asynchronous
-functions" when combined with event loops. Though some subtle differences exist
-between these various presentations exist, they're all basically the same idea
-underneath -- the idea of "reified continuations". The word "reified" in CS is
-used to mean "made real" -- i.e. made into a value that can be used like a
-value.
-
-Consider the following code sequence.
+Python generators generalize the notion of ``return`` from a function to
+"temporarily return" using ``yield``, by saving away the computational state
+so that it can be resumed later. See the sample below --
 
 .. code-block:: python
 
+    def three(msg):
+        print(msg + " 1")
+        yield 1
+        print(msg + " 2")
+        yield 2
+        print(msg + " 3")
+        yield 3
+        return None
 
-    def silly_gen():
-        print("Generating 'one'");
-        yield "one"
-        print("Generating 'two'");
-        yield "two"
-        print("Generating 3");
-        yield 3;
-        print("Generating 4");
-        yield 4;
+    > g = three("step")
+    > next(g)
+    step 1
+    1
+    > next(g)
+    step 2
+    2
+    > next(g)
+    step 3
+    3
+    > next(g)
+    Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    StopIteration
 
-    g = silly_gen(); # Prints nothing
-    next(g)
-    #> Generating 'one'
-    #> 'one'
-    next(g)
-    #> Generating 'two'
-    #> 'two'
-    next(g)
-    #> Generating 3
-    #> 3
-    next(g)
-    #> Generating 4
-    #> 4
-    next(g)
-    #> Traceback (most recent call last):
-    #> File "<stdin>", line 1, in <module>
-    #> StopIteration
-    #
-    # (This last bit could differ depending on where you run this code)
+You can see how the function uses "yield" to temporarily pause its computation
+which is subsequently resumed by ``next(g)``. In the line ``g = three("step")``,
+the function has actually not started any computations at all, as evidenced
+by "step 1" not being printed out at that point. Only upon calling ``next(g)``
+is the computation started.
 
+Generators, due to their ability to suspend and resume computations, find
+many uses in python code, including a form of lazy generation of infinite
+sequences like this squares generator --
 
-What's happening there?
-
-1. With the first call to :rkt:`silly_gen()`, we create a "generator object" that
-   can suspend and resume computations. No computation has actually started just yet though,
-   as noted by "Generating 'one'" not being printed at that point.
-
-2. Every time we cann :rkt:`next(g)`, we resume the generator and cause it to
-   run until the next :rkt:`yield`. The return value of the :rkt:`next(g)` call
-   is what was given as the value in :rkt:`yield <value>`.
-
-3. Once we run out of yields, python arranges to terminate the code by raising
-   an exception named :rkt:`StopIteration`.
-
-
-We'll now see how to implement that in Racket. The idea is that in any language
-that gives us the equivalent of :rkt:`call/cc` (like our stack language to which
-we gave that power in :doc:`control`), we can follow the same thinking. What we
-won't do here is to develop generator **syntax** in Racket. We'll merely show how
-to mechanically produce generator-like behaviour. Once you learn how to define
-your own syntax in Racket, it then becomes a simple matter to mechanically translate
-generator code to produce the necessary constructs.
-
-Generators in Racket
---------------------
-
-We want to be able to write something like this --
-
-.. code-block:: racket
-
-    (generator (a b c)
-        (yield "one")
-        (yield "two")
-        (yield 3)
-        (yield 4))
-
-... as a parallel to the python code. 
-
-Let's start with treating the generator as an ordinary lambda --
-
-.. code-block:: racket
-
-    (define (gen)
-        (let/cc return
-           ;...
-           ))
-
-The :rkt:`return` captures the dynamic continuation point at the point of call
-of :rkt:`(gen)`. We will need to return something to that point to help
-control the progress of the generator. What could the "yield" point look like?
-
-.. code-block:: racket
-
-    (define (gen)
-        (let/cc return
-            ;...
-            (let/cc resume (yield (list "one" resume)))
-            ))
-
-The "list of two values" is a placeholder mechanism to pass on the resume point to the
-point at which :rkt:`next` call is happening. We're yet to determine the :rkt:`yield` though.
-What should :rkt:`yield` be? If we treat it as a function that doesn't return to the point
-(unless resumed), we can see that it is essentially a continuation. What continuation is it
-though?
-
-.. note:: Think about it for a bit and see if you can answer it.
-
-The yield continuation is expected to come from the caller's dynamic call
-point. So we need a mechanism for the caller to pass their continuation into
-the generator so it can yield contro back to that call point when it wants to
-pause.
-
-We therefore see that there are two bits of shared state information we need to
-have for each generator instance -- one channel passes a resume continuation
-from the generator to the caller and another channel passes a yield
-continuation from the caller into the generator. Let's use a box for each of these.
-
-.. code-block:: racket
-
-    (define (gen)
-        (let/cc return
-            (define yield-box (box #f))
-            (define resume-box (box #f))
-            (define (yield val) ((unbox yield-box) val))
-            ;...
-            ))
-
-... but we want "yield" to also enable resumption. For that we can roll the
-:rkt:`let/cc resume` into the yield and put that continuation into the
-:rkt:`resume-box`.
-
-.. code-block:: racket
-
-    (define (gen)
-        (let/cc return
-            (define yield-box (box return))
-            (define resume-box (box #f))
-            (define (yield val) 
-                ; Mark the point where we want the code that calls "next"
-                ; to resume from.
-                (let/cc resume
-                    ; Store this resume point in the resume-box accessible to
-                    ; the generator user.
-                    (set-box! resume-box resume)
-                    ; Return to the caller at the marked yield point provided by
-                    ; the caller. In the very first instance, this will return to
-                    ; the point where the generator is being created by calling
-                    ; (gen). In that case alone, we pass the caller both the
-                    ; yield-box and resume-box.
-                    ((unbox yield-box) val)))
-            (yield (list yield-box resume-box)) ; Pass the channels to the caller at 
-                                                 ; the generator creation point.
-
-            ; Ordinary generator code using yield like a function.
-            ; ...
-            (yield "one")
-            ; ...
-            ))
-
-    (define g (gen))
-    ; g is now a list of yield-box and resume-box
-
-    (define (next g val)
-        (let/cc yield
-            (let ([yield-box (first g)]
-                  [resume-box (second g)])
-                (set-box! yield-box yield)
-                ((unbox resume-box) val))))
-
-
-    (next g #f) ; The value is currently unused, but could be used if needed.
-                ; As much as the generator is capable of passing a value back
-                ; to the caller, the caller can also pass values back into the
-                ; generator which will become the result of the (yield ..)
-                ; expression.
-
-
-Notice how the beginning part of the generator is completely independent of what the
-generator actually does -- i.e. it is "boiler plate code" that can be auto generated.
-
-
-.. admonition:: **Exercise**
-
-    Try out the above version of the generator on your own. Explore what's
-    possible with this. In particular explore the idea of the yield function
-    itself being a first class value in our scheme of things. This is **more**
-    powerful than Python generators where :rkt:`yield` is a keyword and not
-    a value that can be passed out. In our case, for example, you can pass this
-    yield funciton down as arguments to other functions as well.
-
-Let's see if we can absorb the boiler plate code into a reusable function.
-Given we're representing the generator state as a pair of boxes that contain
-continuations, we can start there and model our generator as a lambda that
-takes an extra parameter as its first argument, called :rkt:`yield`.
-
-i.e. we want to write our generator as --
-
-.. code-block:: racket
-
-    (lambda (yield arg1 arg2 ...)
-        ;...
-        (yield val)
-        ;...
-        (yield val)
-        ;...
-        )
-
-.. code-block:: racket
-
-    (define (generator genfn . args)
-        (let/cc return
-            (define yield-box (box return))
-            (define resume-box (box #f))
-            (define (yield val)
-                (let/cc resume
-                    (set-box! resume-box resume)
-                    ((unbox yield-box) val)))
-            ; Pass the generator state to the caller for use by "next".
-            (yield (list yield-box resume-box))
-            ; Call the generator function with our newly minted "yield" function
-            ; as the first argument.
-            (apply genfn (cons yield args))))
-
-Now, we can easily write the above python code like this --
-
-.. code-block:: racket
-
-    (define g (generator (λ (yield) (map yield '("one" "two" 3 4)))))
-    ; Note that we can't map the yield function like this in Python
-    ; because in Python yield is not a function or a value that works
-    ; as one.
-    (next g #f)
-    (next g #f)
-    (next g #f)
-    (next g #f)
-
-You can also make :rkt:`generator` a bit more convenient to use by
-uncurrying the :rkt:`args`.
-
-.. code-block:: racket
-
-    (define (generator genfn)
-        (lambda args
-            (let/cc return
-                (define yield-box (box return))
-                (define resume-box (box #f))
-                (define (yield val)
-                    (let/cc resume
-                        (set-box! resume-box resume)
-                        ((unbox yield-box) val)))
-                ; Pass the generator state to the caller for use by "next".
-                (yield (list yield-box resume-box))
-                ; Call the generator function with our newly minted "yield" function
-                ; as the first argument.
-                (apply genfn (cons yield args)))))
-
-    (define gen (generator (λ (yield . args) (for-each yield '("one" "two" 3 4)))))
-    ; With this form, the function `generator` works like a word that
-    ; declares the given lambda function to be a generator. You can then call
-    ; the produced functions to make make independently evolving generator instances.
-
-    (define g (gen))
-    (next g #f)
-    ;...
-
+.. code-block:: python
     
-Enjoy ... and the journey always continues on!
+    def squaresFrom(n):
+        while True:
+            yield (n * n)
+            n = n + 1
 
-.. admonition:: **Exercise**
+Try it out on your own to see that it doesn't complete and yields
+one square number at a time.
 
-    Notice that if you call :rkt:`next` one too many a time, you get an error.
-    How can you arrange for the generator to finish its calculations
-    gracefully?
+We can construct this facility given ``let/cc``/``call/cc`` as shown
+below --
 
-    **Hint**: Attend to where the result expression of the genfn is returning
-    its value to. Where should it return to? .. and what can it possibly return
-    to signal the end?
-
-
-Search as a language feature
-----------------------------
-
-Many popular languages today have a language feature usually going by the name
-"set comprehension", "list comprehension", "array comprehension" or "dictionary
-comprehension". The essence of these constructs is nested for-loop iteration
-where values are produced based on the for loop iterations which meet some
-criteria expressed as a boolean constraint on the values being enumerated.
-
-Generators are closely linked with comprehensions and languages like Julia even
-make generators use the same syntax as comprehensions. So it is not unreasonable
-to expect that the ideas we developed above can serve to explore a space of
-variable values that need to meet some constraints. For example, let's consider
-a toy problem of finding pythagorean triplets.
-
-.. code-block:: python
-
-    def pytriplets(m, n):
-        for x in range(m, n):
-            for y in range(m, n):
-                for z in range(m, n):
-                    if x*x+y*y == z*z:
-                        yield (x,y,z)
-
-How can we model this kind of searching using our scheme of things. First off,
-we need to realize that the inner-most for loop gets to run fully for each of
-the outer for loops -- i.e. the search is **depth first**. This kind of a
-search can be modeled using a stack, where the top state of the stack captures
-the state of the inner loop. Similar to what we did above, we will need
-:rkt:`yield` to be modeled as "try to find one more case".  One other point to
-note here is that there is a role played by the "else" part of the if -- it
-tries the next possible set of values for x,y,z. We'll model that instead of
-yield directly, because with search, we're interested in finding one solution
-(at least for starters).
-
-And what we'll use here is a stack of continuations!
+What we're looking for is a procedure ``generator`` that takes a ``λ``
+function standing for the body of the generator code and uses ``yield``
+to pause and resume computation just like the python version.
+In our case, we'll provide this ``yield`` as an argument to the λ function
+given to the ``generator`` procedure. We want to be able to do the equivalent
+of ``next(g)`` with the result. In our case, we can simplify that by having
+``generator`` return a function that can be called like ``(g val)`` where the
+passed value will be returned from the ``yield`` call to resume the 
+computation.
 
 .. code-block:: racket
 
-    (define stack (box empty))
-    (define (push val)
-        (set-box! stack (cons val (unbox stack))))
-    (define (pop)
-        (let ([top (first (unbox stack))])
-            (set-box! stack (rest (unbox stack)))
-            top))
+    (define g (generator (λ (yield)
+                  (displayln "step 1")
+                  (yield 1)
+                  (displayln "step 2")
+                  (yield 2)
+                  (displayln "step 3")
+                  (yield 3)
+                  #f)))
+    > (g "one")
+    step 1
+    1
+    > (g "two")
+    step 2
+    2
+    > (g "three")
+    step 3
+    3
+    > (g "four")
+    #f
 
-    (define (try-again)
-        ((pop)))
+In python, the ``StopIteration`` exception is merely a convention used to
+temrinate sequences produced by generators. We can choose any such convention
+ourselves.
 
-    (define (ensure bool)
-        (when (not bool)
-            (try-again)))
+From the above example with ``generator``, a few observations can be made --
 
-    ; range produces one value at a time. If you don't
-    ; like it, you can call (try-again) to get another.
-    (define (range m n)
-        (let/cc return
-            (let/cc trynext
-                (push trynext)
-                (return m))
-            (if (< m n)
-                (range (+ m 1) n)
-                (try-again))))
+1. ``generator`` returns a λ function.
+2. ``(yield 1)`` is "returning" to the exit point of ``(g "one")``.
+3. ``(g "two")`` is "returning" to the exit point of ``(yield 1)`` within the
+   generator λ.
 
-    (define (pytriplets m n)
-        (let ([x (range m n)]
-              [y (range m n)]
-              [z (range m n)])
-            (ensure (equal? (* z z) (+ (* x x) (* y y))))
-            (list x y z)))
+Based on those, the implementation would look something like this --
 
+.. code-block:: racket
 
-Now, if you call, say, :rkt:`(pytriplets 10 50)`, it will return a list
-of three numbers that form a triplet. If you're not happy and want another,
-you can invoke :rkt:`(try-again)` to get the next one.
+    (define (generator fn)
+        (define (return val)
+            ; Handles the final return from the generator
+            ; procedure
+            <return-body-code>
+            )
+        (define (yield val)
+            ; Handles yielding back to the generator's
+            ; call point.
+            <yield-body-code>
+            )
+        (define cont #f) ; Var to remember exit point of yield
+        (define ret #f)  ; Var to remember exit point of call to g.
+        (λ (val) ; Because ``g`` takes a single argument
+          (let/cc c ; Because we need to remember the exit point
+                    ; of each call to ``g``.
+            (set! ret c)    ; Remember where the next yield should return to.
+            <resume-code>
+                ; Either continue by supplying the val to the exit
+                ; point of the last yield, or call the given function
+                ; to start the computation.
+                )
 
-.. code-block::
+We remembered the return point of a generator function (``g``)
+in the variable named ``ret``. So it is clear that ``yield`` must return
+to that point. Furthermore, yield must remember where the generator
+function must continue to when it is called, putting those two together,
+we see that the implementation of ``yield`` must be like this --
 
-    > (pytriplets 10 50)
-    '(10 24 26)
-    > (try-again)
-    '(12 16 20)
-    > (try-again)
-    '(12 35 37)
-    > (try-again)
-    '(14 48 50)
-    > (try-again)
-    '(15 20 25)
-    > (try-again)
-    '(15 36 39)
-    > 
+.. code-block:: racket
 
-That was fun, wasn't it?
+    (define (yield val)
+        (let/cc c
+            (set! cont c) ; Remember where to continue.
+            (ret val)))
 
-.. admonition:: **Question**
+Within the generator function, we need to first find out whether the 
+``fn`` function was called at all (and hit a ``yield`` point) in order
+to decide what to do. If ``cont`` is ``#f``, it means the function 
+wasn't called, since it would've hit a ``yield`` call which would've
+modified ``cont`` to be a procedure. So we see that the ``<resume-code>``
+part needs to be --
 
-    Notice that the next result isn't being returned from the :rkt:`(try-again)`.
-    Why is that? Do you want to change that behaviour? If so, how would you?
-    Also, why is the result being printed out even though we aren't writing it
-    out explicitly and are simply returning a list from :rkt:`pytriplets`?
+.. code-block:: racket
+    
+    (if cont
+        (cont val)
+        (return (fn yield))) ; Starts the function going.
 
-.. admonition:: **Terminology**
+The ``return`` function is similar to ``yield``, but must set things
+up so that it would be an error to continue to call the generator function
+after its completion.
 
-    This kind of behaviour is referred to as "non-determinism" in a language.
-    We know that the program is quite deterministic alright, but the reason the
-    term is used is that at the point where the :rkt:`(range m n)` function
-    call returns, the result could be any value in the range that meets
-    criteria that's going to be specified **later** in the program. So at that
-    point, we don't truly know what value it is going to produce.
+.. code-block:: racket
+
+    (define (return val)
+        ; By setting cont to be an error generating procedure,
+        ; we prevent any further jumps into the function ``fn``.
+        (set! cont (λ (v)
+                      (error "End of generator function")))
+        (ret val))
+
+Putting it all together, we have --
+
+.. code-block:: racket
+
+    (define (generator fn)
+        (define (yield val)
+            (let/cc exit-point-of-yield-call
+                (set! cont exit-point-of-yield-call)
+                (ret val)))
+        (define (return val)
+            (set! cont (λ (v) (error "End of generator function")))
+            (ret val))
+        (define cont #f)
+        (define ret #f)
+        (λ (val)
+            (let/cc exit-point-of-g-call
+                (set! ret exit-point-of-g-call)
+                (if cont
+                    (cont val)
+                    (return (fn yield))))))
 
 .. admonition:: **Exercise**
 
-    Write an :rkt:`options` function similar to :rkt:`range` that behaves like
-    this -- It takes any number of arguments and, just as range runs over integers
-    from the first arg to the second arg, steps through the arguments one by one.
-    In other words, :rkt:`options` can return any one of its arguments, and the
-    value it returns can be decided by any constraints on the value that may appear
-    in the code after the :rkt:`options` call.
+    Test out ``generator`` using the example above.
 
-    .. code-block:: racket
+Differences from Python's generators
+------------------------------------
 
-        (define (pytriplets)
-            (let ([x (options 2 3 4 5 6 7 8 9)]
-                  [y (options 2 3 4 5 6 7 8 9)]
-                  [z (options 2 3 4 5 6 7 8 9)])
-                (ensure (equal? (* z z) (+ (* x x) (* y y))))
-                (list x y z)))
+1. ``yield`` is a reserved word in Python whereas the ``yield`` argument
+   in our generator implementation is an ordinary first class function.
+   Therefore ``(map yield (list 1 2 3))`` is value whereas that is
+   not possible with Python's ``yield`` keyword.
 
-    The above code should behave the same way as though :rkt:`(range 2 9)` was
-    used instead of :rkt:`(options 2 3 4 5 6 7 8 9)`. Except that in the case
-    of :rkt:`options`, the values can be of any type.
+2. ``(yield x)`` looks and behaves like a normal function call.
+   Python's yield is a statement when written like ``yield val``
+   and an expression that can be resumed with a value when written
+   as ``(yield val)`` (here the parentheses stand for grouping, so
+   it is the same as ``((yield val))``).
+
+3. When the generator function in Python completes with a return, it
+   can no longer be jumped into and it will indicate that with a ``StopIteration``
+   exception. In our case, we can choose our own protocol on how to
+   finish it .. either by using a known sentinel value or by raising
+   an error like Python does.
+
+4. Python embeds its generator capabilities into constructs like
+   list comprehension and for loops. We haven't done anything like
+   that with our generators ... yet, but we can of course use the
+   same protocol to implement similar behaviours.
+
+Uses for generators
+-------------------
+
+The ability to pause and resume computation that lexically looks like a single
+sequence of operations is a valuable design tool in organizing many kinds of
+systems.
+
+Async/Await
+~~~~~~~~~~~
+
+In particular, this is useful when considering event loops that service browser
+interfaces or server-side programs. Of late, this mechanism is usually
+presented in languages using the keywords ``async`` and ``await``, where
+``async`` marks a function for such asynchronous processing (analogous to
+``generator`` in our case) and ``await`` performs the equivalent of ``yield``,
+but returns control to the event loop instead.
+
+In Javascript, for example, an object called a ``Promise`` plays the role
+of capturing a computation that "promises" to produce a value in the future.
+Such a promise is constructed like this --
+
+.. code-block:: js
+
+    new Promise(function (resolve, reject) {
+        .... code ...
+        resolve(value); // When the computation completed successfully.
+        ...
+        reject(value); // When it completes with an error.
+    })
+
+.. admonition:: **Notice**
+
+    Do you notice the similarity between the way ``Promise`` is structured
+    and our ``generator`` function? While somewhat similar, they're also
+    different in that ``yield`` can be used multiple times whereas ``resolve``
+    and ``reject`` can only be called once.
+
+The form ``await <expr>`` then expects ``<expr>`` to provide a ``Promise``
+object and waits for it to complete, returning the value passed to ``resolve``,
+or raising as error the value passed to ``reject``.
+
+Thus, ``async``/``await`` in javascript desugars to generators that coordinate
+using ``Promise`` objects. The situation is similar in other language which may
+use slightly different terminology -- for example ``Future`` may be used
+instead of ``Promise``.
+
+Search
+~~~~~~
+
+Generators are useful to structure computations where values need to be
+produced "lazily", for example, to explore search spaces. A variable
+that is permitted to take on a number of values according to some known
+constraints can be treated as a generator for those values, permitting
+the exploration of a search space across a number of such variables.
+
+One way to see this is to think of generators as sequences in the same footing
+as lists. "List of X" can for many such search/explore applications be
+re-presented as "Generator of X" without incurring the storage costs of lists.
+Common operations on lists such as ``map`` and ``filter`` translate well
+to generators as well. Much as mapping over a list produces another list,
+mapping over a generator produces another generator. And so is the case
+with filtering.
+
+.. code-block:: racket
+
+    (define (g-map fn g)
+        (generator (λ (yield)
+            (let loop ([v (g #f)])
+                (when v
+                    (begin (yield (fn v))
+                           (loop (g #f))))
+                #f))))
+
+    (define (g-filter fn g)
+        (generator (λ (yield)
+            (let loop ([v (g #f)])
+                (when v
+                    (when (fn v)
+                        (yield v))
+                    (loop (g #f)))
+                #f))))
+
+In the above code, we've used the simple protocol that when a 
+generator produces ``#f``, it means it's completed and no further
+calls are possible.
+
+

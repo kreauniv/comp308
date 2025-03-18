@@ -448,7 +448,7 @@ after its completion.
         ; By setting cont to be an error generating procedure,
         ; we prevent any further jumps into the function ``fn``.
         (set! cont (λ (v)
-                      (error "End of generator function")))
+                      (raise 'stop-generation)))
         (ret val))
 
 Putting it all together, we have --
@@ -461,7 +461,7 @@ Putting it all together, we have --
                 (set! cont exit-point-of-yield-call)
                 (ret val)))
         (define (return val)
-            (set! cont (λ (v) (error "End of generator function")))
+            (set! cont (λ (v) (raise 'stop-generation)))
             (ret val))
         (define cont #f)
         (define ret #f)

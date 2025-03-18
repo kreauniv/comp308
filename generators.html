@@ -420,7 +420,7 @@ after its completion.</p>
 <span class="w">    </span><span class="c1">; By setting cont to be an error generating procedure,</span>
 <span class="w">    </span><span class="c1">; we prevent any further jumps into the function ``fn``.</span>
 <span class="w">    </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">cont</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-<span class="w">                  </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;End of generator function&quot;</span><span class="p">)))</span>
+<span class="w">                  </span><span class="p">(</span><span class="nb">raise</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">stop-generation</span><span class="p">)))</span>
 <span class="w">    </span><span class="p">(</span><span class="n">ret</span><span class="w"> </span><span class="n">val</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -431,7 +431,7 @@ after its completion.</p>
 <span class="w">            </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">cont</span><span class="w"> </span><span class="n">exit-point-of-yield-call</span><span class="p">)</span>
 <span class="w">            </span><span class="p">(</span><span class="n">ret</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
 <span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">return</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
-<span class="w">        </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">cont</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;End of generator function&quot;</span><span class="p">)))</span>
+<span class="w">        </span><span class="p">(</span><span class="k">set!</span><span class="w"> </span><span class="n">cont</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">raise</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">stop-generation</span><span class="p">)))</span>
 <span class="w">        </span><span class="p">(</span><span class="n">ret</span><span class="w"> </span><span class="n">val</span><span class="p">))</span>
 <span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">cont</span><span class="w"> </span><span class="no">#f</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">ret</span><span class="w"> </span><span class="no">#f</span><span class="p">)</span>

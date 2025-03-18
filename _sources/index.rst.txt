@@ -25,11 +25,11 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    fun-in-piclang
    mutations
    control
+   generators
    errornot 
    objects
    objects-self
    dispatch
-   generators
    appsem
    types
 

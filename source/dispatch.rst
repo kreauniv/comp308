@@ -426,7 +426,7 @@ for the cat that depends on whether it is tired, we can do this -
         (λ (klass self num-steps)
             (if (get self 'tired)
                 (error "No energy for a walk. Go away. Meeeow!")
-                (send/super (get klass 'super) self 'walk num-steps)))))
+                (send/super (get klass 'super) self 'walk num-steps))))
 
 Notice how the cat delegates to its super the ability to walk when it
 is able to, but errors out otherwise. Under normal method invocation,

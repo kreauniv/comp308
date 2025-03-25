@@ -668,14 +668,18 @@ method invocation chain.
 
 .. code-block:: racket
 
-    ; Some unique key not accessible to users of the object system.
-    (define constructor-key (gensym 'constructor))
-
     (define (new klass . args)
         (let ([obj (Obj klass)])
             (setprop! obj 'isa klass)
-            (apply (get klass constructor-key) (cons obj args))
+            (apply (get klass 'constructor) (cons obj args))
             obj))
+
+Note that some languages like Java and C++ enforce different calling forms for
+constructors which won't permit constructor functions to be treated as methods.
+This is a language design option and our implementation leaves this enforcement
+to later. Python has ``__init__`` methods that serve this purpose that are
+valid as ordinary methods. So it is not uncommon to treat a constructor like an
+ordinary method as well.
 
 
 Method not found

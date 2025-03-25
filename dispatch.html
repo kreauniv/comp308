@@ -618,16 +618,19 @@ slots be initialized to 0. Such an initialization is done by a designated
 method in the class called its “constructor”. This “constructor” procedure is
 run only once at object creation time and is not available for use in the
 method invocation chain.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="c1">; Some unique key not accessible to users of the object system.</span>
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">constructor-key</span><span class="w"> </span><span class="p">(</span><span class="nb">gensym</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">constructor</span><span class="p">))</span>
-
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">klass</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">klass</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">obj</span><span class="w"> </span><span class="p">(</span><span class="n">Obj</span><span class="w"> </span><span class="n">klass</span><span class="p">)])</span>
 <span class="w">        </span><span class="p">(</span><span class="n">setprop!</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">isa</span><span class="w"> </span><span class="n">klass</span><span class="p">)</span>
-<span class="w">        </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="n">klass</span><span class="w"> </span><span class="n">constructor-key</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">args</span><span class="p">))</span>
+<span class="w">        </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="n">klass</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">constructor</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">args</span><span class="p">))</span>
 <span class="w">        </span><span class="n">obj</span><span class="p">))</span>
 </pre></div>
 </div>
+<p>Note that some languages like Java and C++ enforce different calling forms for
+constructors which won’t permit constructor functions to be treated as methods.
+This is a language design option and our implementation leaves this enforcement
+to later. Python has <code class="docutils literal notranslate"><span class="pre">__init__</span></code> methods that serve this purpose that are
+valid as ordinary methods. So it is not uncommon to treat a constructor like an
+ordinary method as well.</p>
 </section>
 <section id="method-not-found">
 <h3>Method not found<a class="headerlink" href="#method-not-found" title="Link to this heading">¶</a></h3>

@@ -79,9 +79,9 @@ that our interpreter has access to at any point (i.e. globally).
 
 A property list is a simple structure that asserts connections between
 "subjects", "objects" (not to be confused with "object" in the OOP sense, but
-linguistic "object") via "predicates". For example, the triple @code{(Tri
-child23 'mother adult42)} establishes that the @code{'mother} of
-@code{child23} is @code{adult42}. This relationship can be thought of as a
+linguistic "object") via "predicates". For example, the triple ``(Tri
+child23 'mother adult42)`` establishes that the ``'mother`` of
+``child23`` is ``adult42``. This relationship can be thought of as a
 labelled arrow from the child to the adult. This way, arbitrary graphs can be
 represented using such a triple store.
 

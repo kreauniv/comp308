@@ -1,6 +1,6 @@
 Polymorphism via dispatch
 =========================
-(CURRENTLY INCOMPLETE)
+(IN DRAFT)
 
 Note: This section is expected to supercede the discussion on :doc:`objects`.
 
@@ -70,717 +70,632 @@ languages. The goal of a program is only partly to instruct machines (such as
     referred to in programming languages as "polymorphism" and the verb is said
     to be "polymorphic" over a collection of types.
 
-Generic procedures
-------------------
-
-So far we've defined procedures in Scheme/Racket using the ``define`` operator,
-like this --
-
-.. code:: racket
-
-    (define (f x y) ...)
-
-Once defined, the procedure ``f`` will remain bound to that body of code
-forever .. until redefined entirely. What if, however, we wish to enable it to
-be extensible with different code paths depending on what arguments are passed
-to it. For simplicity, we'll assume that the arity of the function cannot be
-changed, initially.
-
-.. code:: racket
-
-    (define (extend proc predicate extension)
-        (lambda args
-            (if (apply predicate args)
-                (apply extension args)
-                (apply proc args)))
-
-    ; Example of extending ordinary artihmetic to symbolic arithmetic.
-    (define sym+
-        (extend +
-                (lambda (x y)
-                    (or (symbol? x) (symbol? y))
-                (lambda (x y)
-                    (list '+ x y)))))
-
-    ; (plus 2 3) => 5
-    ; (plus 2 'y) => '(+ 2 y)
-    ; (plus 'x 3) => '(+ x 3)
-
-However, instead of introducing a new symbol ``sym+`` for our extended
-notion of addition, we can replace the earlier definition of ``+`` to
-mean what the new ``sym+`` means because ``sym+`` also deals with the
-case of adding up ordinary numbers.
-
-.. code:: racket
-
-    (set! + sym+)
-
-.. admonition:: **Exercise**
-
-    When defining ``sym+``, we used the existing definition of ``+``. Now
-    that we've changed what ``+`` means, do we now have a circular program?
-    Explain whether you think "yes" or "no" is the answer to that question
-    using your understanding of scoping rules of SMoL.
-
-The predicate-extension pairs form the various branches of a ``cond``
-expression that decides which of the extension procedures to call based on
-properties met by the arguments --
-
-.. code:: racket
-
-    (cond
-        [(apply predicate1 args) (apply extension1 args)]
-        [(apply predicate2 args) (apply extension2 args)]
-        ...)
-
-Since the cond expression serves as a "post office" that "dispatches" the
-arguments to the appropriate extension procedure, we refer to this approach in
-the general sense as "dispatch mechanisms" and will study variants in this
-chapter.
-
-There are some incidental aspects of the above implementation of the extension
-of a function that we won't concern ourselves about. For example, When we
-extend with a new predicate and extension, the latest extension takes
-precedence over the earlier installed ones. This raises a question -- "what if
-we want it to be the other way around?" -- but there is little there of
-interest to us at this point.
-
-.. admonition:: **Restriction**
-
-    For our purposes, we'll restrict our cases to where the predicates are all
-    disjoint on any given list of arguments -- i.e. only one of the predicates
-    evaluates to ``#t`` on a given list of arguments. This means we don't have
-    to bother about the order in which we check the predicates.
-
-So, the key idea behind organizing code using **dispatch** mechanisms is to
-have a set of special case procedures associated with predicates on the generic
-procedure's arguments which determine which special case is to be used.
-
-One argument dispatch
----------------------
-
-Let's take the simple case where all the predicates make their decisions based
-only on the first argument. A classic example is "string representation". We'd
-like to be able to view our values in some way and that calls for a textual
-presentation of the value.
-
-.. code:: racket
-
-    (define (as-string value)
-        (if (string? value)
-            value
-            (error "Don't know how to treat value as a string")))
-
-Now supposing we wish to extend this facility to integers. We will need a
-special procedure for that --
-
-.. code:: racket
-
-    (define (int-as-string i)
-        (cond
-            [(= i 0) "0"]
-            [(< i 0) (string-concat "-" (int-as-string (- i)))]
-            [(> i 0) (positive-int-as-string i)]))
-    (define (positive-int-as-string i)
-        (if (= i 0)
-            ""
-            (string-concat (positive-int-as-string (div i 10)) (digit-as-string (remainder i 10)))))
-    (define (digit-as-string d)
-        (char->string (string-char-at "0123456789" d)))
-
-Now we can augment our "as-string" generic procedure with this special case for
-integers.
-
-.. code:: racket
-
-    (set! as-string (extend as-string
-                            integer?
-                            int-as-string))
-
-Whenever we create a new data type in our program, we can augment our
-``as-string`` generic procedure with a facility that works for our new type
-when passed to it.
-
-Note that we've now started associating the predicate for dispatch with a
-"type" of value we're passing. Given data types ``A``, ``B``, ``C``, etc. in
-our program, we'll then end up with specialization functions named
-``A-as-string``, ``B-as-string``, ``C-as-string`` and so on which handle
-``as-string`` cases for each of our types.
-
-This is a little curious because we now associate the "ability to be expressed
-as a string" with each of our data types for which we need that in our program.
-So there are perhaps two equivalent ways of organizing our code here --
-
-1. Maintain ``as-string`` in a module and add a new implementation to that
-   module for every type we introduce within our program. This means every such
-   type's definition will have to be imported into the module that builds up
-   ``as-string``. If we continue along the lines of what we've been doing so
-   far, we'll end up with this kind of an organization.
-
-2. We can declare the ability to be presented as a string as a "property" of
-   our data type, and declare the specialization wherever we declare our type.
-   This then keeps all such behaviours together, which makes for ease of
-   maintenance. However then, we need some background facility that will
-   collect all such specifications for our various types and build up a single
-   ``as-string`` that will dispatch over our data types.
-
-A value as a "thing"
---------------------
-
-If we articulate our extension approach as an ``as-string`` facility that's
-attached to every value we create that's specialized to its purpose, we're
-starting to think of our values as "things" ... more commonly known as
-"objects" in programming.
-
-In this perspective, an "object" has "properties" and "methods", which could be
-seen as properties that are function valued which are then called supplying the
-object as part of the list of arguments.
-
-We'll explore this using the notion of a "property list" in our interpreter.
-
-A "property list" associates a value as the property of a thing. Such a list
-can be modeled using two accessor functions ``getprop`` and ``setprop!`` defined
-as below -
-
-.. code:: racket
-
-    (define (make-proplist)
-        (define *proplist* (box '()))
-
-        (define (getprop thing property)
-            (let loop [(tail (unbox *proplist*))]
-                (if (null? tail)
-                    (error "Thing doesn't have the specified property")
-                    (let [(triple (first tail))]
-                        ; [REF1] Why use `eq?` and `equal?` here?
-                        (if (and (eq? (first triple) thing)
-                                 (equal? (second triple) property))
-                            (third triple)
-                            (loop (rest tail)))))))
-
-        (define (setprop! thing property value)
-            (set-box! *proplist*
-                      (cons (list thing property value)
-                            (unbox *proplist*))))
-
-        (values getprop setprop!))
-
-    (define-values (getprop setprop!) (make-proplist))
-
-As usual, we don't worry about efficiencies at this point, which shows
-in how we simply add the property association as a new entry without
-checking whether one already exists.
-
-.. admonition:: **Question**
-
-    [REF1] We used ``eq?`` to check for the "thing", and ``equal?`` for the
-    "property". What are the consequences of this choice? What would other
-    choices give us? (ex: ``equal?`` for "thing" and ``eq?`` for property, say)
-
-With this mechanism at hand, we can now express the idea of dispatching
-over the first argument using a common function ``invoke``.
-
-.. code:: racket
-
-    (define (invoke thing method-name . args)
-        (let [(method (getprop thing method-name))]
-            (if method
-                (apply method (cons thing args))
-                (error "Unknown method. [What do we do here?]"))))
-
-Now, it's not usually the case that we want different methods to be attached to
-different "things", but there is often a notion of "these things are of the
-same kind and behave similarly with similar properties and methods". i.e. a set
-of things might have common properties and methods and therefore it would be
-redundant to have to specify the same collection of applicable methods for each
-of them. Note that though methods (i.e. "behaviour") might be the same, the things
-are usually distinguished by the values of their properties, their properties
-are not necessarily the same.
-
-Such a shared "table of methods" that defines the behaviour of a set of things
-"of the same kind" is called a "class" in "object-oriented programming" languages.
-In this case, our invoke takes a slightly different shape -
-
-.. code:: racket
-
-    (define (invoke thing method-name . args)
-        (let [(tclass (getprop thing 'class))]
-            (if tclass
-                (invoke-by-class tclass thing method-name args)
-                (error "All things must be associated with a class in total OOP systems"))))
-
-    (define (invoke-by-class tclass thing method-name args)
-        (let [(method (getprop tclass method-name))]
-            (if method
-                (apply method (cons tclass (cons thing (cons method-name args))))
-                (error "What do we do here when a method is absent in a class?"))))
-
-One further thing to notice is that so far, our ``getprop`` will actually error
-out if the given property was not found. So we really can't branch like ``(if
-tclass ...)``. To support that in a general way, let's augment ``getprop`` with
-a delegate procedure that will be called for the "property not found" case.
-
-.. code:: racket
-
-    (define (make-proplist)
-        (define *proplist* (box '()))
-
-        (define (getprop thing property delegate)
-            (let loop [(tail (unbox *proplist*))]
-                (if (null? tail)
-                    (delegate thing property)
-                    (let [(triple (first tail))]
-                        (if (and (eq? (first triple) thing)
-                                 (equal? (second triple) property))
-                            (third triple)
-                            (loop (rest tail)))))))
-
-        (define (setprop! thing property value)
-            (set-box! *proplist*
-                      (cons (list thing property value)
-                            (unbox *proplist*))))
-
-        (values getprop setprop!))
-
-Now we can write our ``invoke`` procedure like this --
-
-.. code:: racket
-
-    (define (invoke thing method-name . args)
-        (let [(tclass (getprop thing 'class
-                               (lambda (thing property)
-                                    (error "All things must be associated with a class"))))]
-            (invoke-by-class tclass thing method-name args)))
-
-    (define (invoke-by-class tclass thing method-name args)
-        (let [(method (getprop tclass method-name
-                               (lambda (thing property)
-                                    (error "What to do here when a method is absent in a class?"))))]
-            (apply method (cons tclass (cons thing (cons method-name args))))))
-
-
-This way of approaching dispatch via an explicit "dispatch table" necessitates
-that whenever an object is created, a call to ``setprop!`` is made to set its
-class. In "pure OOP" systems such as Smalltalk, Self and Ruby, the task of
-creating an instance of a class (i.e. an "object") falls on the class. So a
-"class" is thought of as a machine for making objects with specific behaviours.
-
-.. note:: In OOP languages, a "class" may be thought of as a machine for
-   making objects with specific behaviours.
-
-We have a choice for when a method is not present in a class. For one thing, we
-can ask another class for the method, this other class being associated with the
-original class (``tclass``). If we do this, then this other class is expected to
-support a set of methods common to a number of classes of which ``tclass`` is one,
-and so is thought of as a "super class". Our invoke then becomes --
-
-.. code:: racket
-
-    (define (invoke-by-class tclass thing method-name args)
-        (let* [(end-of-class-hierarchy-error
-                   (lambda (tclass super-class)
-                       (error "End of class hierarchy. Method not found.")))
-               (delegate (lambda (tclass method-name)
-                             (let [(super-class (getprop tclass 'super-class
-                                                         end-of-class-hierarchy-error))]
-                                    (invoke-by-class super-class thing method-name args))))
-               (method (getprop tclass method-name delegate))]
-            (apply method (cons tclass (cons thing args)))))
-
-And tada! We now have "inheritance" in our object system.
-
-Notice that when we invoke the method procedure, we pass the ``tclass`` in
-addition to the ``thing`` argument. This is necessary in this approach because
-the method may decide that it needs to delegate it to the method implemented
-for the super-class, in which case it needs to know which class it is
-associated with so it can ask for its super-class. In OOP languages, this is
-typically found as a call to ``super``.
-
-To implement "multiple inheritance", we will need to change the lookup of a
-super class into a lookup for "super classes" - i.e. a list of classes.
-
-.. code:: racket
-
-    (define (invoke-by-class/mi tclass thing method-name args handle-method-not-found)
-        (let [(method (getprop tclass method-name
-                (lambda (tclass method-name)
-                    (let loop [(supers (getprop tclass 'super-classes))]
-                        (if (null? supers)
-                            (handle-method-not-found thing method-name args)
-                            (invoke-by-class/mi (first supers) thing method-name
-                                (lambda (thing method-name args)
-                                    (loop (rest supers)))))))))]
-            (apply method (cons tclass (cons thing args)))))
-
-
-So when we have such "multiple inheritance", we need to make an explicit choice
-about how to resolve methods using the class hierarchy -- i.e. **how** we do
-method resolution has a bearing on **what our program means**. This is usually
-a sign of a deficient language feature.
-
-Note that in this scenario, it is possible that we may scan a particular class
-more than once for a method definition, because that class may be a super for a
-few different classes, all of which our ``thing``'s class happens to inherit
-from. This situation where the intent of the programmer is not entirely clear
-without more information, is called the "diamond problem". Since commercially
-important languages like C++ feature multiple inheritance, we discuss that a bit
-more below.
-
-Multiple inheritance
---------------------
-
-When we have an inheritance hierarchy, we use that for "method resolution" --
-i.e. to determine which particular implementation to use when the user mentions
-a method invocation.
-
-"Multiple inheritance" refers to a value (or a new type) inheriting the
-functionality of a number of other types by declaring them as "parents".
-Multiple inheritance can lead to certain kinds of problems. For example, if two
-of the "inherited" types prescribe different behaviours for the same
-method/message, it is unclear which behaviour the type or value must inherit.
-
-Programming languages try to "solve" this problem through some predictable
-mechanism that, despite the ambiguity continuing to exist in principle, makes
-it easy to determine which behaviour manifests by inspecting the code. For
-example, C++ solves it by mandating that the declaration order of the classes
-featuring in the inheritance list determines the priority for selection of a
-method implementation -- i.e. if A and B are both parent classes declared in
-that order and both specify implementations for method M, then if the
-declaration order is ``A, B``, then A's implementation takes precedence over
-B's and if the order is ``B, A``, then B's implementation takes precedence over
-A's.
-
-While such a resolution mechanism appears to address the issue, it is still not
-clear from the program design perspective what actually should happen in some
-cases and for that reason it is better to avoid this kind of a situation
-altogether, as the confusion far outweighs benefits.. For example, if ``A`` is
-a class that ``B`` and ``C`` inherit from and both override behaviour of method
-``M``, and subsequently ``D`` inherits from both ``B, C``, both the behaviours
-of ``B`` and ``C`` for method ``M`` seem appropriate as the implementation for
-``D``. So which one to choose? Again, even if this is resolved by the
-"declaration sequence = priority" approach, the burden has merely shifted to
-the programmer to decide which of the two orders to choose. Due to the nature
-of the inheritance pattern, this is referred to as "the diamond problem" in OOP
-literature.
-
-.. figure:: images/diamond.png
+Exploring through "property lists"
+----------------------------------
+
+We'll explore the design space of object oriented programming languages
+through a basic structure called a "property list", which we'll assume
+that our interpreter has access to at any point (i.e. globally).
+
+A property list is a simple structure that asserts connections between
+"subjects", "objects" (not to be confused with "object" in the OOP sense, but
+linguistic "object") via "predicates". For example, the triple @code{(Tri
+child23 'mother adult42)} establishes that the @code{'mother} of
+@code{child23} is @code{adult42}. This relationship can be thought of as a
+labelled arrow from the child to the adult. This way, arbitrary graphs can be
+represented using such a triple store.
+
+.. figure:: images/triple-store.png
    :align: center
-   :alt: The "diamond problem" of class inheritance.
-
-   When two "base classes" a.k.a. "parent classes" of a class themselves
-   share the same base class, we have a "diamond problem" at hand.
-
-Traits: classes as types
-------------------------
-
-A thing having its behaviour described by a class has the advantage that we can
-query the thing to see whether a particular method can act on it. The class, in
-this role, serves the abstract purpose of certifying the thing to be of a
-certain "type", if the class provides no concrete implementation of methods and
-only serves to make such a declaration. Such a class is called "an abstract
-base class" (C++) or, in some languages, a "trait" (Rust) or a "protocol"
-(Objective-C) or "interface" (Java). Any derived classes must then provide
-concrete implementation of these methods to conform to the trait.
-
-.. admonition:: **Ponder this**
-
-    How does this approach solve the diamond problem discussed in the previous
-    section?
-
-Designing a program using such "interface" classes with only one level of concrete
-classes inheriting from such interface classes seems restrictive on the surface,
-but is in practice a very useful and extensible design approach. What we're
-talking about here is a design in which every object is an instance of exactly
-one concrete class that may "implement" any number of "interfaces" directly or
-indirectly.
-
-There can be many implementations of an interface and to use an object, the
-programmer only needs to know the specification of the interface and its
-methods and little to nothing about the implementation details. This
-interface-implementation is made explicit in the Java language where an
-"interface" cannot syntactically declare any concrete method behaviours [#intf]_ whereas
-a "class" can "implement" an interface and declare implementations. In
-Objective-C/C++ (used in iOS programming) the concept of an interface is
-referred to as a "protocol" since the language takes the "method invocation is
-a form of message passing" view.
-
-.. [#intf] Recent Java versions break this in limited ways - where a default
-   implementation can be provided that defines a behaviour in terms of other
-   methods only ... since no information about properties (a.k.a. "member
-   variables") is available at the point an interface is being defined.
-
-For example, a "Serializable" interface may declare the following methods (shown
-in the syntaxes of a few different programming languages) [^ --
-
-
-.. code:: Java
-
-    // Java
-    interface Serializable {
-        bytes serialize();
-        // Here Stream would also be an interface spec.
-        void serializeToStream(Stream s);
-    }
-
-.. code:: cpp
-
-    // C++
-    class Serializable {
-        virtual unsigned char * serialize() = 0;
-        // Here Stream would also be an interface class.
-        virtual void serializeToStream(Stream *s) = 0;
-    }
-
-.. code:: objc
-
-    /* Objective-C/C++ */
-    @protocol Serializable
-    - (NSData*)serialize;
-    /* Here Stream is a protocol that the passed object is expected to meet. */
-    - (void)serializeToStream: (id<Stream>)s;
-    @end
-
-.. code:: rust
-
-    trait ReadableStream {
-        fn read_byte(&self) -> uint8;
-    }
-
-    trait WritableStream {
-        fn write_byte(&self, b::uint8);
-    }
-
-    trait Serializable {
-        type CT;
-        fn serialize(&self) -> Vec<uint8>;
-        fn serializeToStream(&self, WritableStream:&Self::CT);
-    }
-
-In languages like Rust and Julia which are not OOP in the traditional sense but
-have a notion of a protocol or interface, this idea of an "abstract base class"
-is known as a "type trait" or simply "trait". A trait, therefore, is a
-specification of all the methods that a concrete type that declares itself to
-implement the trait must provide implementations for to qualify as an
-implementation of the trait.
-
-Such "abstract base classes" or "type traits" may themselves declare as
-inheriting from other traits and that "trait inheritance hierarchy" can go
-arbitrarily deep. However, since they're all declarations and there can be only
-one concrete implementation for the collection of methods indicated through
-such an inheritance mechanism, there is no "diamond problem" any more. But yet
-again, if this structure turns up in a model of a domain, the responsibility
-for deciding what must happen when a particular method is invoked continues to
-fall on the programmer of that final implementation.
-
-"Pure" OOP
-----------
-
-Languages such as Smalltalk, Self and Rust call themselves "pure
-object-oriented languages", by which they mean that every value is an object
-and anything that happens is dictated by a method invocation. This corresponds
-roughly to "everything is a lambda" in its universality, but at some level the
-system provides some built-in facilities without which we won't be able to get
-anything valuable done at all. "Pure OOP" languages like Smalltalk and Self
-take this idea all the way. For example, ``True`` and ``False`` are two
-subclasses of ``Boolean`` both of which have an ``if:else:`` method. The
-implementation of ``if:else:`` for ``True`` will pick the ``if:`` branch and
-the implementation of the method for ``False`` will pick the ``else:`` branch.
-The language uses method dispatch even for its control structures!
-
-The "anything that happens has to be by method invocation" restriction is not
-as trivial as it might seem. For example, here are some --
-
-1. How do you do arithmetic? You invoke the "+" method of a "number object"
-   supplying another number object as an argument.
-2. How to create an object? You have to invoke a "new" method on its class.
-3. How do you create a class? You have to invoke the "new" method on the
-   `Class` object. Typically, doing so also creates its metaclass.
-4. How do you add a method to a class? You have to invoke the "addMethod:"
-   method on its metaclass.
-5. How do you create a metaclass? You have to invoke the "new" method on the
-   `Metaclass` metaclass.
-
-... and so on. Somewhere down the line, the snake has to eat its own tail and
-things other than method invocation must begin happening in a practical system.
-So the "purity" usually refers to everything that's accessible to the
-language's user. Given that, systems such as Smalltalk provide very deep
-customizability where you can, for example, change aspects of the VM within
-Smalltalk itself since its VM and compiler are themselves written is Smalltalk
-and are entirely accessible within the language.
-
-For the record, C++ and Java are not "Pure OOP" languages since classes
-and objects have different existences in these languages.
-
-Multiple argument dispatch
---------------------------
-
-So far, we looked at dispatching over the first argument of a procedure, which led
-us to object oriented languages. OOP languages often resolve operator specialization
-typically seen in mathematical domains in a somewhat arbitrary manner. For example,
-when adding two numbers :math:`c + r` where :math:`c` is a complex number and :math:`r`
-is a real number, should the :math:`+` procedure be associated with the "complex number"
-type or the real number type?
-
-Even in non-mathematical situations this problem can arise. For example, many
-languages support an expression of the form ``s.charAt(i)`` where ``s`` is a
-string and ``i`` is an integer. This expression is expected to get the character
-at the position ``i`` within the string ``s``. What stops us from expressing the
-same operation as ``i.charWithin(s)``, where we ask the integer ``i`` to find 
-the character at that position within the given string ``s``.
-
-While we may be drawn by familiarity to one or the other choice, there is no
-conceptual difference between the two ways of expressing the computation. Languages
-such as Common Lisp and Julia include the notion of "multimethods" to address
-this dichotomy.
-
-Multimethods put the procedure up front instead of the "object" and ask "given
-the particular values of the arguments, which implementation of this procedure
-should be invoked?".
-
-While this looks like an extension of our original idea of "extensible procedures"
-to include predicates that work over all the given arguments, it is overwhelming
-to provide implementations that branch over specific values. A more manageable
-situation is to branch over the collective **types** of the arguments.
-
-We will use the same "property list" structure for dispatch of multimethods.
-The "thing" will be the name of the multimethod, the "property" will be a list
-of types of the arguments and the value will be a procedure to apply over the
-arguments. We will call the procedure that does this dispatch as ``mapply``
-since it looks pretty much like ``apply`` except that it dispatches over the
-types of the arguments, and the ``m`` stands for "multi-method".
-
-.. code:: racket
-
-   (define (mapply method-name . list-of-args)
-        (let ([method (getprop method-name (map get-type list-of-args)
-                               (λ (method-name list-of-args)
-                                    (error "What do we do if method is not found?")))])
-            (apply method list-of-args)))
-
-We used ``(map get-type list-of-args)`` to turn the list of argument values
-into a list a types that we can search against. However, thus far our ``getprop``
-has been matching the ``thing`` and ``property`` fields explicitly as values.
-
-Let's look at ``get-type`` a little closer. What should, say, ``(get-type
-2.5)`` result in? Should it be ``'real`` or ``'float32`` or ``'float64`` or
-``'complexf32`` and so on? Because as given, ``2.5`` can be all of those. So
-``get-type`` is not intended to pick out a vague notion of "what kind of value
-is this?" but is expected to provide a term that captures "what exact concrete
-type is this value?". In this case, ``2.5`` would probably have the concrete
-type as ``'float32`` and so ``(get-type 2.5)`` should provide us with the
-concrete type ``'float32``.
-
-As far as dispatch goes, once we have the concrete types of the arguments, we can
-search our proplist for a defined method and dispatch to it. However what do we have to
-do to setup all of those method procedures in the first place? For example,
-consider a simple ``dist`` function that computes the distance of a point from the
-origin on a 2D plane.
-
-.. code:: racket
-
-    (define (dist pt)
-        (sqrt (+ (* (Point-x pt) (Point-x pt))
-                 (* (Point-y pt) (Point-y pt)))))
-
-Now, we may have a Point that uses integers for x and y or floats for x and y.
-So our specification of ``dist`` really should use a dispatcher to generalize
-over those types.
-
-.. code:: racket
-
-    (define (mdist pt)
-        (mapply 
-            'sqrt
-            (mapply '+
-                    (mapply '* (Point-x pt) (Point-x pt))
-                    (mapply '* (Point-y pt) (Point-y pt)))))
-
-As a first step, if we automatically rewrite the previous ``dist`` procedure
-to use multiple argument dispatch, then we can install it as the target method
-for all permissible types of ``Point`` values it can handle. [#mapply]_
-
-
-However, we can do better than that!
-
-Note that there aren't that many variations of ``Point`` values. We have, perhaps
-``Point{Int16}``, ``Point{Int32}``, ``Point{Float32}``, ``Point{Float64}``
-and such. This is not an indefinitely large list. So given that we know what
-kind of a point we have at hand for which we wish to dispatch, we can do the
-following -
-
-1. Don't install the generic method by default because it is doing the same
-   work over and over every time it is called -- worth eliminating.
-2. When a method lookup fails, then lookup an appropriate method like ``dist``
-   which meets the type of point that we have. This matching algorithm is more
-   complex than the ``getprop`` we've been doing so far, but let's assume it
-   exists for the moment.
-3. Generate a specialized version of the generic ``dist`` where all the
-   would-be ``mapply`` points are now resolved right away. For example, we might
-   generate a specialization of ``dist`` for ``Point{Float32}`` to be this -
-
-   .. code:: racket
-
-        (define (dist-Point<f32> pt)
-            (sqrt<f32> (+<f32> (\*<f32> (Point<f32>-x pt) (Point<f32>-x pt))
-                               (\*<f32> (Point<f32>-y pt) (Point<f32>-y pt)))))
-
-   Note that doing this involves performing type inference of all the intermediate
-   compute steps to determine the individual specializations required.
-
-4. Install the specialized version against the specific ``Point`` type we have
-   at hand right now.
-5. Call the specialized version on the ``Point`` we have.
-
-Say we got a ``Point{Float32}`` for which we needed to compute ``dist``, 
-the first time we get it we incur the cost of generating a specialized method
-for it. The next time we encounter another ``Point{Float32}``, the specialized
-method will be located in our ``getprop`` list and we can simply call it.
-Furthermore, this lookup will work transitively when we're generating the
-specialized methods also.
-
-This is roughly how Julia works to resolve its methods. The code we write can
-be generic like the ``dist`` above. Based on the specific types we give as
-arguments, the Julia compiler will generate specialized versions that it will
-then cache in its (more efficient) variation of property list. Given that
-functions are likely to be called with only a handful of different types in a
-given application, the closure of all of these specialization steps will result
-in a stable body of highly efficient code.
-
-Auto-generating a specialization of a method
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-So we have the code for ``dist`` as given in the previous section. We also know
-that a point being passed to it in an expression is of type ``Point{Float32}``.
-How do we generate a specialization of the method for this type?
-
-In essence, we're performing the ``mapply`` operations at "code generation
-time". Let's see what we need in order to determine which method to use for
-``'*`` in ``(mapply '* (Point-x pt) (Point-x pt))``. Given a declaration of the
-type of ``'*`` as something like (using Haskell notation) ``(Num t) => t -> t
--> t``, and that ``pt :: Point{Float32}``, we can infer that ``(Point-x pt) ::
-Float32`` and therefore we need to resolve this method application to be
-specialized to the type list ``('Float32 'Float32)``. If we then assume that
-various such specializations of ``'*`` are available as a base in the system,
-we can substitute the ``(mapply ...)`` expression with (in pseudo code)
-``(*-Float32->Float32->Float32 (Point-x pt) (Point-x pt))``. Here we're using
-the symbol ``*-Float32->Float32->Float32`` to refer to the specific function
-variant of ``*`` that works on this particular type combination.
-
-Notice that in order to do this, we need some type annotations for our functions,
-especially the base library of functions, and also a suitable type inference
-mechanism using which we can determine the type of a function application only
-given the types of the arguments and (optionally) any type annotation(s) available
-for the function being applied.
-
-This brings us then to the topic of type systems and type inference
-(:doc:`types`). While that section deals with types as a mechanism to constrain
-the meaning of programs and to check their correctness, we see here that type
-systems can also be useful for determining program operation by helping with
-dispatch.
-
-.. rubric:: footnotes
-
-
-.. [#mapply] We should be doing :rkt:`(mapply 'Point-x pt)` and :rkt:`(mapply
-   'Point-y pt)` as well, but I skipped that for brevity and the point is
-   sufficiently made by the other ``mapply`` mentions.
+   :alt: A node-edge graph illustrating connections between
+         a node representing a child and three nodes
+         representing adults related to the child.
+
+   A triple store can be seen as a graph.
+
+We'll now model several "object orientedness" ideas based on such a triple
+store. Note that this is not to say that such a triple store is what is
+backing the various object systems. Far from it. We're using the plist as a
+way to explore the design space and options we have when we're interested in
+minimizing the vocabulary we use to program.
+
+In this chapter, we use the ``plist.rkt`` module which you can include
+using ``(require "./plist.rkt")`` from your own code.
+
+We'll assume that we're working with a global plist. Furthermore, we'll
+dispense with implementing it in our language's interpreter and do it in
+plain Racket, since the translation process should now be familiar and
+simple to perform.
+
+.. code-block:: racket
+
+    (require "./plist.rkt")
+
+    (define plist (make-plist))
+
+    (define (setprop! thing key value)
+        (set! plist (plist-assert plist think key value)))
+
+    (define (getprop thing key)
+        (let ([values (plist-find plist thing key #f Tri-obj)])
+            (if (empty? values)
+                (begin ; What do we do here?
+                    )
+                (first values))))
+
+In the above implementation, we're assuming that the plist only holds
+a single value for a given ``thing-key`` combination. We'll relax
+this condition later. For now, note that this is a design space option
+available.
+
+We're now faced with the problem of determining what to do when
+an associated value for a given thing and key is sought for in 
+the plist and one is not present. We'll choose a general way to
+deal with this by passing a handler function.
+
+.. code-block:: racket
+
+    (define (error-on-not-found thing key)
+        (error 'key "Property ~s of ~s is not found" key thing))
+
+    (define (getprop thing key [not-found-handler error-on-not-found])
+        (let ([values (plist-find plist thing key #f Tri-obj)])
+            (if (empty? values)
+                (not-found-handler thing key)
+                (first values))))
+
+
+We'll also define a simple structure to make object references.
+We'll give it an ``id`` field so when printing out an object, we
+know its name. There is no other significance to this ``id`` field.
+
+.. code-block:: racket
+
+    (struct Obj (id) #:transparent)
+
+A prototype based object system
+-------------------------------
+
+The ``Self`` language pioneered the idea of a prototype based object system.
+Although historically this came after the class based system introduced by
+``Smalltalk`` as a response to the problem of prematurely having to determine
+an application's architecture based on "classes" that aren't necessary known
+up front and will be discovered along the way. In other words, the prototype
+based system was seen as a way to **evolve** software as requirements come in
+during its development. The object system in ``JavaScript`` is based on these
+ideas developed in ``Self``.
+
+So, what is an "object" in such a system in the first place? In such a
+prototype based system, an object is simply a collection of named properties
+and "methods". A "message" to an object involves a "message name" (a.k.a.
+"selector") and some additional arguments. When a message is "sent" to an
+object, it looks up a corresponding method (in a table), which is a procedure
+and calls the procedure with the given message arguments. Methods also need to
+get a reference to the object as well, so they can access other properties and
+methods they need.
+
+.. admonition:: **Objects and state**
+
+    Note the change of language we're faced with when looking at such "objects"
+    -- in particular, we're using an imperative language as though the object
+    has some internal storage that we can only influence through message
+    passing and it is free to do anything with that internal data in response
+    to messages. This "state encapsulation" is a significant by product of
+    object think and there would be no reason to choose a dominantly object
+    based design for a system unless it requires and exploits such state
+    encapsulation to simply using and reasoning about the system.
+
+So we'll make a simple function to which we can give a list
+of keys and values (including method procedures) and get an object
+reference that is associated with those properties and methods.
+
+.. code-block:: racket
+
+    (define (object id . kvs)
+        (let ([obj (Obj id)])
+            (let loop ([kvs kvs])
+                (if (empty? kvs)
+                    obj
+                    (begin (setprop! obj (first kvs) (second kvs))
+                           (loop (rest (rest kvs))))))))
+
+With that definition in hand, we can do the following -
+
+.. code-block:: racket
+
+    (define dog1 
+        (object 'puppy
+            'color 'brown
+            'bark (λ (self) (displayln "Yelp!"))))
+
+    (define dog2
+        (object 'adult
+            'color 'black
+            'bark (λ (self) (displayln "Woof Woof!"))))
+
+    (define cat1
+        (object 'siamese
+            'color 'grey
+            'bark (λ (self)
+                     (error "I don't bark! Am I a dog?"))))
+
+    > (getprop cat1 'color)
+    'grey
+    > (getprop dog2 'color)
+    'black
+
+Now, what does it mean to send an object a message? In our case,
+we're modelling "message passing" as "method invocation". So we
+need to take the message name, look it up in the property list
+against the object, and call the function associated. For now,
+we'll leave the "no such method" condition as an error.
+
+.. code-block:: racket
+
+    (define (get obj propname)
+        (getprop obj propname
+            (λ (obj propname)
+                (error "Placeholder. Property name not found."))))
+
+    (define (send obj message . args)
+        (let ([method (get obj message)])
+            (if (procedure? method)
+                (apply method (cons obj args))
+                (error "Method must be a procedure"))))
+
+
+Now we can make our animals make noises -
+
+.. code-block:: racket
+
+    > (send dog1 'bark)
+    Yelp!
+    > (send dog2 'bark)
+    Woof Woof!
+
+Note that the objects are doing something different though
+both have been asked to "bark". This is pretty much the whole
+value behind object oriented programming. Objects are able
+to do this because they encapsulate state in the form of
+properties.
+
+Now, notice that the ``cat1`` object errors out when asked
+to bark. However, we may think of both cats and dogs as 
+"four legged animals". Let's make an ``animal`` object that
+represents this idea -
+
+.. code-block:: racket
+
+    (define animal (object 'Animal
+                        'num-legs 4))
+
+Now, we'd like to have our cats and dogs respond to a request
+for ``'num-legs`` with 4. We can of course add these properties
+to each of those objects, but that feels redundant.
+
+Here is where the "Placeholder" gains importance. We left open
+the question of what to do when a property is not found. We
+can now exploit that gap by asking another linked object for
+the property. But which other object? For that, we can look
+it up in the property list.
+
+.. code-block:: racket
+
+    (define (get obj propname)
+        (getprop obj propname
+            (λ (obj propname)
+                ; Note the recursive call to 'get'
+                (get (getprop obj 'super
+                        (λ (obj superkey)
+                            (error "No such parent")))
+                     propname))))
+
+We did something interesting there. We first try to look up a "super" property
+of the object, which we expect to be defined to another object. If we find one,
+we then ask that object for the property. If such a "super object" doesn't
+exist, the ``getprop`` will error out. But if it does, it will be as though our
+object gained the properties of that "super object". Now, when getting the
+property of the "super", we do it recursively so that if that "super" also
+didn't have that property or method, we look up its "super" and so on until
+either the property/method is found or it errors out.
+
+Note that we've again left a placeholder for the condition when the "super" of
+an object cannot be found. We'll return to this choice point later. First let's
+see what this mechanism buys us for our animal farm.
+
+.. code-block:: racket
+
+    (setprop! dog1 'super animal)
+    (setprop! dog2 'super animal)
+    (setprop! cat1 'super animal)
+
+    > (get dog1 'num-legs)
+    4
+    > (get cat1 'num-legs)
+    4
+    
+We can now also add a method dynamically to ``animal`` and all the
+animals will automatically get it.
+
+.. code-block:: racket
+
+    (setprop! animal 'walk 
+        (λ (self num-steps)
+            (setprop! self 'steps-walked
+                (+ (getprop self 'steps-walked (λ (self key) 0))
+                   num-steps))))
+
+    > (send dog1 'walk 3)
+    > (get dog1 'steps-walked)
+    3
+    > (send dog1 'walk 5)
+    > (get dog1 'steps-walked)
+    8
+
+It's tiring
+-----------
+
+Now, imagine the process we went through just got bigger with many
+tens of methods and properties. Every time we make a new object -- an
+animal -- we have to define these properties on each of them. The
+ability to delegate commonly accessed methods to such a "super"
+object like we just did is therefore a boon since we can just accumulate
+those common methods in that "super" object and make the other objects
+just reference it via their ``'super`` property.
+
+This is the essence of how "classes" are modelled in prototype based object
+systems. The "super object" of an object is also known as the object's "class".
+
+Such prototype based systems do not really distinguish between the notions of
+"object methods" versus "class methods", since these "classes" are themselves
+objects and when you send a message via the object, the method actually affects
+the object in question and not its class, unless you make the class the target
+of the message send. This is due to the methods taking the object as their
+first argument usually named ``self``, as with Python or ``this`` as with 
+JavaScript.
+
+Class methods
+-------------
+
+In order to distinguish between "class methods" (methods that operate on the
+class) versus "object methods" (methods that operate on the object that
+inherits properties and methods from the class), we therefore need to
+make that distinction available in the message sending procedure.
+
+So far, we only added the ``self`` argument. In the ``send`` procedure, we
+first lookup the message in the object hierarchy and then invoke the method on
+the object. If we separate the two, we gain the ability to use the methods in
+one object and apply then on another. To keep the generality, we need to
+augment our method argument list with the object we use to lookup the method as
+well so that the method can do what it pleases with that information. The
+effect of this is only relevant when we have deeper and/or broader class
+hierarchies though.
+
+.. code-block:: racket
+
+    (define (send/super super obj message . args)
+        (let ([method (get super message)])
+            (if (procedure? method)
+                ; Note the change in protocol for method invocation
+                ; which now takes an additional "super" argument.
+                (apply method (cons super (cons obj args)))
+                (error "Method must be a procedure"))))
+
+    ; Note that in class-based object systems, method lookup
+    ; starts with an object's class and not the object itself.
+    ; So we need to lookup an object's ``'isa`` property and
+    ; and invoke ``send/super``.
+    (define (send obj message . args)
+        (apply send/super (cons (getprop obj 'isa)
+                                (cons obj (cons message args)))))
+
+    (define dog1 
+        (object 'puppy
+            'color 'brown
+            'bark (λ (super self) (displayln "Yelp!"))))
+
+    (define dog2
+        (object 'adult
+            'color 'black
+            'bark (λ (super self) (displayln "Woof Woof!"))))
+
+    (define cat1
+        (object 'siamese
+            'color 'grey
+            'bark (λ (super self)
+                     (error "I don't bark! Am I a dog?"))))
+
+    (define animal 
+        (object 'Animal
+            'num-legs 4
+            'walk (λ (super self num-steps)
+                    (setprop! self 'steps-walked
+                        (+ (getprop self 'steps-walked (λ (self key) 0))
+                           num-steps)))))
+
+
+So what new capability does doing this give us? Within a method,
+we can now delegate a part of the functionality to the "super" 
+if we wish. For example, if we want to make a custom "walk" method
+for the cat that depends on whether it is tired, we can do this -
+
+.. code-block:: racket
+
+    (setprop! cat 'tired #t)
+    (setprop! cat 'walk
+        (λ (klass self num-steps)
+            (if (get self 'tired)
+                (error "No energy for a walk. Go away. Meeeow!")
+                (send/super (get klass 'super) self 'walk num-steps)))))
+
+Notice how the cat delegates to its super the ability to walk when it
+is able to, but errors out otherwise. Under normal method invocation,
+``klass`` will be the same as ``self``, but we can choose differently,
+just as the method does when turning around and invoking the parent
+implementation directly, but without changing the target object.
+
+Classes and Types
+-----------------
+
+We saw how the concept of a class arises in a prototype based object
+system -- mostly to collect a group of related methods that apply
+to a set of objects that are said to be "instances" of the same idea.
+In our example, the dogs and the cat were instances of "animal".
+
+Due to this correspondence, such a delegate object (which we called "super")
+can be thought of as the "type" of the object. Languages like C++ and Java
+which are class based often take this approach. In these languages,
+a class acts like a factory for objects which imbues the objects it
+creates with a consistent set of properties and methods.
+
+We can pretty much use the same ``get`` algorithm with naming the 
+property lookup ``class`` instead of ``super`` and it will start
+to look like a class based object system. In such systems though,
+the relationship between an object and its class is deemed to be
+an "is-a" relationship and it is the class which has a hierarchy
+and not the object. When an object is created, it is created with
+"slots" for its properties and the methods are all grouped within
+the class. The object itself does not maintain a table of methods
+but delegates method lookup to its class. We can model this structure
+like below --
+
+.. code-block:: racket
+
+    (define (get thing propname)
+        (getprop thing propname
+            (λ (thing propname)
+                (get (getprop thing 'super) propname))))
+
+    (define (send obj message . args)
+        (let ([klass (getprop obj 'isa)])
+            (apply send/super (append (list klass obj message) args))))
+
+Uniformity considerations
+-------------------------
+
+We saw that "pure" OOP systems tend to say "everything is an object"
+and that "everything happens via message passing". This includes languages
+like Smalltalk, Self and Ruby. Here is, for example, how such a system
+might handle branching on a condition.
+
+.. code-block:: racket
+
+    (setprop! 'True 'if:else: (λ (ctxt obj thenblock elseblock)
+                                    (thenblock)))
+    (setprop! 'False 'if:else: (λ (ctxt obj thenblock elseblock)
+                                    (elseblock)))
+
+
+So the result of a boolean computation is a singleton instance of one of the
+"classes" named ``True`` and ``False``, which dispatch on the ``'if:else:``
+message on one or the other branch depending on which instance received the
+message.
+
+Other control constructs are also cleverly constructed based on the fundamental
+notion of a "block" - which plays the role of a lambda function in OOP
+languages like Ruby and Smalltalk, and are "ordinary" first class functions in
+languages like JavaScript and Python. For example, a block object could have
+a method named ``whileTrue:`` which takes another block and runs it repeatedly
+until the target block returns with ``False``.
+
+What about ordinary numbers then? Should we declare each number used in the
+system to have a property list entry that gives it "class"? That would be terribly
+wasteful and impractical to do so. So these systems use a few bits in small
+data types like numbers to tell their types, as an implementation hack. In
+principle, that is equivalent to having some type checks like below --
+
+.. code-block:: racket
+
+    (define (get thing key)
+        (if (equal? key 'isa)
+            (cond
+                [(number? thing) 'Number]
+                [(string? thing) 'String]
+                [(symbol? thing) 'Symbol]
+                [(boolean? thing) (if thing 'True 'False)]
+                [else (getprop thing key)]) ; Errors out if not found.
+            (getprop thing key
+                (λ (thing key)
+                    (get (getprop thing 'super) key)))))
+
+Now we no longer have to have individual raw data items like numbers
+and strings in our property list take just so we can get at their types/classes.
+
+Flipping things around
+----------------------
+
+We modelled message passing as method invocation using our ``send`` procedure
+which we wrote like this (for prototype based inheritance).
+
+.. code-block:: racket
+
+    (define (send obj message . args)
+        (apply (get obj message) (cons obj args)))
+
+This puts the object in the centre of the stage and the message plays the role
+of something that the object receives and then does something with. We can equivalently
+write it as an ``invoke`` procedure like below, which puts the message
+at the centre of the stage.
+
+.. code-block:: racket
+
+    (define (invoke method obj . args)
+        (apply (get obj method) (cons obj args)))
+
+They both do the same thing. But now we can ask an interesting question we
+might not have asked with the earlier approach -- can we now determine which
+method to call based on the types/classes of more than one object? This
+situation arises often in scientific computing where "what to do" is often only
+possible to know when the types of multiple entities are known -- such as how
+to add a complex number to a real number or multiply a real number with a
+vector, and so on.
+
+.. code-block:: racket
+    
+    (define (gettype obj) (getprop obj 'type))
+
+    (define (invoke2 method obj1 obj2)
+        (apply (getprop method (map gettype (list obj1 obj2)))
+            (list obj1 obj2)))
+
+
+In ``invoke2`` above, we're treating the method as the thing for which
+we're looking up properties against various nominal types (i.e. types by
+names). The key is a compound object in this case, a list of two types
+(which could be symbols). We can now define methods for concatenating
+strings and integers perhaps using this approach --
+
+.. code-block:: racket
+
+    (setprop! 'add (list 'Number 'Number)
+        (λ (n1 n2)
+            (+ n1 n2)))
+
+    (setprop! 'add (list 'String 'Number)
+        (λ (str num)
+            (format "~s~s" str num)))
+
+    (setprop! 'add (list 'Number 'String)
+        (λ (num str)
+            (format "~s~s" num str)))
+
+Now we can add number and strings freely. Not that that's "a good thing",
+but we can.
+
+The interesting thing about this approach is that we're no longer forced to
+determine whether the code for adding a string with a number should go within
+the class for strings or the class for numbers! However, it looks like we've
+traded that flexibility for a whole lot of responsibility -- that of specifying
+what procedure to use for potentially N^2 type combinations where N is the
+number of types in the program. While the problem is not as dire as that, it
+does get burdensome even dealing with special methods for combining various
+types of numbers. But the payoff is simplicity for the programmer and that is
+worth some of the additional work put in to ensure that method names have
+consistent interpretations across various types.
+
+This approach is also the essence of "multiple argument dispatch". We can
+obviously extend this approach beyond just 2 arguments. Julia is a programming
+language in which this notion of multiple argument dispatch, combined with type
+inference and just-ahead-of-time compilation is used to generate highly
+efficient code for scientific computing applications. Julia gets around the
+problem of having to specify special method implementations for multiple
+combinations by permitting the definition of generic methods on which type
+inference at call time can produce concrete types and methods at all the call
+points and therefore special methods that are consistent with the intent of the
+verb can be generated on demand.  For example, consider the following
+definition for a "squared distance" -
+
+.. code-block:: racket
+
+    (define (sqdist dx dy)
+        (+ (* (adj dx) dx) (* (adj dy) dy)))
+
+If we have implementations for different types for ``adj``, ``*`` and
+``+``, this generic way of specifying a computation using those methods
+suffices to produce special implementation depending on the context.
+For example, if ``dx`` and ``dy`` happened to be vectors, we can interpret
+``sqdist`` to be equivalent to --
+
+.. code-block:: racket
+
+    (define (sqdist-vec-vec dx dy)
+        ; where vec* acts like a dot product when
+        ; given a row vector and a column vector.
+        (vec+ (vec* (vec-adj dx) dx)
+              (vec* (vec-adj dy) dy)))
+
+    (define (sqdist-complex-complex dx dy)
+        (complex+ (complex* (complex-conj dx) dx)
+                  (complex* (complex-conj dy) dy)))
+
+    ; and so on.
+
+The important simplifying procedure here is that these specialized methods
+can be automatically generated from one (or more) generic specifications
+depending on need. [#genmethods]_
+
+.. [#genmethods] Providing an implementation of this is not simple and would
+   fall into the scope of an advanced course that covers the required type
+   systems and type inference mechanisms.
+
+In the above ``invoke2`` procedure, we're doing dynamic dispatch over multiple
+arguments. However, that is not necessary and it is possible to do some of this
+analysis at compile time and determine which method procedures to call
+statically ... which is a huge efficiency boost over determining it for every
+pair of, say, numbers over and over again. While Julia can do dynamic dispatch
+as a fallback, such a static dispatch is what it relies on for its performance.
+
+In this approach, therefore, a "verb" does not correspond to a single procedure,
+but to a family of related procedures called "methods" and which procedure to
+use for a particular call is determined based on the types of the arguments
+being passed to it.
+
+Miscellaneous considerations
+----------------------------
+
+Initializing objects
+~~~~~~~~~~~~~~~~~~~~
+
+In class based object systems, an object is simply configured to refer to its
+class for the methods and is allocated some memory "slots" to store its
+properties. Usually though, each kind of object will need to be initialized
+with the slots containing values that meet some specific constraints of
+consistency. For example, a "Point2D" object may need to have its "x" and "y"
+slots be initialized to 0. Such an initialization is done by a designated
+method in the class called its "constructor". This "constructor" procedure is
+run only once at object creation time and is not available for use in the
+method invocation chain.
+
+.. code-block:: racket
+
+    ; Some unique key not accessible to users of the object system.
+    (define constructor-key (gensym 'constructor))
+
+    (define (new klass . args)
+        (let ([obj (Obj klass)])
+            (setprop! obj 'isa klass)
+            (apply (get klass constructor-key) (cons obj args))
+            obj))
+
+
+Method not found
+~~~~~~~~~~~~~~~~
+
+Earlier, we had a case where we had a failure to lookup a method by name
+and we errored out. We have another option - to rely on the property list
+to figure out what to do! For example, if a "method-not-found" procedure is
+defined for a type, we can call that to determine any dynamic actions to
+perform. 
+
+.. code-block:: racket
+    
+    (define (send obj message . args)
+        (let ([method (getprop obj message
+                        (λ (obj message)
+                            (get (getprop obj 'super (λ (thing key) #f)) message)))])
+            (if method
+                (apply method (cons obj args))
+                (apply (get obj 'method-not-found)
+                        (cons obj (cons message args))))))
+
+    

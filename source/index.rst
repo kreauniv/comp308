@@ -27,8 +27,6 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    control
    generators
    errornot 
-   objects
-   objects-self
    dispatch
    appsem
    types

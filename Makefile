@@ -7,6 +7,7 @@ SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = source
 BUILDDIR      = build
+PROJ	      = comp308
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -20,15 +21,14 @@ help:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 pages: html
-	cd build/html && tar zcf /tmp/comp308-html.tar.gz . 
-	tar zcf /tmp/comp308-backup-`date "+%Y%m%d%H%M%S"`.tar.gz . 
-	rm -rf build
-	git checkout gh-pages 
-	git reset --hard 
-	git clean -f -d 
-	tar zxf /tmp/comp308-html.tar.gz 
-	git add * 
-	git add -u * 
-	git commit -m "Updated gh-pages"
-	git push
-	git checkout main
+	cd build/html && tar zcf /tmp/$(PROJ)-html.tar.gz . 
+	cd /tmp && git clone git@github.com:kreauniv/$(PROJ).git $(PROJ)_build
+	cd /tmp/$(PROJ)_build \
+		&& git checkout gh-pages \
+		&& tar zxf /tmp/$(PROJ)-html.tar.gz \
+		&& git add . \
+		&& git commit -m "Updated gh-pages" \
+		&& git push
+	rm -rf /tmp/$(PROJ)_build
+	rm /tmp/$(PROJ)-html.tar.gz
+

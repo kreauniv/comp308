@@ -561,10 +561,10 @@ have to examine what we expect of it. Consider this --
 
     (stitch (konst 0.0) dur <s>)
         = (mix (cut dur (konst 0.0))
+               (after dur <s>)) ; By definition
+        = (mix (konst 0.0) ; Since (cut dur (konst 0.0)) = (konst 0.0)
                (after dur <s>))
-        = (mix (konst 0.0)
-               (after dur <s>))
-        = (after dur <s>)
+        = (after dur <s>) ; By the `mix` identity stated earlier.
 
 And also this --
 
@@ -572,10 +572,10 @@ And also this --
 
     (stitch <s> dur (konst 0.0))
         = (mix (cut dur <s>)
-               (after dur (konst 0.0)))
+               (after dur (konst 0.0))) ; By definition
         = (mix (cut dur <s>)
-               (konst 0.0))
-        = (cut dur <s>)
+               (konst 0.0)) ; Since (after dur (konst 0.0)) = (konst 0.0)
+        = (cut dur <s>) ; By the `mix` identity stated earlier.
 
 So it looks like if we have ``stitch`` as an operator, we can **desugar**
 both ``after`` and ``cut`` using ``stitch``! This would reduce the number

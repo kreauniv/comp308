@@ -4,7 +4,7 @@
          Gen
          (struct-out step)
          konst clock phasor oscil noise midi2hz mix mod
-         line expon decay stitch slice after cut
+         line expon decay stitch cut after
          d adsr fadein fadeout crossfade
          lpf bpf bpf0 hpf)
 
@@ -221,8 +221,8 @@
         (match-let ([(step av ag) (a dt)])
           (step av (stitch ag (- dur dt) b))))))
 
-(: slice (-> Real Gen Gen))
-(define (slice dur g)
+(: cut (-> Real Gen Gen))
+(define (cut dur g)
   (lambda (dt)
     (if (<= dur 0.0)
         ; If no duration left, then it's all zeroes afterwards.
@@ -230,7 +230,7 @@
         ; Keep reducing the available duration in each time step
         ; as we run g to get samples.
         (match-let ([(step gv gg) (g dt)])
-          (step gv (slice (- dur dt) gg))))))
+          (step gv (cut (- dur dt) gg))))))
         
 
 (: after (-> Real Gen Gen))
@@ -239,14 +239,6 @@
       g
       (lambda (dt)
         (step 0.0 (after (- dur dt) g)))))
-
-(: cut (-> Real Gen Gen))
-(define (cut dur g)
-  (if (<= dur 0.0)
-      (konst 0.0)
-      (lambda (dt)
-        (match-let ([(step gv gg) (g dt)])
-          (step gv (cut (- dur dt) gg))))))
 
 (: d (-> Gen Gen))
 (define (d g)
@@ -297,7 +289,7 @@
 
 (: crossfade (-> Real Gen Real Gen Gen))
 (define (crossfade xdur a adur b)
-  (mix (slice adur (mod (fadeout adur xdur) a))
+  (mix (cut adur (mod (fadeout adur xdur) a))
        (after (- adur xdur)
               (mod (fadein xdur) b))))
 

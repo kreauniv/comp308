@@ -126,6 +126,10 @@ REPL to see what you get as a result --
 * ``(string->symbol "hello")``
 * ``(symbol->string 'hello)``
 
+The syntax ``'...something...`` (ex: ``'(1 2 3)``), is equivalent to
+``(quote ...something...)`` (ex: ``(quote (1 2 3))``). The ``quote``
+prevents evaluation of the term that follows.
+
 As you can see, Scheme provides some operators out of the box. It also lets
 you define your own symbols bound to values of interest to you, using the
 ``define`` operator, like this --
@@ -139,7 +143,7 @@ REPL.
 .. code-block:: racket
 
     (define hello (string-copy "hello comp308"))
-    (define pyth-triplet (list hello 3 4 (sqrt (+ (* 3 3) (* 4 4)))))
+    (define pyth-triplet (list pythagorus 3 4 (sqrt (+ (* 3 3) (* 4 4)))))
 
 Note how an s-expression is evaluated. First the expressions featuring
 in each slot of the list are evaluated. The results are then substituted
@@ -150,14 +154,14 @@ in the second definition above will be evaluated in the following sequence -
 
 .. code-block:: racket
 
-    list        ; Becomes the predefined list creation procedure
-    hello       ; Becomes "hello comp308", a string
-    3           ; Becomes 3, i.e. itself
-    4           ; Becomes 4
-    (* 3 3)     ; Becomes 9
-    (* 4 4)     ; Becomes 16
-    (+ 9 16)    ; Becomes 25
-    (sqrt 25)   ; Becomes 5
+    list             ; Becomes the predefined list creation procedure
+    "hello comp308"  ; Becomes "hello comp308", a string
+    3                ; Becomes 3, i.e. itself
+    (* 3 3)          ; Becomes 9
+    4                ; Becomes 4
+    (* 4 4)          ; Becomes 16
+    (+ 9 16)         ; Becomes 25
+    (sqrt 25)        ; Becomes 5
     (list "hello comp308" 3 4 5) ; Becomes '("hello comp308" 3 4 5)
 
 Procedures
@@ -207,6 +211,18 @@ procedure a name using the known ``define`` as follows --
 
     (define hypotenuse (lambda (x y) (sqrt (+ (* x x) (* y y)))))
 
+Since it get hard to read the sub-expressions in code like that, they are
+usually split across multiple lines, with DrRacket automatically indenting it
+for you - for example -
+
+.. code-block:: racket
+
+    (define hypotenuse
+        (lambda (x y)
+            (sqrt (+ (* x x)
+                     (* y y)))))
+
+
 If you put that into the file and "Run" it, you can use ``hypotenuse``
 in the REPL like ``(hypotenuse 3 4)``.
 
@@ -239,8 +255,8 @@ process of :index:`substitution`. Let's take the same example above --
 
 .. code-block:: racket
 
-    (list hello 3 4 (sqrt (+ (* 3 3) (* 4 4))))
-    (#<list> hello 3 4 (sqrt (+ (* 3 3) (* 4 4)))) 
+    (list "hello comp308" 3 4 (sqrt (+ (* 3 3) (* 4 4))))
+    (#<list> "hello comp308" 3 4 (sqrt (+ (* 3 3) (* 4 4)))) 
     (#<list> "hello comp308" 3 4 (sqrt (+ (* 3 3) (* 4 4)))) 
     (#<list> "hello comp308" 3 4 (#<sqrt> (+ (* 3 3) (* 4 4)))) 
     (#<list> "hello comp308" 3 4 (#<sqrt> (#<+> (* 3 3) (* 4 4)))) 
@@ -260,7 +276,7 @@ values ``#<procedure:list>``.
 
 .. code-block:: racket
 
-    (list hello 3 4 (sqrt (+ (* 3 3) (* 4 4))))
+    (list "hello comp308" 3 4 (sqrt (+ (* 3 3) (* 4 4))))
     (list "hello comp308" 3 4 (sqrt (+ (* 3 3) (* 4 4))))
     (list "hello comp308" 3 4 (sqrt (+ 9 (* 4 4))))
     (list "hello comp308" 3 4 (sqrt (+ 9 16)))
@@ -286,6 +302,17 @@ expression using substitution as follows --
 The main thing to understand in the above sequence is the first step
 of substituting 3 for x and 4 for y according to the declared
 argument sequence.
+
+The rule for reducing a lambda application can be expressed like this -
+
+.. code-block:: racket
+
+   ((lambda (x) E[x]) val-expr) => E[val]
+
+where ``val-expr`` stands for some expression that produces a value and ``E[x]``
+stands for some s-expression that (optionally) uses the identifier ``x``.
+By ``E[val]`` what we mean is that the evaluated result of ``val-expr`` is substituted
+wherever ``x`` occurs in ``E[x]``.
 
 Homoiconicity
 -------------

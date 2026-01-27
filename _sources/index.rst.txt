@@ -16,6 +16,7 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    church
    piclang
    arithlang
+   synthlang
    machine
    notional-machine
    growing

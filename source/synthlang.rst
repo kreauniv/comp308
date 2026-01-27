@@ -13,6 +13,9 @@ languages, and when they are not too familiar, help students ask key questions.
 
 .. note:: We're not going to be building a full fledged synth toolkit. What
    we're interested in is making (hopefully) some simple sounds and compositions.
+   The ideas here form the basis for `Synth.jl`_.
+
+.. _Synth.jl: https://github.com/srikumarks/Synth.jl
 
 Growing a language for sounds
 -----------------------------

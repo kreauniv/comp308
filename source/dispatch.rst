@@ -344,7 +344,9 @@ those common methods in that "super" object and make the other objects
 just reference it via their ``'super`` property.
 
 This is the essence of how "classes" are modelled in prototype based object
-systems. The "super object" of an object is also known as the object's "class".
+systems. The "super object" of an object is known as the object's "prototype".
+In such systems, a prototype that also has a method that can construct 
+"instances" of it is referred to as a "class".
 
 Such prototype based systems do not really distinguish between the notions of
 "object methods" versus "class methods", since these "classes" are themselves

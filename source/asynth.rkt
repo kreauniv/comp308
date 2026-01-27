@@ -4,7 +4,7 @@
          Gen
          (struct-out step)
          konst clock phasor oscil noise midi2hz mix mod
-         line expon decay stitch slice after
+         line expon decay stitch slice after cut
          d adsr fadein fadeout crossfade
          lpf bpf bpf0 hpf)
 
@@ -235,10 +235,18 @@
 
 (: after (-> Real Gen Gen))
 (define (after dur g)
-  (lambda (dt)
-    (if (<= dur 0.0)
-        (g dt)
+  (if (<= dur 0.0)
+      g
+      (lambda (dt)
         (step 0.0 (after (- dur dt) g)))))
+
+(: cut (-> Real Gen Gen))
+(define (cut dur g)
+  (if (<= dur 0.0)
+      (konst 0.0)
+      (lambda (dt)
+        (match-let ([(step gv gg) (g dt)])
+          (step gv (cut (- dur dt) gg))))))
 
 (: d (-> Gen Gen))
 (define (d g)

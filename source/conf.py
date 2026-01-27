@@ -37,6 +37,7 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "metapensiero.sphinx.d2",
     "sphinxcontrib.d2lang",
+    "sphinx_design",
     #'rst2pdf.pdfbuilder'
 ]
 

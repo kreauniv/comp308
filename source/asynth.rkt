@@ -210,23 +210,23 @@
 ; switch to processing the second model.
 (: stitch (-> Gen Real Gen Gen))
 (define (stitch a dur b)
-  (lambda (dt)
-    (if (<= dur 0.0)
-        ; If no duration left, then it's all b afterwards.
-        ; Notice that stitch does not get used recursively
-        ; in this branch, which means it's all really b from
-        ; this point onwards.
-        (b dt)
+  (if (<= dur 0.0)
+      ; If no duration left, then it's all b afterwards.
+      ; Notice that stitch does not get used recursively
+      ; in this branch, which means it's all really b from
+      ; this point onwards.
+      b
+      (lambda (dt)
         ; Keep reducing the duration as we run a.
         (match-let ([(step av ag) (a dt)])
           (step av (stitch ag (- dur dt) b))))))
 
 (: cut (-> Real Gen Gen))
 (define (cut dur g)
-  (lambda (dt)
-    (if (<= dur 0.0)
-        ; If no duration left, then it's all zeroes afterwards.
-        (step 0.0 (konst 0.0))
+  (if (<= dur 0.0)
+      ; If no duration left, then it's all zeroes afterwards.
+      (konst 0.0)
+      (lambda (dt)
         ; Keep reducing the available duration in each time step
         ; as we run g to get samples.
         (match-let ([(step gv gg) (g dt)])

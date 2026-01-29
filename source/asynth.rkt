@@ -93,6 +93,12 @@
   (lambda (dt)
     (step v (konst v))))
 
+(define-type ?Gen (U Real Gen))
+(: ?konst (-> ?Gen Gen))
+(define (?konst v)
+  (if (real? v)
+      (konst v)
+      v))
 
 ; The "clock" simply accumulates the sample intervals to compute the "time".
 ; This is not technically an "audio" model as the clock is not intended to be
@@ -206,8 +212,8 @@
         (step v (decay halflife (* v (exp (- (* (log 2) (/ dt halflife))))))))))
 
 ; It is useful to be able to sequence two models in time. In this case, we want to
-; stop processing the preceding model once its stipulated duration completes, and then
-; switch to processing the second model.
+; stop processing the preceding Gen once its stipulated duration completes, and then
+; switch to processing the second Gen.
 (: stitch (-> Gen Real Gen Gen))
 (define (stitch a dur b)
   (if (<= dur 0.0)
@@ -221,25 +227,7 @@
         (match-let ([(step av ag) (a dt)])
           (step av (stitch ag (- dur dt) b))))))
 
-(: cut (-> Real Gen Gen))
-(define (cut dur g)
-  (if (<= dur 0.0)
-      ; If no duration left, then it's all zeroes afterwards.
-      (konst 0.0)
-      (lambda (dt)
-        ; Keep reducing the available duration in each time step
-        ; as we run g to get samples.
-        (match-let ([(step gv gg) (g dt)])
-          (step gv (cut (- dur dt) gg))))))
-        
-
-(: after (-> Real Gen Gen))
-(define (after dur g)
-  (if (<= dur 0.0)
-      g
-      (lambda (dt)
-        (step 0.0 (after (- dur dt) g)))))
-
+; Single time step delay.
 (: d (-> Gen Gen))
 (define (d g)
   (define (d* [g : Gen] [v : Real]) : Gen
@@ -248,8 +236,25 @@
         (step v (d* gg gv)))))
   (d* g 0.0))
 
+; Recursively defined n-step delay.
+(: dn (-> Nonnegative-Integer Gen Gen))
+(define (dn n g)
+  (if (= n 0)
+      g
+      (d (dn (- n 1) g))))          
+        
 ; We can now use the core primitives we've defined above to express some common
 ; constructs that are useful.
+
+; A cut can be expressed in terms of stitch.
+(: cut (-> Real Gen Gen))
+(define (cut dur g)
+  (stitch g dur (konst 0.0)))
+
+; Likewise `after` can be expressed in terms of stitch too.
+(: after (-> Real Gen Gen))
+(define (after dur g)
+  (stitch (konst 0.0) dur g))
 
 ; The "ADSR" curve refers to a four segment curve with an "attack" period over
 ; which the value rises from 0.0 to some peak, followed by a short "decay"
@@ -292,6 +297,7 @@
   (mix (cut adur (mod (fadeout adur xdur) a))
        (after (- adur xdur)
               (mod (fadein xdur) b))))
+
 
 ; So now we have a bunch of audio operators and methods to combine them so we can
 ; construct Gens and render them to a file for playback.

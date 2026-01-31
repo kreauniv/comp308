@@ -60,8 +60,161 @@ When given a number :rkt:`2`, by substituting :rkt:`x` with :rkt:`2`, you can
 compute the result of what the λ expression denotes -- which is :rkt:`(* 2
 2) = 4`.
 
-There are two main rules you need to know when working with :rkt:`λ`
-expressions (the abstract ones).
+We'll now look at the "stuff", "structure" and "properties" that make up
+λ-calculus.
+
+The stuff of λ calculus
+-----------------------
+
+We'll use :rkt:`λ` instead of :rkt:`lambda` for brevity even when writing expressions
+in Racket.
+
+The "stuff" of Church's λ-calculus are called "λ-terms" - a.k.a. "λ functions" or
+simply "functions" if the context is not ambiguous.
+
+.. code::
+
+    <λ-term> => <identifier>
+    <λ-term> => (λ (<identifier>) <λ-term>)
+    <λ-term> => (<λ-term> <λ-term>)
+
+We can use Racket's symbols to represent "identifiers" and its :rkt:`lambda` construct
+to represent the second form. The third is the usual Racket "applicative" form. We can
+therefore write a predicate that tests whether a particular form is a valid λ-term.
+
+.. code:: racket
+
+    (define (λ-term? expr)
+        (or (symbol? expr)
+            (and (list? expr)
+                 (= (length expr) 2)
+                 (λ-term? (first expr))
+                 (λ-term? (second expr)))
+            (and (list? expr)
+                 (= (length expr) 3)
+                 (list? (second expr))
+                 (= (length (second expr)) 1)
+                 (symbol? (first (second expr)))
+                 (λ-term? (third expr)))))
+
+Let's construct some example λ-terms to get a feel for this -
+
+.. code:: racket
+
+    x
+    (x y)
+    (λ (a) a)
+    (λ (a) b)
+    (λ (a) (a b))
+    ((λ (x) (x (λ (a) (a b)))) y)
+
+Some observations -
+
+1. Notice that that's all we have in this "mini language". No numbers,
+   booleans, strings, lists, symbols, vectors, structs, etc. Church's claim is
+   that all of those can be expressed as λ-functions.
+
+2. Our :rkt`λ-term?` predicate's recursive nature fully captures the
+   recursive term construction of lambda calculus.
+
+3. So far, they are only terms. We've called them "functions", but there is nothing
+   so far to warrant that.
+
+We'll permit ourselves a little syntactic extension for convenience - i.e. some
+syntactic sugar.
+
+.. code:: racket
+
+    <λ-term> => (λ (<id1> <id2> ... <idN>) <λ-term>)
+    <λ-term> => (<λ-term> <λ-term> <λ-term> ... <λ-term>)
+
+where we take those forms to mean the following --
+
+.. code:: racket
+
+    (λ (<id1> <id2> ... <idN>) <λ-term>)
+    = (λ (<id1>) (λ (<id2>) (... (λ (<idN>) <λ-term>))...))
+
+    (<λ-term1> <λ-term2> <λ-term3> ... <λ-termN>)
+    = (...((<λ-term1> <λ-term2>) <λ-term3>) ... <λ-termN>)
+
+Given this equivalence, we don't have a conceptual problem when we encounter
+such extended terms.
+
+.. admonition:: **Homework**
+
+    Extend the :rkt:`λ-term?` predicate to support these extended forms.
+    Write a :rkt:`expand-λ` procedure that will take a λ form containing
+    such extended forms and translate them all into their equivalent core
+    forms.
+
+The structure of λ-calculus
+---------------------------
+
+We've just defined some forms in the previous section without saying anything
+about what they might mean. There is only one structure to know about in
+λ-calculus - which is "application", known more formally as "β reduction".
+
+.. code:: racket
+
+    ((λ (x) E[x]) <y>) =β=> E[<y>]
+
+where :rkt:`E[x]` refers to any λ-term that may refer to the identifier
+:rkt:`x` in any number of places. If we think of :rkt:`E[.]` as having holes,
+then :rkt:`E[<y>]` refers to pasting :rkt:`<y>` into all those holes.
+Some simple examples - 
+
+.. code:: racket
+
+    ((λ (x) x) y) =β=> y
+    ((λ (x) (λ (y) y)) z) =β=> (λ (y) y)
+    ((λ (x) (λ (y) x)) z) =β=> (λ (y) z)
+
+This structure defines the notion of "calculating" with lambda terms.
+
+The properties of λ-terms
+-------------------------
+
+1. *α-renaming*: For any given expression with a hole :rkt:`E[.]`, all λ terms
+   of the form :rkt:`(λ (<id>) E[<id>])` for any identifier :rkt:`<id>` are
+   considered to be equal to each other -- meaning they can be substituted for
+   one another. So :rkt:`(λ (x) x)`, :rkt:`(λ (y) y)` etc all refer to "the
+   same thing".
+
+2. *η-reduction*: :rkt:`(λ (x) (f x)) = f`.
+
+When we say "equal", we mean that the RHS can substitute for the LHS and vice
+versa ... anywhere. Note that it means that any interpretation of an expression
+must be consistent with all possible ways to rewrite the expression based on
+these equivalences. For example, :rkt:`((λ (x) (λ (x) x)) y)` β-reduces to
+:rkt:`(λ (x) x)` and **not** to :rkt:`(λ (x) y)`, because that is the only
+interpretation that is consistent with the inner λ being rewritten using
+α-renaming to :rkt:`(λ (z) z)` before performing the β-reduction.
+
+Similarly, :rkt:`((λ (x) (λ (y) (x y))) y)` β-reduces to :rkt:`(λ (z) (y z))`
+(or any of its α-renamed equals) and **not** to :rkt:`(λ (y) (y y))`, as a
+naive substitution might suggest.
+
+A first useful step to working with a λ term therefore is to perform α-renaming
+so that all identifiers "introduced" within :rkt:`(λ (<id>) ...)` forms are 
+α-renamed using unique identifier names so as to avoid any confusion during
+reducing substitutions.
+
+β-abstraction
+-------------
+
+We define the step of β-reduction above as an LHS to RHS rewrite. If we rewrite
+the other way (since they are equal), we call it "β-abstraction".
+
+This is a central topic in this course as much of what we learn about useful
+concepts developed for real world programming languages can be understood
+using β-abstraction steps. To put it another way, just as Church claims that
+all computations can be expressed as manipulations of λ-terms using these
+rules, **all abstractions in programming are in essence β-abstractions**.
+
+
+Recap
+-----
 
 .. index:: α-renaming
 
@@ -97,8 +250,8 @@ expressions (the abstract ones).
    ((λ (x) E1[x]) E2)` as "β-abstracting over :rkt:`E2`". In most cases,
    when we're performing such a transformation, we're no longer really
    interested in the :rkt:`E2` and will usually focus on the preceding
-   :rkt:`(λ (x) E1[x])` and loosely talk about that as the β-abstracted
-   expression.
+   :rkt:`(λ (x) E1[x])` and loosely talk about that as the "β-abstracted
+   form".
 
 .. warning:: When performing a :index:`β-reduction` step in Scheme, you need to
    be careful not to substitute symbols within a :rkt:`quote` sub-expression.
@@ -106,7 +259,6 @@ expressions (the abstract ones).
    :rkt:`'(+ x x)` whereas :rkt:`((λ (x) (+ x x)) 3)` reduces to :rkt:`(+
    3 3) = 6`.
 
-We'll use λ instead of :rkt:`lambda` for brevity.
 
 Take the expression :rkt:`((λ (x) (* x ((λ (x) (- x 1)) x))) 10)` and
 try to apply the reduction rules. If you took the "β-reduction" rule in the
@@ -150,6 +302,67 @@ representable using λs **alone** .. and showed how to do it.
 
 We'll now work through how to represent basic things in terms of which we
 can build a whole computational edifice.
+
+Let's look first at how to represent boolean values :rkt:`#t` and :rkt:`#f`.
+
+Booleans
+~~~~~~~~
+
+To tackle that, we need to be clear about what exactly *is* a boolean. What
+do we use booleans for and where do we use them? Yes we may combine booleans
+using logical operators to compute a boolean result, but what would we then use
+that boolean result for? We might print it out to the console. But then we're using
+that printed out boolean in our minds for something.
+
+That something is a branch. The only place a boolean is useful to make a choice
+about which of two expressions to use, by using it in the conditional slot of
+an :rkt:`(if <condition> <then-expr> <else-expr>)` expression.
+
+For the moment, we're considering a language where there is no notion of printing
+or state or mutation. We'll also constrain :rkt:`if` to accept only boolean
+values in the :rkt:`<condition>` position instead of Racket's generalized
+booleans. So the :rkt:`if` expression obeys the following equivalences --
+
+.. code:: racket
+
+    (if #t <expr1> <expr2>) = <expr1>
+    (if #f <expr1> <expr2>) = <expr2>
+
+Using our multiple argument equivalences -
+
+.. code:: racket
+
+    (if #t <expr1> <expr2>) = ((if #t) <expr1> <expr2>) = <expr1>
+    (if #f <expr1> <expr2>) = ((if #f) <expr1> <expr2>) = <expr2>
+
+It looks like :rkt:`#t` is functionally then equivalent to :rkt:`(if #t)`
+for all practical purposes and likewise :rkt:`#f` is equivalent to :rkt:`(if #f)`.
+We can therefore define our booleans like so -
+
+.. code:: racket
+
+    (define true (λ (a b) a))
+    (define false (λ (a b) b))
+    (define if (λ (c) c))
+    ; or equivalently (define (if c a b) (c a b))
+
+.. admonition:: **Take moment to think about this**
+
+    Our "booleans" are being represented as functions that perform the
+    branching for which we need them. The :rkt:`if` construct in our language
+    then is simply the identity function! 
+
+    Usually, if the condition happens to be true or false, we only want
+    one of the two branches to be evaluated, whereas in this case, it looks
+    like both branches will be evaluated and one of the values will be discarded.
+
+    While the selective evaluation is how Racket works due to it being a
+    "larger" programming language in the Guy Steele sense, it makes no
+    difference in our minimal λ language so far which way we choose, because
+    we're so far only dealing with mathematical equivalents that we calculate
+    using the substitution rule (i.e. β-reduction).
+
+So booleans are down for now.
 
 Pairs
 ~~~~~
@@ -254,34 +467,6 @@ languages.
    rewritten to :math:`(λ\ (x)\ (λ\ (y)\ E[x,y]))` with corresponding changes
    to substitution steps without loss of logical correctness. So we'll take
    that additional liberty here too.
-
-
-Booleans
-~~~~~~~~
-
-.. index:: Church booleans
-
-From this section on, it will be valuable for us to use the :rkt:`#lang lazy`
-language instead since we're going to be doing equational reasoning which will
-work only in a lazy scheme and not when using eager evaluation. The syntax and
-meaning are generally the same, except that the values of expressions will be
-computed only when they are needed and not before.
-
-.. admonition:: **Exercise**
-
-    The only place we use boolean values is to do a branch within an :rkt:`if`
-    condition. So if we can implement :rkt:`if` purely using :rkt:`λ`, we're
-    good. For this exercise, you'll need to consider "lazy evaluation" instead
-    of "eager evaluation" to keep things simple. In fact, for the rest of this
-    demonstration, we'll use lazy evaluation with :rkt:`#lang lazy`. The earlier
-    ones will also work with :rkt:`#lang lazy`. So complete the definition below --
-
-    .. code-block:: racket
-
-        (define IF (λ (bool then-expr else-expr) ....))
-
-    Remember the trick we used with :rkt:`pair`. You have all you need in that
-    code.
 
 
 ``let``

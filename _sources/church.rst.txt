@@ -46,10 +46,8 @@ So the basics first -- expressed in Racket notation using s-expressions.
 Its "stuff"
 ~~~~~~~~~~~
 
-We call an expression of the notion of a "function" a "λ-term".
 
-Its "structure"
-~~~~~~~~~~~~~~~
+We call an expression of the notion of a "function" a "λ-term".
 
 1. An identifier like ``x``, ``y``, called "variables" due to the mathematical origin
    of λ-calculus, is a "λ-term".
@@ -57,22 +55,33 @@ Its "structure"
 2. If ``x`` and ``y`` are λ-terms, then ``(x y)`` is also a λ-term. This is 
    how function application is expressed.
 
-3. If ``x`` is an identifier and ``E[x]`` is a λ-term that uses ``x`` in some
-   way (including not using it at all), then ``(λ (x) E[x])`` is a λ-term.
+3. If L is a λ-term, then ``(λ (<id>) L)`` is also a λ-term. 
 
-Its "properties"
-~~~~~~~~~~~~~~~~
+.. admonition:: **Terminology: Free variables**
+
+    In a λ-term, any identifier (a.k.a. "variable" in this context, due to its
+    mathematical origins) that is not mentioned in the argument position of any
+    surrounding :rkt:`(λ (<id>) ...)` form is called a "free variable".
+
+Its "structure"
+~~~~~~~~~~~~~~~
+
+We list below some relations between λ-terms.
 
 **α-renaming**
 
-    Two λ-terms that differ only in a change of variable are equivalent.
-    ``(λ (x) E[x])`` is equivalent to and may be exchanged anywhere for
-    ``(λ (y) E[y])``. Here ``x`` and ``y`` are identifiers.
+    Two λ-terms that differ only in a change of variable are considered equal.
+    ``(λ (x) E[x])`` is equal to and may be exchanged anywhere for ``(λ
+    (y) E[y])``. Here ``x`` and ``y`` are identifiers.
 
 **β-reduction**
 
-    A λ-term of the form ``((λ (x) E[x]) y)`` may be "reduced" to ``E[y]``.
-    Here ``y`` is a λ-term. Note that if ``y`` features any "free variables"
+    .. code:: racket
+
+        ((λ (x) E[x]) Y) = E[Y]
+
+    A λ-term of the form ``((λ (x) E[x]) Y)`` may be "reduced" to ``E[Y]``.
+    Here ``Y`` is a λ-term. Note that if ``Y`` features any "free variables"
     (variables not bound to identifiers introduced by a ``(λ (id) ...)`` term
     that contains ``y``), you'll have to consider that the ``(λ (x) E[x])`` is
     first α-renamed using unique identifiers before performing the
@@ -85,11 +94,34 @@ Its "properties"
     feature variables bound to other enclosing ``(λ (id) ...)`` terms.
 
 **η-reduction**
-    
-    A λ-term ``y`` is considered equivalent to ``(λ (x) (y x))`` provided the
-    identifier ``x`` does not occur as a free variable in ``y``. Note that all
+ 
+    That is "eta reduction"
+
+    .. code:: racket
+
+        (λ (x) (F x)) = F
+
+    A λ-term ``F`` is considered equivalent to ``(λ (x) (F x))`` provided the
+    identifier ``x`` does not occur as a free variable in ``F``. Note that all
     terms in λ-calculus are what we'd call "functions", so this equivalence can
     be understood as one kind of equivalence of functions.
+
+    While we call the LHS -> RHS rewrite η-reduction, we'll call the RHS -> LHS
+    rewrite *η-abstraction*, similar to β-abstraction.
+
+Its "properties"
+~~~~~~~~~~~~~~~~
+
+The substitution in β-reduction is not a naive "find and replace" like one
+might think. For example :rkt:`((λ (x) (λ (y) (x y))) y)` does not β-reduce to
+:rkt:`(λ (y) (y y))`, but to (subject to α-renaming) :rkt:`(λ (z) (y z))`. This
+is because the substitution must be valid for all equivalences and that means
+it must be valid if we'd first α-renamed the inner λ as :rkt:`(λ (z) (x z))`
+before performing the β-reduction.
+
+All the equivalences need to be taken into account when interpreting a
+given λ-term. All the relations described in "structure" run both ways
+between the concerned λ-terms.
 
 Allowances
 ----------

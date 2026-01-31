@@ -88,30 +88,36 @@ to leverage it in the future.</p>
 <section id="its-stuff">
 <h3>Its “stuff”<a class="headerlink" href="#its-stuff" title="Link to this heading">¶</a></h3>
 <p>We call an expression of the notion of a “function” a “λ-term”.</p>
-</section>
-<section id="its-structure">
-<h3>Its “structure”<a class="headerlink" href="#its-structure" title="Link to this heading">¶</a></h3>
 <ol class="arabic simple">
 <li><p>An identifier like <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, called “variables” due to the mathematical origin
 of λ-calculus, is a “λ-term”.</p></li>
 <li><p>If <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are λ-terms, then <code class="docutils literal notranslate"><span class="pre">(x</span> <span class="pre">y)</span></code> is also a λ-term. This is
 how function application is expressed.</p></li>
-<li><p>If <code class="docutils literal notranslate"><span class="pre">x</span></code> is an identifier and <code class="docutils literal notranslate"><span class="pre">E[x]</span></code> is a λ-term that uses <code class="docutils literal notranslate"><span class="pre">x</span></code> in some
-way (including not using it at all), then <code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(x)</span> <span class="pre">E[x])</span></code> is a λ-term.</p></li>
+<li><p>If L is a λ-term, then <code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(&lt;id&gt;)</span> <span class="pre">L)</span></code> is also a λ-term.</p></li>
 </ol>
+<div class="admonition-terminology-free-variables admonition">
+<p class="admonition-title"><strong>Terminology: Free variables</strong></p>
+<p>In a λ-term, any identifier (a.k.a. “variable” in this context, due to its
+mathematical origins) that is not mentioned in the argument position of any
+surrounding <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">&lt;id&gt;</span><span class="p">)</span><span class="w"> </span><span class="k">...</span><span class="p">)</span></code> form is called a “free variable”.</p>
+</div>
 </section>
-<section id="its-properties">
-<h3>Its “properties”<a class="headerlink" href="#its-properties" title="Link to this heading">¶</a></h3>
+<section id="its-structure">
+<h3>Its “structure”<a class="headerlink" href="#its-structure" title="Link to this heading">¶</a></h3>
+<p>We list below some relations between λ-terms.</p>
 <p><strong>α-renaming</strong></p>
 <blockquote>
-<div><p>Two λ-terms that differ only in a change of variable are equivalent.
-<code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(x)</span> <span class="pre">E[x])</span></code> is equivalent to and may be exchanged anywhere for
-<code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(y)</span> <span class="pre">E[y])</span></code>. Here <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are identifiers.</p>
+<div><p>Two λ-terms that differ only in a change of variable are considered equal.
+<code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(x)</span> <span class="pre">E[x])</span></code> is equal to and may be exchanged anywhere for <code class="docutils literal notranslate"><span class="pre">(λ</span>
+<span class="pre">(y)</span> <span class="pre">E[y])</span></code>. Here <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are identifiers.</p>
 </div></blockquote>
 <p><strong>β-reduction</strong></p>
 <blockquote>
-<div><p>A λ-term of the form <code class="docutils literal notranslate"><span class="pre">((λ</span> <span class="pre">(x)</span> <span class="pre">E[x])</span> <span class="pre">y)</span></code> may be “reduced” to <code class="docutils literal notranslate"><span class="pre">E[y]</span></code>.
-Here <code class="docutils literal notranslate"><span class="pre">y</span></code> is a λ-term. Note that if <code class="docutils literal notranslate"><span class="pre">y</span></code> features any “free variables”
+<div><div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="n">E</span><span class="p">[</span><span class="n">x</span><span class="p">])</span><span class="w"> </span><span class="n">Y</span><span class="p">)</span><span class="w"> </span><span class="nb">=</span><span class="w"> </span><span class="n">E</span><span class="p">[</span><span class="n">Y</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>A λ-term of the form <code class="docutils literal notranslate"><span class="pre">((λ</span> <span class="pre">(x)</span> <span class="pre">E[x])</span> <span class="pre">Y)</span></code> may be “reduced” to <code class="docutils literal notranslate"><span class="pre">E[Y]</span></code>.
+Here <code class="docutils literal notranslate"><span class="pre">Y</span></code> is a λ-term. Note that if <code class="docutils literal notranslate"><span class="pre">Y</span></code> features any “free variables”
 (variables not bound to identifiers introduced by a <code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(id)</span> <span class="pre">...)</span></code> term
 that contains <code class="docutils literal notranslate"><span class="pre">y</span></code>), you’ll have to consider that the <code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(x)</span> <span class="pre">E[x])</span></code> is
 first α-renamed using unique identifiers before performing the
@@ -125,11 +131,29 @@ feature variables bound to other enclosing <code class="docutils literal notrans
 </div></blockquote>
 <p><strong>η-reduction</strong></p>
 <blockquote>
-<div><p>A λ-term <code class="docutils literal notranslate"><span class="pre">y</span></code> is considered equivalent to <code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(x)</span> <span class="pre">(y</span> <span class="pre">x))</span></code> provided the
-identifier <code class="docutils literal notranslate"><span class="pre">x</span></code> does not occur as a free variable in <code class="docutils literal notranslate"><span class="pre">y</span></code>. Note that all
+<div><p>That is “eta reduction”</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">F</span><span class="w"> </span><span class="n">x</span><span class="p">))</span><span class="w"> </span><span class="nb">=</span><span class="w"> </span><span class="n">F</span>
+</pre></div>
+</div>
+<p>A λ-term <code class="docutils literal notranslate"><span class="pre">F</span></code> is considered equivalent to <code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(x)</span> <span class="pre">(F</span> <span class="pre">x))</span></code> provided the
+identifier <code class="docutils literal notranslate"><span class="pre">x</span></code> does not occur as a free variable in <code class="docutils literal notranslate"><span class="pre">F</span></code>. Note that all
 terms in λ-calculus are what we’d call “functions”, so this equivalence can
 be understood as one kind of equivalence of functions.</p>
+<p>While we call the LHS -&gt; RHS rewrite η-reduction, we’ll call the RHS -&gt; LHS
+rewrite <em>η-abstraction</em>, similar to β-abstraction.</p>
 </div></blockquote>
+</section>
+<section id="its-properties">
+<h3>Its “properties”<a class="headerlink" href="#its-properties" title="Link to this heading">¶</a></h3>
+<p>The substitution in β-reduction is not a naive “find and replace” like one
+might think. For example <code class="code highlight racket docutils literal highlight-racket"><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)))</span><span class="w"> </span><span class="n">y</span><span class="p">)</span></code> does not β-reduce to
+<code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="n">y</span><span class="p">))</span></code>, but to (subject to α-renaming) <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="n">z</span><span class="p">))</span></code>. This
+is because the substitution must be valid for all equivalences and that means
+it must be valid if we’d first α-renamed the inner λ as <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">z</span><span class="p">))</span></code>
+before performing the β-reduction.</p>
+<p>All the equivalences need to be taken into account when interpreting a
+given λ-term. All the relations described in “structure” run both ways
+between the concerned λ-terms.</p>
 </section>
 </section>
 <section id="allowances">

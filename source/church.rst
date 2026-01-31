@@ -46,6 +46,7 @@ So the basics first -- expressed in Racket notation using s-expressions.
 Its "stuff"
 ~~~~~~~~~~~
 
+
 We call an expression of the notion of a "function" a "λ-term".
 
 1. An identifier like ``x``, ``y``, called "variables" due to the mathematical origin
@@ -62,16 +63,17 @@ We call an expression of the notion of a "function" a "λ-term".
     mathematical origins) that is not mentioned in the argument position of any
     surrounding :rkt:`(λ (<id>) ...)` form is called a "free variable".
 
-Its "structure"
-~~~~~~~~~~~~~~~
+Its structure and properties
+~~`~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We list below some relations between λ-terms.
+We list below a specific relation that let's us calculate with λ-terms.
 
 **α-renaming**
 
     Two λ-terms that differ only in a change of variable are considered equal.
     ``(λ (x) E[x])`` is equal to and may be exchanged anywhere for ``(λ
-    (y) E[y])``. Here ``x`` and ``y`` are identifiers.
+    (y) E[y])``. Here ``x`` and ``y`` are identifiers, and :rkt:`x` is a
+    "free variable" in the context of :rkt:`E[x]` when we use that notation.
 
 **β-reduction**
 
@@ -84,7 +86,7 @@ We list below some relations between λ-terms.
     (variables not bound to identifiers introduced by a ``(λ (id) ...)`` term
     that contains ``y``), you'll have to consider that the ``(λ (x) E[x])`` is
     first α-renamed using unique identifiers before performing the
-    substitution.
+    substitution. Remember that :rkt:`x` is a free variable in :rkt:`E[x]`.
 
 **β-abstraction**
 
@@ -108,8 +110,11 @@ We list below some relations between λ-terms.
     While we call the LHS -> RHS rewrite η-reduction, we'll call the RHS -> LHS
     rewrite *η-abstraction*, similar to β-abstraction.
 
-Its "properties"
-~~~~~~~~~~~~~~~~
+All of these relations between λ-terms listed above are to be treated as
+equivalences or an equality. While there is no general procedure to tell
+whether any two given λ-terms are equal (ir is undecidable), these 
+pattern equivalences are what let us "calculate" with λ-terms through
+substitution.
 
 The substitution in β-reduction is not a naive "find and replace" like one
 might think. For example :rkt:`((λ (x) (λ (y) (x y))) y)` does not β-reduce to

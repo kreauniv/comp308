@@ -146,6 +146,18 @@ syntactic sugar.</p>
 </div>
 <p>Given this equivalence, we don’t have a conceptual problem when we encounter
 such extended terms.</p>
+<div class="admonition-terminology-free-variables admonition">
+<p class="admonition-title"><strong>Terminology: free variables</strong></p>
+<p>An identifier in a λ-term that is not mentioned as an argument in an
+enclosing <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">&lt;id&gt;</span><span class="p">)</span><span class="w"> </span><span class="k">...</span><span class="p">)</span></code> form is called a “free variable” in the
+context of that expression. We denote an expression which contains a free
+variable <code class="code highlight racket docutils literal highlight-racket"><span class="n">x</span></code> as <code class="code highlight racket docutils literal highlight-racket"><span class="n">E</span><span class="p">[</span><span class="n">x</span><span class="p">]</span></code> in the text below. Notice that we’re
+calling them “identifiers” but this term calls them “variables”. This
+difference is due to the mathematical origin of λ-calculus. In our context,
+we’ll continue to call them “identifiers” but understand that we mean
+the same thing by both words <em>here</em>. For example, in <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">))</span></code>,
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">y</span></code> is a free variable while <code class="code highlight racket docutils literal highlight-racket"><span class="n">x</span></code> is not.</p>
+</div>
 <div class="admonition-homework admonition">
 <p class="admonition-title"><strong>Homework</strong></p>
 <p>Extend the <code class="code highlight racket docutils literal highlight-racket"><span class="n">λ-term?</span></code> predicate to support these extended forms.
@@ -154,34 +166,39 @@ such extended forms and translate them all into their equivalent core
 forms.</p>
 </div>
 </section>
-<section id="the-structure-of-calculus">
-<h2>The structure of λ-calculus<a class="headerlink" href="#the-structure-of-calculus" title="Link to this heading">¶</a></h2>
+<section id="the-structure-and-properties-of-calculus">
+<h2>The structure and properties of λ-calculus<a class="headerlink" href="#the-structure-and-properties-of-calculus" title="Link to this heading">¶</a></h2>
 <p>We’ve just defined some forms in the previous section without saying anything
 about what they might mean. There is only one structure to know about in
-λ-calculus - which is “application”, known more formally as “β reduction”.</p>
+λ-calculus - which is “application”, known more formally as “β reduction” -
+which lets us “calculate” with an expression through a simplification rule.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="n">E</span><span class="p">[</span><span class="n">x</span><span class="p">])</span><span class="w"> </span><span class="n">&lt;y&gt;</span><span class="p">)</span><span class="w"> </span><span class="n">=β=&gt;</span><span class="w"> </span><span class="n">E</span><span class="p">[</span><span class="n">&lt;y&gt;</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>where <code class="code highlight racket docutils literal highlight-racket"><span class="n">E</span><span class="p">[</span><span class="n">x</span><span class="p">]</span></code> refers to any λ-term that may refer to the identifier
-<code class="code highlight racket docutils literal highlight-racket"><span class="n">x</span></code> in any number of places. If we think of <code class="code highlight racket docutils literal highlight-racket"><span class="n">E</span><span class="p">[</span><span class="o">.</span><span class="p">]</span></code> as having holes,
-then <code class="code highlight racket docutils literal highlight-racket"><span class="n">E</span><span class="p">[</span><span class="n">&lt;y&gt;</span><span class="p">]</span></code> refers to pasting <code class="code highlight racket docutils literal highlight-racket"><span class="n">&lt;y&gt;</span></code> into all those holes.
-Some simple examples -</p>
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">x</span></code> in any number of places as a “free variable”. If we think of
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">E</span><span class="p">[</span><span class="o">.</span><span class="p">]</span></code> as having holes, then <code class="code highlight racket docutils literal highlight-racket"><span class="n">E</span><span class="p">[</span><span class="n">&lt;y&gt;</span><span class="p">]</span></code> refers to pasting <code class="code highlight racket docutils literal highlight-racket"><span class="n">&lt;y&gt;</span></code>
+into all those holes. Some simple examples -</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="n">=β=&gt;</span><span class="w"> </span><span class="n">y</span>
 <span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="n">y</span><span class="p">))</span><span class="w"> </span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="n">=β=&gt;</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="n">y</span><span class="p">)</span>
 <span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="n">x</span><span class="p">))</span><span class="w"> </span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="n">=β=&gt;</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This structure defines the notion of “calculating” with lambda terms.</p>
-</section>
-<section id="the-properties-of-terms">
-<h2>The properties of λ-terms<a class="headerlink" href="#the-properties-of-terms" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p><em>α-renaming</em>: For any given expression with a hole <code class="code highlight racket docutils literal highlight-racket"><span class="n">E</span><span class="p">[</span><span class="o">.</span><span class="p">]</span></code>, all λ terms
 of the form <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">&lt;id&gt;</span><span class="p">)</span><span class="w"> </span><span class="n">E</span><span class="p">[</span><span class="n">&lt;id&gt;</span><span class="p">])</span></code> for any identifier <code class="code highlight racket docutils literal highlight-racket"><span class="n">&lt;id&gt;</span></code> are
 considered to be equal to each other – meaning they can be substituted for
 one another. So <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="n">x</span><span class="p">)</span></code>, <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="n">y</span><span class="p">)</span></code> etc all refer to “the
 same thing”.</p></li>
-<li><p><em>η-reduction</em>: <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">f</span><span class="w"> </span><span class="n">x</span><span class="p">))</span><span class="w"> </span><span class="nb">=</span><span class="w"> </span><span class="n">f</span></code>.</p></li>
+<li><p><em>η-reduction</em>: <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">F</span><span class="w"> </span><span class="n">x</span><span class="p">))</span><span class="w"> </span><span class="nb">=</span><span class="w"> </span><span class="n">F</span></code> where <code class="code highlight racket docutils literal highlight-racket"><span class="n">F</span></code> does not contains
+<code class="code highlight racket docutils literal highlight-racket"><span class="n">x</span></code> as a free variable. Since the only thing we can do with a λ term is
+to apply it to another one, it is easy to see that by β-reduction, both the
+LHS and RHS will result in the same expression with one β-reduction step if
+applied to any term. Therefore this equivalence abstracts over all such
+possible λ-terms by saying <cite>(forall x: (F x) = (G x)) =&gt; (F = G)</cite>. It is
+difficult to prove the antecedent for arbitrary F and G, but in this special
+case it is easy and it is an equivalence worth establishing.</p></li>
 </ol>
 <p>When we say “equal”, we mean that the RHS can substitute for the LHS and vice
 versa … anywhere. Note that it means that any interpretation of an expression
@@ -189,7 +206,8 @@ must be consistent with all possible ways to rewrite the expression based on
 these equivalences. For example, <code class="code highlight racket docutils literal highlight-racket"><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="n">x</span><span class="p">))</span><span class="w"> </span><span class="n">y</span><span class="p">)</span></code> β-reduces to
 <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="n">x</span><span class="p">)</span></code> and <strong>not</strong> to <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="n">y</span><span class="p">)</span></code>, because that is the only
 interpretation that is consistent with the inner λ being rewritten using
-α-renaming to <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="n">z</span><span class="p">)</span></code> before performing the β-reduction.</p>
+α-renaming to <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="n">z</span><span class="p">)</span></code> before performing the β-reduction. The
+“free variable” conditions for these equivalences help ensure that.</p>
 <p>Similarly, <code class="code highlight racket docutils literal highlight-racket"><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)))</span><span class="w"> </span><span class="n">y</span><span class="p">)</span></code> β-reduces to <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="n">z</span><span class="p">))</span></code>
 (or any of its α-renamed equals) and <strong>not</strong> to <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="n">y</span><span class="p">))</span></code>, as a
 naive substitution might suggest.</p>
@@ -200,7 +218,7 @@ reducing substitutions.</p>
 </section>
 <section id="abstraction">
 <h2>β-abstraction<a class="headerlink" href="#abstraction" title="Link to this heading">¶</a></h2>
-<p>We define the step of β-reduction above as an LHS to RHS rewrite. If we rewrite
+<p>We defined the step of β-reduction above as an LHS to RHS rewrite. If we rewrite
 the other way (since they are equal), we call it “β-abstraction”.</p>
 <p>This is a central topic in this course as much of what we learn about useful
 concepts developed for real world programming languages can be understood
@@ -924,8 +942,7 @@ expression you’ll need to substitute.</p>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">λ - the everything</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#so-what-s">So what’s <code class="code highlight racket docutils literal highlight-racket"><span class="k">λ</span></code>?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-stuff-of-calculus">The stuff of λ calculus</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#the-structure-of-calculus">The structure of λ-calculus</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#the-properties-of-terms">The properties of λ-terms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-structure-and-properties-of-calculus">The structure and properties of λ-calculus</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#abstraction">β-abstraction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#recap">Recap</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#tall-claims-need-taller-evidence">Tall claims need taller evidence</a></li>

@@ -101,15 +101,15 @@ how function application is expressed.</p></li>
 mathematical origins) that is not mentioned in the argument position of any
 surrounding <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">&lt;id&gt;</span><span class="p">)</span><span class="w"> </span><span class="k">...</span><span class="p">)</span></code> form is called a “free variable”.</p>
 </div>
-</section>
-<section id="its-structure">
-<h3>Its “structure”<a class="headerlink" href="#its-structure" title="Link to this heading">¶</a></h3>
-<p>We list below some relations between λ-terms.</p>
+<p>Its structure and properties
+~~`~~~~~~~~~~~~~~~~~~~~~~~~~~</p>
+<p>We list below a specific relation that let’s us calculate with λ-terms.</p>
 <p><strong>α-renaming</strong></p>
 <blockquote>
 <div><p>Two λ-terms that differ only in a change of variable are considered equal.
 <code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(x)</span> <span class="pre">E[x])</span></code> is equal to and may be exchanged anywhere for <code class="docutils literal notranslate"><span class="pre">(λ</span>
-<span class="pre">(y)</span> <span class="pre">E[y])</span></code>. Here <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are identifiers.</p>
+<span class="pre">(y)</span> <span class="pre">E[y])</span></code>. Here <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are identifiers, and <code class="code highlight racket docutils literal highlight-racket"><span class="n">x</span></code> is a
+“free variable” in the context of <code class="code highlight racket docutils literal highlight-racket"><span class="n">E</span><span class="p">[</span><span class="n">x</span><span class="p">]</span></code> when we use that notation.</p>
 </div></blockquote>
 <p><strong>β-reduction</strong></p>
 <blockquote>
@@ -121,7 +121,7 @@ Here <code class="docutils literal notranslate"><span class="pre">Y</span></code
 (variables not bound to identifiers introduced by a <code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(id)</span> <span class="pre">...)</span></code> term
 that contains <code class="docutils literal notranslate"><span class="pre">y</span></code>), you’ll have to consider that the <code class="docutils literal notranslate"><span class="pre">(λ</span> <span class="pre">(x)</span> <span class="pre">E[x])</span></code> is
 first α-renamed using unique identifiers before performing the
-substitution.</p>
+substitution. Remember that <code class="code highlight racket docutils literal highlight-racket"><span class="n">x</span></code> is a free variable in <code class="code highlight racket docutils literal highlight-racket"><span class="n">E</span><span class="p">[</span><span class="n">x</span><span class="p">]</span></code>.</p>
 </div></blockquote>
 <p><strong>β-abstraction</strong></p>
 <blockquote>
@@ -142,9 +142,11 @@ be understood as one kind of equivalence of functions.</p>
 <p>While we call the LHS -&gt; RHS rewrite η-reduction, we’ll call the RHS -&gt; LHS
 rewrite <em>η-abstraction</em>, similar to β-abstraction.</p>
 </div></blockquote>
-</section>
-<section id="its-properties">
-<h3>Its “properties”<a class="headerlink" href="#its-properties" title="Link to this heading">¶</a></h3>
+<p>All of these relations between λ-terms listed above are to be treated as
+equivalences or an equality. While there is no general procedure to tell
+whether any two given λ-terms are equal (ir is undecidable), these
+pattern equivalences are what let us “calculate” with λ-terms through
+substitution.</p>
 <p>The substitution in β-reduction is not a naive “find and replace” like one
 might think. For example <code class="code highlight racket docutils literal highlight-racket"><span class="p">((</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="p">)))</span><span class="w"> </span><span class="n">y</span><span class="p">)</span></code> does not β-reduce to
 <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="n">y</span><span class="p">))</span></code>, but to (subject to α-renaming) <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">y</span><span class="w"> </span><span class="n">z</span><span class="p">))</span></code>. This

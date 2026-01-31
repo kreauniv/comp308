@@ -141,6 +141,18 @@ where we take those forms to mean the following --
 Given this equivalence, we don't have a conceptual problem when we encounter
 such extended terms.
 
+.. admonition:: **Terminology: free variables**
+
+    An identifier in a λ-term that is not mentioned as an argument in an
+    enclosing :rkt:`(λ (<id>) ...)` form is called a "free variable" in the
+    context of that expression. We denote an expression which contains a free
+    variable :rkt:`x` as :rkt:`E[x]` in the text below. Notice that we're
+    calling them "identifiers" but this term calls them "variables". This
+    difference is due to the mathematical origin of λ-calculus. In our context,
+    we'll continue to call them "identifiers" but understand that we mean
+    the same thing by both words *here*. For example, in :rkt:`(λ (x) (x y))`,
+    :rkt:`y` is a free variable while :rkt:`x` is not.
+
 .. admonition:: **Homework**
 
     Extend the :rkt:`λ-term?` predicate to support these extended forms.
@@ -148,21 +160,22 @@ such extended terms.
     such extended forms and translate them all into their equivalent core
     forms.
 
-The structure of λ-calculus
----------------------------
+The structure and properties of λ-calculus
+------------------------------------------
 
 We've just defined some forms in the previous section without saying anything
 about what they might mean. There is only one structure to know about in
-λ-calculus - which is "application", known more formally as "β reduction".
+λ-calculus - which is "application", known more formally as "β reduction" -
+which lets us "calculate" with an expression through a simplification rule.
 
 .. code:: racket
 
     ((λ (x) E[x]) <y>) =β=> E[<y>]
 
 where :rkt:`E[x]` refers to any λ-term that may refer to the identifier
-:rkt:`x` in any number of places. If we think of :rkt:`E[.]` as having holes,
-then :rkt:`E[<y>]` refers to pasting :rkt:`<y>` into all those holes.
-Some simple examples - 
+:rkt:`x` in any number of places as a "free variable". If we think of
+:rkt:`E[.]` as having holes, then :rkt:`E[<y>]` refers to pasting :rkt:`<y>`
+into all those holes. Some simple examples - 
 
 .. code:: racket
 
@@ -172,16 +185,20 @@ Some simple examples -
 
 This structure defines the notion of "calculating" with lambda terms.
 
-The properties of λ-terms
--------------------------
-
 1. *α-renaming*: For any given expression with a hole :rkt:`E[.]`, all λ terms
    of the form :rkt:`(λ (<id>) E[<id>])` for any identifier :rkt:`<id>` are
    considered to be equal to each other -- meaning they can be substituted for
    one another. So :rkt:`(λ (x) x)`, :rkt:`(λ (y) y)` etc all refer to "the
    same thing".
 
-2. *η-reduction*: :rkt:`(λ (x) (f x)) = f`.
+2. *η-reduction*: :rkt:`(λ (x) (F x)) = F` where :rkt:`F` does not contains
+   :rkt:`x` as a free variable. Since the only thing we can do with a λ term is
+   to apply it to another one, it is easy to see that by β-reduction, both the
+   LHS and RHS will result in the same expression with one β-reduction step if
+   applied to any term. Therefore this equivalence abstracts over all such
+   possible λ-terms by saying `(forall x: (F x) = (G x)) => (F = G)`. It is
+   difficult to prove the antecedent for arbitrary F and G, but in this special
+   case it is easy and it is an equivalence worth establishing.
 
 When we say "equal", we mean that the RHS can substitute for the LHS and vice
 versa ... anywhere. Note that it means that any interpretation of an expression
@@ -189,7 +206,8 @@ must be consistent with all possible ways to rewrite the expression based on
 these equivalences. For example, :rkt:`((λ (x) (λ (x) x)) y)` β-reduces to
 :rkt:`(λ (x) x)` and **not** to :rkt:`(λ (x) y)`, because that is the only
 interpretation that is consistent with the inner λ being rewritten using
-α-renaming to :rkt:`(λ (z) z)` before performing the β-reduction.
+α-renaming to :rkt:`(λ (z) z)` before performing the β-reduction. The
+"free variable" conditions for these equivalences help ensure that.
 
 Similarly, :rkt:`((λ (x) (λ (y) (x y))) y)` β-reduces to :rkt:`(λ (z) (y z))`
 (or any of its α-renamed equals) and **not** to :rkt:`(λ (y) (y y))`, as a
@@ -203,7 +221,7 @@ reducing substitutions.
 β-abstraction
 -------------
 
-We define the step of β-reduction above as an LHS to RHS rewrite. If we rewrite
+We defined the step of β-reduction above as an LHS to RHS rewrite. If we rewrite
 the other way (since they are equal), we call it "β-abstraction".
 
 This is a central topic in this course as much of what we learn about useful

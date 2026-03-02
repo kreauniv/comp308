@@ -108,8 +108,9 @@ in the sequence. :rkt:`begin` guarantees that the expressions will be evaluated
 in the given order, so we can make assumptions about any mutating operations
 we've used there. 
 
-So if we're to add mutating operations to our :rkt:`PicLang`, we will need
-to add a notion of "boxes" as well as implement a notion of sequencing.
+So if we're to add mutating operations to our language, we will need to add a
+notion of state (such as a mutable box) as well as implement a notion of
+sequencing computations.
 
 Sequencing in the stack machine
 -------------------------------
@@ -149,13 +150,16 @@ few new terms --
 
 .. code-block:: racket
 
-    (struct BoxC (expr))    ; Makes a new box whose value is the result
+    (struct (e) Box ([expr : (Expr e)]))
+                            ; Makes a new box whose value is the result
                             ; of evluating the given expression.
 
-    (struct UnboxC (var))   ; var is expected to be an identifier bound to
-                            ; box value in the current environment.
+    (struct (e) Unbox ([expr : (Expr e)])
+                            ; expr is expected to be a box-producing expression.
 
-    (struct SetBoxC (var valexpr)) ; For modifying the contents of the box
+    (struct (e) SetBox ([boxexpr : (Expr e)]
+                        [valexpr : (Expr e)]))
+                                      ; For modifying the contents of the box
                                       ; to hold a new value. The first field
                                       ; is expected to be a identifier bound
                                       ; to a box value in the current environment.
@@ -167,9 +171,11 @@ to the Racket :rkt:`begin` expression.
 
 .. code-block:: racket
 
-    (struct SeqC (expr1 expr2))   ; We'll limit ourselves to two expressions
-                                  ; as we can compose more using a form like
-                                  ; (SeqC expr1 (SeqC expr2 (SeqC expr3 expr4)))
+    (struct (e) Seq ([e1 : (Expr e)]
+                     [e2 : (Expr e)])
+           ; We'll limit ourselves to two expressions
+           ; as we can compose more using a form like
+           ; (Seq expr1 (Seq expr2 (Seq expr3 expr4)))
 
 
 Now let's look at how our interpreter will handle these terms. The result of
@@ -177,65 +183,154 @@ our interpreter will now need to be a pair of values - the actual value
 and the new state of the "storage" that is woven through the sequencing
 operations.
 
+A model of mutable memory
+-------------------------
+
+We'll need a model for working with memory. For our purpose, a "memory" needs a
+pool of available "slots" that refer to memory locations and procedures to
+read/write these slots. We'll use simple integers to identify slots. These
+can also be called "pointers" and in systems programming languages like C and Rust,
+pointers to memory locations are essentially positive integers.
+
+.. code-block:: racket
+
+   (define-type Pointer Positive-Integer)
+   (struct Memory ([slots : (Listof Pointer)]
+                   [values : (Env Pointer Val)])
+         #:transparent)
+
+   (define (initial-mem) (Memory (list 1 2 3 4 5 6 7 8) empty-env))
+
+   (: malloc (-> Memory (Pair Pointer Memory)))
+   (define (malloc mem)
+      (let ([slots (Memory-slots mem)])
+         (if (empty? slots)
+             (error "Out of memory")
+             (cons (first slots)
+                   (Memory (rest slots) (Memory-values mem))))))
+
+   (: mfree (-> Memory Pointer Memory))
+   (define (mfree mem slot)
+      (if (member slot (Memory-slots mem))
+          (error "Double free of slot")
+          (Memory (cons slot (Memory-slots mem))
+                  (Memory-values mem))))
+
+   (: mread (-> Memory Pointer Val))
+   (define (mread mem slot)
+      (lookup (Memory-values mem) slot))
+
+   (: mwrite (-> Memory Pointer Val Memory))
+   (define (mwrite mem slot val)
+      (Memory (Memory-slots mem)
+              (extend (Memory-values mem)
+                      slot
+                      val)))
+
+The interpreter with mutations
+------------------------------
+
 We'll also need a new possible value for our interpreter .. one we expect
-to get when we evaluate a :rkt:`BoxC` term. We'll call this :rkt:`BoxV`
+to get when we evaluate a :rkt:`Box` term. We'll call this :rkt:`PtrV`
 and have the structure store a "reference" that points into the storage.
 
 
 .. code-block:: racket
 
-    (struct Result (val storage))
-    (struct BoxV (ref))
-    (struct NewRef (ref storage)) ; Returned by make-reference
+    (struct Res ([mem : Memory] [val : Val]) #:transparent)
+    (struct PtrV ([p : Pointer]) #:transparent)
 
-    (define (interp expr bindings storage)
+    (define-type Val (U PtrV ...others...))
+
+Our interpreter now should evaluate the computations in the correct
+sequence and "thread" the memory through these computations in the
+correct order.
+
+.. code-block:: racket
+
+   (: interp (-> (Env Symbol Val) Memory ExprC Res))
+   (define (interp env mem expr)
+      (match expr
+         ; ...
+         ; ... TASK: rewrite the ordinary expressions to return a Result structure.
+         ; ...
+         [(Box valexpr)
+          (let* ([r (interp env mem valexpr)]
+                 [p (malloc (Res-mem r))]
+                 [m (mwrite (cdr p) (car p) (Res-val r))])
+            (Res m (PtrV (car p))))]
+         [(Unbox expr)
+          (let ([r (interp env mem expr)])
+            (Res (Res-mem r)
+                 (mread (Res-mem r) (ptrv (Res-val r)))))]
+         [(SetBox boxexpr valexpr)
+          (let* ([b (interp env mem boxexpr)]
+                 [v (interp env (Res-mem b) valexpr)]
+                 [m (mwrite (Res-mem v) (ptrv (Res-val b)) (Res-val v))])
+            (Res m (Res-val v)))]
+         [(Seq e1 e2)
+          (let* ([v1 (interp env mem e1)]
+                 [v2 (interp env (Res-mem v1) e2)])
+            v2)]
+         ; ...
+         ; ... TASK: Apply implementation also needs to change. Rewrite it.
+         ; ...
+         ))
+
+Now, the pattern of "threading the memory through the computations" is not
+quite apparent in the code above. We can make it clearer using appropriate
+named identifiers and the ``match-let`` and ``match-let*`` forms, which desugar to
+``match`` and ``let`` as shown below --
+
+.. code-block:: racket
+
+   (match-let ([<pattern1> <expr1>]
+               [<pattern2> <expr2>])
+      <expr>)
+   ; => desugars to =>
+   (match (list <expr1> <expr2>)
+      [(list <pattern1> <pattern2>) <expr>])
+
+   (match-let* ([<pattern1> <expr1>]
+                [<pattern2> <expr2>])
+         <expr>)
+   ; => desugars to =>
+   (match <expr1>
+      [<pattern1>
+       (match <expr2>
+          [<pattern2> <expr>])])
+
+Using these, we can rewrite the "mutation" parts of the interperter like this -
+
+.. code-racket:: racket
+
+    (: interp (-> (Env Symbol Val) Memory ExprC Res))
+    (define (interp env mem expr)
         (match expr
             ; ...
             ; ... TASK: rewrite the ordinary expressions to return a Result structure.
             ; ...
-            [(BoxC valexpr)
-             (let ([r (interp valexpr bindings storage)])
-                 (let ([b (make-reference (Result-storage r))])
-                    (Result (BoxV (NewRef-ref b)) (NewRef-storage b))))]
-            [(UnboxC var)
-             ; Notice that unboxing is not expected to modify the storage.
-             (Result (read-reference (lookup-binding var bindings) storage) storage)]
-            [(SetBoxC var valexpr)
-             (match (interp valexpr bindings storage)
-                [(Result val storage2)
-                 (let ([storage3 (write-reference var val storage2)])
-                    (Result val storage3))])]
-            [(SeqC expr1 expr2)
-             ;                                v--- Initial storage state
-             (let ([r1 (interp expr1 bindings storage)])
-                 ;                      v--- Storage state *after* expr1.                
-                 (interp expr2 bindings (Result-storage r1)))]
+            [(Box valexpr)
+             (match-let* ([(Res m v) (interp env mem valexpr)]
+                          [(cons ptr m2) (malloc m)]
+                          [m3 (mwrite m2 ptr v)])
+               (Res m3 (PtrV ptr)))]
+            [(Unbox expr)
+             (match-let ([(Res m v) (interp env mem expr)])
+                (Res m (mread m (ptrv v))))]
+            [(SetBox boxexpr valexpr)
+             (match-let* ([(Res mb vb) (interp env mem boxexpr)]
+                          [(Res mv vv) (interp env mb valexpr)])
+               (Res (mwrite mv (ptrv vb) vv) vv))]
+            [(Seq e1 e2)
+             (match-let* ([(Res m1 v1) (interp env mem e1)]
+                          [(Res m2 v2) (interp env m1 e2)])
+               (Res m2 v2))]
             ; ...
-            ; ... TASK: ApplyC implementation also needs to change. Rewrite it.
+            ; ... TASK: Apply implementation also needs to change. Rewrite it.
             ; ...
             ))
 
-
-Variations
-----------
-
-We have some choices in how we define the :rkt:`UnboxC` and :rkt:`SetBoxC`
-terms. In the preceding formulation, we specified :rkt:`UnboxC` to hold an
-*identifier* to be looked up in the current environment for a box value. We
-could've instead defined it to take a box-expression -- i.e. an expression that
-will evaluate to a box value -- so we could in principle write :rkt:`(UnboxC
-(BoxC 42))` if we wanted to, though there is not much of a point to boxing a
-value only to immediately unbox it. Typically we'd want :rkt:`(UnboxC (IdC 'name))`
-and the above formulation meets that simple need.
-
-The same goes with :rkt:`SetBoxC` terms too. We could've defined it to be
-:rkt:`(SetBoxC boxexpr valexpr)`, but then we'd have had to sequence the
-evaluation of :rkt:`boxexpr` and :rkt:`valexpr` .. which means we'll be
-duplicating the functionality of :rkt:`SeqC`. Furthermore, we could treat this
-extended form as syntactic sugar too. For example, we could desugar
-:rkt:`(SetBoxS boxexpr valexpr)` to :rkt:`(ApplyC (FunC 'b (SetBoxC (IdC 'b)
-valexpr)) boxexpr)`, where we handle :rkt:`(SetBoxC (IdC sym) valexpr)` in the
-interpreter as though we expect only :rkt:`IdC` terms in the first slot.
 
 Super powers
 ------------

@@ -472,7 +472,7 @@ the following shape (i.e. pseudo-code) -
                 (loop dt (+ t dt) (step-gen v)))))
           (loop (/ 1.0 sample-rate) 0.0 sndgen))))
 
-.. admonition:: **See `asynth.rkt`_**
+.. admonition:: See `asynth.rkt <asynthrkt_>`_
 
     You can simply load the linked :rkt:`asynth.rkt` file to define the
     interpreter we're working through here as it provides all the necessary
@@ -486,7 +486,7 @@ the following shape (i.e. pseudo-code) -
 
     The function ``konst`` in the file will now be available as ``a:konst``.
 
-.. _asynth.rkt: https://github.io/kreauniv/comp308/blob/main/source/asynth.rkt
+.. _asynthrkt: https://github.io/kreauniv/comp308/blob/main/source/asynth.rkt
 
 The interpreter
 ---------------

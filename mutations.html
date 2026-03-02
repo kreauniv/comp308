@@ -126,8 +126,9 @@ language. Racket has a construct that makes this sequencing explicit –</p>
 in the sequence. <code class="code highlight racket docutils literal highlight-racket"><span class="k">begin</span></code> guarantees that the expressions will be evaluated
 in the given order, so we can make assumptions about any mutating operations
 we’ve used there.</p>
-<p>So if we’re to add mutating operations to our <code class="code highlight racket docutils literal highlight-racket"><span class="n">PicLang</span></code>, we will need
-to add a notion of “boxes” as well as implement a notion of sequencing.</p>
+<p>So if we’re to add mutating operations to our language, we will need to add a
+notion of state (such as a mutable box) as well as implement a notion of
+sequencing computations.</p>
 </section>
 <section id="sequencing-in-the-stack-machine">
 <h2>Sequencing in the stack machine<a class="headerlink" href="#sequencing-in-the-stack-machine" title="Link to this heading">¶</a></h2>
@@ -158,13 +159,16 @@ based interpreter we wrote, which relies on Racket’s own stack mechanism.</p>
 <h2>Terms for boxes<a class="headerlink" href="#terms-for-boxes" title="Link to this heading">¶</a></h2>
 <p>Corresponding to the functions that Racket provides for boxes, we’ll need a
 few new terms –</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">BoxC</span><span class="w"> </span><span class="p">(</span><span class="n">expr</span><span class="p">))</span><span class="w">    </span><span class="c1">; Makes a new box whose value is the result</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="n">Box</span><span class="w"> </span><span class="p">([</span><span class="n">expr</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="p">(</span><span class="n">Expr</span><span class="w"> </span><span class="n">e</span><span class="p">)]))</span>
+<span class="w">                        </span><span class="c1">; Makes a new box whose value is the result</span>
 <span class="w">                        </span><span class="c1">; of evluating the given expression.</span>
 
-<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">UnboxC</span><span class="w"> </span><span class="p">(</span><span class="n">var</span><span class="p">))</span><span class="w">   </span><span class="c1">; var is expected to be an identifier bound to</span>
-<span class="w">                        </span><span class="c1">; box value in the current environment.</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="n">Unbox</span><span class="w"> </span><span class="p">([</span><span class="n">expr</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="p">(</span><span class="n">Expr</span><span class="w"> </span><span class="n">e</span><span class="p">)])</span>
+<span class="w">                        </span><span class="c1">; expr is expected to be a box-producing expression.</span>
 
-<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">SetBoxC</span><span class="w"> </span><span class="p">(</span><span class="n">var</span><span class="w"> </span><span class="n">valexpr</span><span class="p">))</span><span class="w"> </span><span class="c1">; For modifying the contents of the box</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="n">SetBox</span><span class="w"> </span><span class="p">([</span><span class="n">boxexpr</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="p">(</span><span class="n">Expr</span><span class="w"> </span><span class="n">e</span><span class="p">)]</span>
+<span class="w">                    </span><span class="p">[</span><span class="n">valexpr</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="p">(</span><span class="n">Expr</span><span class="w"> </span><span class="n">e</span><span class="p">)]))</span>
+<span class="w">                                  </span><span class="c1">; For modifying the contents of the box</span>
 <span class="w">                                  </span><span class="c1">; to hold a new value. The first field</span>
 <span class="w">                                  </span><span class="c1">; is expected to be a identifier bound</span>
 <span class="w">                                  </span><span class="c1">; to a box value in the current environment.</span>
@@ -173,69 +177,126 @@ few new terms –</p>
 <p>We also saw that to implement mutating operations, we will need a notion of
 “sequencing” in our language. We’ll add a term for that too, which corresponds
 to the Racket <code class="code highlight racket docutils literal highlight-racket"><span class="k">begin</span></code> expression.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">SeqC</span><span class="w"> </span><span class="p">(</span><span class="n">expr1</span><span class="w"> </span><span class="n">expr2</span><span class="p">))</span><span class="w">   </span><span class="c1">; We&#39;ll limit ourselves to two expressions</span>
-<span class="w">                              </span><span class="c1">; as we can compose more using a form like</span>
-<span class="w">                              </span><span class="c1">; (SeqC expr1 (SeqC expr2 (SeqC expr3 expr4)))</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="n">Seq</span><span class="w"> </span><span class="p">([</span><span class="n">e1</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="p">(</span><span class="n">Expr</span><span class="w"> </span><span class="n">e</span><span class="p">)]</span>
+<span class="w">                 </span><span class="p">[</span><span class="n">e2</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="p">(</span><span class="n">Expr</span><span class="w"> </span><span class="n">e</span><span class="p">)])</span>
+<span class="w">       </span><span class="c1">; We&#39;ll limit ourselves to two expressions</span>
+<span class="w">       </span><span class="c1">; as we can compose more using a form like</span>
+<span class="w">       </span><span class="c1">; (Seq expr1 (Seq expr2 (Seq expr3 expr4)))</span>
 </pre></div>
 </div>
 <p>Now let’s look at how our interpreter will handle these terms. The result of
 our interpreter will now need to be a pair of values - the actual value
 and the new state of the “storage” that is woven through the sequencing
 operations.</p>
-<p>We’ll also need a new possible value for our interpreter .. one we expect
-to get when we evaluate a <code class="code highlight racket docutils literal highlight-racket"><span class="n">BoxC</span></code> term. We’ll call this <code class="code highlight racket docutils literal highlight-racket"><span class="n">BoxV</span></code>
-and have the structure store a “reference” that points into the storage.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">Result</span><span class="w"> </span><span class="p">(</span><span class="n">val</span><span class="w"> </span><span class="n">storage</span><span class="p">))</span>
-<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">BoxV</span><span class="w"> </span><span class="p">(</span><span class="n">ref</span><span class="p">))</span>
-<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">NewRef</span><span class="w"> </span><span class="p">(</span><span class="n">ref</span><span class="w"> </span><span class="n">storage</span><span class="p">))</span><span class="w"> </span><span class="c1">; Returned by make-reference</span>
+</section>
+<section id="a-model-of-mutable-memory">
+<h2>A model of mutable memory<a class="headerlink" href="#a-model-of-mutable-memory" title="Link to this heading">¶</a></h2>
+<p>We’ll need a model for working with memory. For our purpose, a “memory” needs a
+pool of available “slots” that refer to memory locations and procedures to
+read/write these slots. We’ll use simple integers to identify slots. These
+can also be called “pointers” and in systems programming languages like C and Rust,
+pointers to memory locations are essentially positive integers.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">define-type</span><span class="w"> </span><span class="n">Pointer</span><span class="w"> </span><span class="n">Positive-Integer</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">Memory</span><span class="w"> </span><span class="p">([</span><span class="n">slots</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="p">(</span><span class="n">Listof</span><span class="w"> </span><span class="n">Pointer</span><span class="p">)]</span>
+<span class="w">                </span><span class="p">[</span><span class="nb">values</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="p">(</span><span class="n">Env</span><span class="w"> </span><span class="n">Pointer</span><span class="w"> </span><span class="n">Val</span><span class="p">)])</span>
+<span class="w">      </span><span class="kd">#:transparent</span><span class="p">)</span>
 
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">expr</span><span class="w"> </span><span class="n">bindings</span><span class="w"> </span><span class="n">storage</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">expr</span>
-<span class="w">        </span><span class="c1">; ...</span>
-<span class="w">        </span><span class="c1">; ... TASK: rewrite the ordinary expressions to return a Result structure.</span>
-<span class="w">        </span><span class="c1">; ...</span>
-<span class="w">        </span><span class="p">[(</span><span class="n">BoxC</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)</span>
-<span class="w">         </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">r</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">valexpr</span><span class="w"> </span><span class="n">bindings</span><span class="w"> </span><span class="n">storage</span><span class="p">)])</span>
-<span class="w">             </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">b</span><span class="w"> </span><span class="p">(</span><span class="n">make-reference</span><span class="w"> </span><span class="p">(</span><span class="n">Result-storage</span><span class="w"> </span><span class="n">r</span><span class="p">))])</span>
-<span class="w">                </span><span class="p">(</span><span class="n">Result</span><span class="w"> </span><span class="p">(</span><span class="n">BoxV</span><span class="w"> </span><span class="p">(</span><span class="n">NewRef-ref</span><span class="w"> </span><span class="n">b</span><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="n">NewRef-storage</span><span class="w"> </span><span class="n">b</span><span class="p">))))]</span>
-<span class="w">        </span><span class="p">[(</span><span class="n">UnboxC</span><span class="w"> </span><span class="n">var</span><span class="p">)</span>
-<span class="w">         </span><span class="c1">; Notice that unboxing is not expected to modify the storage.</span>
-<span class="w">         </span><span class="p">(</span><span class="n">Result</span><span class="w"> </span><span class="p">(</span><span class="n">read-reference</span><span class="w"> </span><span class="p">(</span><span class="n">lookup-binding</span><span class="w"> </span><span class="n">var</span><span class="w"> </span><span class="n">bindings</span><span class="p">)</span><span class="w"> </span><span class="n">storage</span><span class="p">)</span><span class="w"> </span><span class="n">storage</span><span class="p">)]</span>
-<span class="w">        </span><span class="p">[(</span><span class="n">SetBoxC</span><span class="w"> </span><span class="n">var</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)</span>
-<span class="w">         </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">valexpr</span><span class="w"> </span><span class="n">bindings</span><span class="w"> </span><span class="n">storage</span><span class="p">)</span>
-<span class="w">            </span><span class="p">[(</span><span class="n">Result</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="n">storage2</span><span class="p">)</span>
-<span class="w">             </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">storage3</span><span class="w"> </span><span class="p">(</span><span class="n">write-reference</span><span class="w"> </span><span class="n">var</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="n">storage2</span><span class="p">)])</span>
-<span class="w">                </span><span class="p">(</span><span class="n">Result</span><span class="w"> </span><span class="n">val</span><span class="w"> </span><span class="n">storage3</span><span class="p">))])]</span>
-<span class="w">        </span><span class="p">[(</span><span class="n">SeqC</span><span class="w"> </span><span class="n">expr1</span><span class="w"> </span><span class="n">expr2</span><span class="p">)</span>
-<span class="w">         </span><span class="c1">;                                v--- Initial storage state</span>
-<span class="w">         </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">r1</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">expr1</span><span class="w"> </span><span class="n">bindings</span><span class="w"> </span><span class="n">storage</span><span class="p">)])</span>
-<span class="w">             </span><span class="c1">;                      v--- Storage state *after* expr1.</span>
-<span class="w">             </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">expr2</span><span class="w"> </span><span class="n">bindings</span><span class="w"> </span><span class="p">(</span><span class="n">Result-storage</span><span class="w"> </span><span class="n">r1</span><span class="p">)))]</span>
-<span class="w">        </span><span class="c1">; ...</span>
-<span class="w">        </span><span class="c1">; ... TASK: ApplyC implementation also needs to change. Rewrite it.</span>
-<span class="w">        </span><span class="c1">; ...</span>
-<span class="w">        </span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">initial-mem</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Memory</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="mi">8</span><span class="p">)</span><span class="w"> </span><span class="n">empty-env</span><span class="p">))</span>
+
+<span class="p">(</span><span class="n">:</span><span class="w"> </span><span class="n">malloc</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Memory</span><span class="w"> </span><span class="p">(</span><span class="n">Pair</span><span class="w"> </span><span class="n">Pointer</span><span class="w"> </span><span class="n">Memory</span><span class="p">)))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">malloc</span><span class="w"> </span><span class="n">mem</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">slots</span><span class="w"> </span><span class="p">(</span><span class="n">Memory-slots</span><span class="w"> </span><span class="n">mem</span><span class="p">)])</span>
+<span class="w">      </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">empty?</span><span class="w"> </span><span class="n">slots</span><span class="p">)</span>
+<span class="w">          </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;Out of memory&quot;</span><span class="p">)</span>
+<span class="w">          </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="n">slots</span><span class="p">)</span>
+<span class="w">                </span><span class="p">(</span><span class="n">Memory</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="n">slots</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Memory-values</span><span class="w"> </span><span class="n">mem</span><span class="p">))))))</span>
+
+<span class="p">(</span><span class="n">:</span><span class="w"> </span><span class="n">mfree</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Memory</span><span class="w"> </span><span class="n">Pointer</span><span class="w"> </span><span class="n">Memory</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">mfree</span><span class="w"> </span><span class="n">mem</span><span class="w"> </span><span class="n">slot</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">member</span><span class="w"> </span><span class="n">slot</span><span class="w"> </span><span class="p">(</span><span class="n">Memory-slots</span><span class="w"> </span><span class="n">mem</span><span class="p">))</span>
+<span class="w">       </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;Double free of slot&quot;</span><span class="p">)</span>
+<span class="w">       </span><span class="p">(</span><span class="n">Memory</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="n">slot</span><span class="w"> </span><span class="p">(</span><span class="n">Memory-slots</span><span class="w"> </span><span class="n">mem</span><span class="p">))</span>
+<span class="w">               </span><span class="p">(</span><span class="n">Memory-values</span><span class="w"> </span><span class="n">mem</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="n">:</span><span class="w"> </span><span class="n">mread</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Memory</span><span class="w"> </span><span class="n">Pointer</span><span class="w"> </span><span class="n">Val</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">mread</span><span class="w"> </span><span class="n">mem</span><span class="w"> </span><span class="n">slot</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="n">lookup</span><span class="w"> </span><span class="p">(</span><span class="n">Memory-values</span><span class="w"> </span><span class="n">mem</span><span class="p">)</span><span class="w"> </span><span class="n">slot</span><span class="p">))</span>
+
+<span class="p">(</span><span class="n">:</span><span class="w"> </span><span class="n">mwrite</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Memory</span><span class="w"> </span><span class="n">Pointer</span><span class="w"> </span><span class="n">Val</span><span class="w"> </span><span class="n">Memory</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">mwrite</span><span class="w"> </span><span class="n">mem</span><span class="w"> </span><span class="n">slot</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="n">Memory</span><span class="w"> </span><span class="p">(</span><span class="n">Memory-slots</span><span class="w"> </span><span class="n">mem</span><span class="p">)</span>
+<span class="w">           </span><span class="p">(</span><span class="n">extend</span><span class="w"> </span><span class="p">(</span><span class="n">Memory-values</span><span class="w"> </span><span class="n">mem</span><span class="p">)</span>
+<span class="w">                   </span><span class="n">slot</span>
+<span class="w">                   </span><span class="n">val</span><span class="p">)))</span>
 </pre></div>
 </div>
 </section>
-<section id="variations">
-<h2>Variations<a class="headerlink" href="#variations" title="Link to this heading">¶</a></h2>
-<p>We have some choices in how we define the <code class="code highlight racket docutils literal highlight-racket"><span class="n">UnboxC</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">SetBoxC</span></code>
-terms. In the preceding formulation, we specified <code class="code highlight racket docutils literal highlight-racket"><span class="n">UnboxC</span></code> to hold an
-<em>identifier</em> to be looked up in the current environment for a box value. We
-could’ve instead defined it to take a box-expression – i.e. an expression that
-will evaluate to a box value – so we could in principle write <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">UnboxC</span>
-<span class="p">(</span><span class="n">BoxC</span><span class="w"> </span><span class="mi">42</span><span class="p">))</span></code> if we wanted to, though there is not much of a point to boxing a
-value only to immediately unbox it. Typically we’d want <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">UnboxC</span><span class="w"> </span><span class="p">(</span><span class="n">IdC</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">name</span><span class="p">))</span></code>
-and the above formulation meets that simple need.</p>
-<p>The same goes with <code class="code highlight racket docutils literal highlight-racket"><span class="n">SetBoxC</span></code> terms too. We could’ve defined it to be
-<code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">SetBoxC</span><span class="w"> </span><span class="n">boxexpr</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)</span></code>, but then we’d have had to sequence the
-evaluation of <code class="code highlight racket docutils literal highlight-racket"><span class="n">boxexpr</span></code> and <code class="code highlight racket docutils literal highlight-racket"><span class="n">valexpr</span></code> .. which means we’ll be
-duplicating the functionality of <code class="code highlight racket docutils literal highlight-racket"><span class="n">SeqC</span></code>. Furthermore, we could treat this
-extended form as syntactic sugar too. For example, we could desugar
-<code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">SetBoxS</span><span class="w"> </span><span class="n">boxexpr</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)</span></code> to <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">ApplyC</span><span class="w"> </span><span class="p">(</span><span class="n">FunC</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">b</span><span class="w"> </span><span class="p">(</span><span class="n">SetBoxC</span><span class="w"> </span><span class="p">(</span><span class="n">IdC</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">b</span><span class="p">)</span>
-<span class="n">valexpr</span><span class="p">))</span><span class="w"> </span><span class="n">boxexpr</span><span class="p">)</span></code>, where we handle <code class="code highlight racket docutils literal highlight-racket"><span class="p">(</span><span class="n">SetBoxC</span><span class="w"> </span><span class="p">(</span><span class="n">IdC</span><span class="w"> </span><span class="n">sym</span><span class="p">)</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)</span></code> in the
-interpreter as though we expect only <code class="code highlight racket docutils literal highlight-racket"><span class="n">IdC</span></code> terms in the first slot.</p>
+<section id="the-interpreter-with-mutations">
+<h2>The interpreter with mutations<a class="headerlink" href="#the-interpreter-with-mutations" title="Link to this heading">¶</a></h2>
+<p>We’ll also need a new possible value for our interpreter .. one we expect
+to get when we evaluate a <code class="code highlight racket docutils literal highlight-racket"><span class="n">Box</span></code> term. We’ll call this <code class="code highlight racket docutils literal highlight-racket"><span class="n">PtrV</span></code>
+and have the structure store a “reference” that points into the storage.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">Res</span><span class="w"> </span><span class="p">([</span><span class="n">mem</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Memory</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">val</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Val</span><span class="p">])</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">PtrV</span><span class="w"> </span><span class="p">([</span><span class="n">p</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Pointer</span><span class="p">])</span><span class="w"> </span><span class="kd">#:transparent</span><span class="p">)</span>
+
+<span class="p">(</span><span class="n">define-type</span><span class="w"> </span><span class="n">Val</span><span class="w"> </span><span class="p">(</span><span class="n">U</span><span class="w"> </span><span class="n">PtrV</span><span class="w"> </span><span class="n">...others...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Our interpreter now should evaluate the computations in the correct
+sequence and “thread” the memory through these computations in the
+correct order.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">:</span><span class="w"> </span><span class="n">interp</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">Env</span><span class="w"> </span><span class="n">Symbol</span><span class="w"> </span><span class="n">Val</span><span class="p">)</span><span class="w"> </span><span class="n">Memory</span><span class="w"> </span><span class="n">ExprC</span><span class="w"> </span><span class="n">Res</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">mem</span><span class="w"> </span><span class="n">expr</span><span class="p">)</span>
+<span class="w">   </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">expr</span>
+<span class="w">      </span><span class="c1">; ...</span>
+<span class="w">      </span><span class="c1">; ... TASK: rewrite the ordinary expressions to return a Result structure.</span>
+<span class="w">      </span><span class="c1">; ...</span>
+<span class="w">      </span><span class="p">[(</span><span class="n">Box</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)</span>
+<span class="w">       </span><span class="p">(</span><span class="k">let*</span><span class="w"> </span><span class="p">([</span><span class="n">r</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">mem</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)]</span>
+<span class="w">              </span><span class="p">[</span><span class="n">p</span><span class="w"> </span><span class="p">(</span><span class="n">malloc</span><span class="w"> </span><span class="p">(</span><span class="n">Res-mem</span><span class="w"> </span><span class="n">r</span><span class="p">))]</span>
+<span class="w">              </span><span class="p">[</span><span class="n">m</span><span class="w"> </span><span class="p">(</span><span class="n">mwrite</span><span class="w"> </span><span class="p">(</span><span class="nb">cdr</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">car</span><span class="w"> </span><span class="n">p</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">Res-val</span><span class="w"> </span><span class="n">r</span><span class="p">))])</span>
+<span class="w">         </span><span class="p">(</span><span class="n">Res</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="p">(</span><span class="n">PtrV</span><span class="w"> </span><span class="p">(</span><span class="nb">car</span><span class="w"> </span><span class="n">p</span><span class="p">))))]</span>
+<span class="w">      </span><span class="p">[(</span><span class="n">Unbox</span><span class="w"> </span><span class="n">expr</span><span class="p">)</span>
+<span class="w">       </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">r</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">mem</span><span class="w"> </span><span class="n">expr</span><span class="p">)])</span>
+<span class="w">         </span><span class="p">(</span><span class="n">Res</span><span class="w"> </span><span class="p">(</span><span class="n">Res-mem</span><span class="w"> </span><span class="n">r</span><span class="p">)</span>
+<span class="w">              </span><span class="p">(</span><span class="n">mread</span><span class="w"> </span><span class="p">(</span><span class="n">Res-mem</span><span class="w"> </span><span class="n">r</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">ptrv</span><span class="w"> </span><span class="p">(</span><span class="n">Res-val</span><span class="w"> </span><span class="n">r</span><span class="p">)))))]</span>
+<span class="w">      </span><span class="p">[(</span><span class="n">SetBox</span><span class="w"> </span><span class="n">boxexpr</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)</span>
+<span class="w">       </span><span class="p">(</span><span class="k">let*</span><span class="w"> </span><span class="p">([</span><span class="n">b</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">mem</span><span class="w"> </span><span class="n">boxexpr</span><span class="p">)]</span>
+<span class="w">              </span><span class="p">[</span><span class="n">v</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="p">(</span><span class="n">Res-mem</span><span class="w"> </span><span class="n">b</span><span class="p">)</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)]</span>
+<span class="w">              </span><span class="p">[</span><span class="n">m</span><span class="w"> </span><span class="p">(</span><span class="n">mwrite</span><span class="w"> </span><span class="p">(</span><span class="n">Res-mem</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">ptrv</span><span class="w"> </span><span class="p">(</span><span class="n">Res-val</span><span class="w"> </span><span class="n">b</span><span class="p">))</span><span class="w"> </span><span class="p">(</span><span class="n">Res-val</span><span class="w"> </span><span class="n">v</span><span class="p">))])</span>
+<span class="w">         </span><span class="p">(</span><span class="n">Res</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="p">(</span><span class="n">Res-val</span><span class="w"> </span><span class="n">v</span><span class="p">)))]</span>
+<span class="w">      </span><span class="p">[(</span><span class="n">Seq</span><span class="w"> </span><span class="n">e1</span><span class="w"> </span><span class="n">e2</span><span class="p">)</span>
+<span class="w">       </span><span class="p">(</span><span class="k">let*</span><span class="w"> </span><span class="p">([</span><span class="n">v1</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">mem</span><span class="w"> </span><span class="n">e1</span><span class="p">)]</span>
+<span class="w">              </span><span class="p">[</span><span class="n">v2</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="p">(</span><span class="n">Res-mem</span><span class="w"> </span><span class="n">v1</span><span class="p">)</span><span class="w"> </span><span class="n">e2</span><span class="p">)])</span>
+<span class="w">         </span><span class="n">v2</span><span class="p">)]</span>
+<span class="w">      </span><span class="c1">; ...</span>
+<span class="w">      </span><span class="c1">; ... TASK: Apply implementation also needs to change. Rewrite it.</span>
+<span class="w">      </span><span class="c1">; ...</span>
+<span class="w">      </span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Now, the pattern of “threading the memory through the computations” is not
+quite apparent in the code above. We can make it clearer using appropriate
+named identifiers and the <code class="docutils literal notranslate"><span class="pre">match-let</span></code> and <code class="docutils literal notranslate"><span class="pre">match-let*</span></code> forms, which desugar to
+<code class="docutils literal notranslate"><span class="pre">match</span></code> and <code class="docutils literal notranslate"><span class="pre">let</span></code> as shown below –</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">match-let</span><span class="w"> </span><span class="p">([</span><span class="n">&lt;pattern1&gt;</span><span class="w"> </span><span class="n">&lt;expr1&gt;</span><span class="p">]</span>
+<span class="w">            </span><span class="p">[</span><span class="n">&lt;pattern2&gt;</span><span class="w"> </span><span class="n">&lt;expr2&gt;</span><span class="p">])</span>
+<span class="w">   </span><span class="n">&lt;expr&gt;</span><span class="p">)</span>
+<span class="c1">; =&gt; desugars to =&gt;</span>
+<span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="n">&lt;expr1&gt;</span><span class="w"> </span><span class="n">&lt;expr2&gt;</span><span class="p">)</span>
+<span class="w">   </span><span class="p">[(</span><span class="nb">list</span><span class="w"> </span><span class="n">&lt;pattern1&gt;</span><span class="w"> </span><span class="n">&lt;pattern2&gt;</span><span class="p">)</span><span class="w"> </span><span class="n">&lt;expr&gt;</span><span class="p">])</span>
+
+<span class="p">(</span><span class="k">match-let*</span><span class="w"> </span><span class="p">([</span><span class="n">&lt;pattern1&gt;</span><span class="w"> </span><span class="n">&lt;expr1&gt;</span><span class="p">]</span>
+<span class="w">             </span><span class="p">[</span><span class="n">&lt;pattern2&gt;</span><span class="w"> </span><span class="n">&lt;expr2&gt;</span><span class="p">])</span>
+<span class="w">      </span><span class="n">&lt;expr&gt;</span><span class="p">)</span>
+<span class="c1">; =&gt; desugars to =&gt;</span>
+<span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">&lt;expr1&gt;</span>
+<span class="w">   </span><span class="p">[</span><span class="n">&lt;pattern1&gt;</span>
+<span class="w">    </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">&lt;expr2&gt;</span>
+<span class="w">       </span><span class="p">[</span><span class="n">&lt;pattern2&gt;</span><span class="w"> </span><span class="n">&lt;expr&gt;</span><span class="p">])])</span>
+</pre></div>
+</div>
+<p>Using these, we can rewrite the “mutation” parts of the interperter like this -</p>
 </section>
 <section id="super-powers">
 <h2>Super powers<a class="headerlink" href="#super-powers" title="Link to this heading">¶</a></h2>
@@ -437,7 +498,8 @@ can handle parsing of such decimal numbers given one character at a time.</p>
 <li class="toctree-l2"><a class="reference internal" href="#sequencing">Sequencing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#sequencing-in-the-stack-machine">Sequencing in the stack machine</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#terms-for-boxes">Terms for boxes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#variations">Variations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#a-model-of-mutable-memory">A model of mutable memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-interpreter-with-mutations">The interpreter with mutations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#super-powers">Super powers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#state-machines">State machines</a></li>
 </ul>

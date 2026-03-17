@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Continuations in our language &#8212; Comp308: Principles of Programming Languages v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d8a2add5" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <script src="_static/documentation_options.js?v=5cb08e4e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="On the choice between “error” and “do something reasonable” in design" href="errornot.html" />
+    <link rel="prev" title="Generators" href="generators.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="continuations-in-our-language">
+<h1>Continuations in our language<a class="headerlink" href="#continuations-in-our-language" title="Link to this heading">¶</a></h1>
+<p>In the <a class="reference internal" href="generators.html"><span class="doc">Generators</span></a> section, we saw how Racket’s <code class="docutils literal notranslate"><span class="pre">let/cc</span></code>
+construct can enable us to express the idea of generators,
+a concept found in other languages like Python and Javascript.</p>
+<p>Our language so far does not have an equivalent construct.
+How can we add such a construct to our language without this
+construct being present in the “host” language? i.e. if
+Racket didn’t have <code class="docutils literal notranslate"><span class="pre">let/cc</span></code>, can we still add this as a
+capability to our language? If so, how and how would it change
+our language?</p>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text">Why shouldn’t we use Racket’s <code class="docutils literal notranslate"><span class="pre">let/cc</span></code>?</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">Because we don’t learn anything about its nature if
+we simply borrow the underlying Racket construct into our
+language. Also, we’ll not know how to implement it in a
+language that does not provide the construct. This is the
+same reason we didn’t use Racket’s <code class="docutils literal notranslate"><span class="pre">box</span></code> construct to
+implement <a class="reference internal" href="mutations.html"><span class="doc">Mutations</span></a> in our language.</p>
+</div>
+</details><p>So far, all our functions (values of type <code class="docutils literal notranslate"><span class="pre">FnV</span></code>) take a <code class="docutils literal notranslate"><span class="pre">Val</span></code>
+and produce a <code class="docutils literal notranslate"><span class="pre">Val</span></code>. Reproducing these types below for convenience
+of reference.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="n">fn</span><span class="w"> </span><span class="p">([</span><span class="n">arg</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Symbol</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">body</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">e</span><span class="p">])</span>
+<span class="w">    </span><span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="p">([</span><span class="n">sym</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Symbol</span><span class="p">])</span>
+<span class="w">    </span><span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="n">app</span><span class="w"> </span><span class="p">([</span><span class="n">fexpr</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">e</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">valexpr</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">e</span><span class="p">])</span>
+<span class="w">    </span><span class="kd">#:transparent</span><span class="p">)</span>
+
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">FnV</span><span class="w"> </span><span class="p">([</span><span class="n">env</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Env</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">arg</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Symbol</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="n">body</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">ExprCore</span><span class="p">])</span>
+<span class="w">    </span><span class="kd">#:transparent</span><span class="p">)</span>
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">Val</span><span class="w"> </span><span class="p">(</span><span class="n">U</span><span class="w"> </span><span class="n">GenV</span><span class="w"> </span><span class="n">FnV</span><span class="w"> </span><span class="n">Real</span><span class="p">))</span>
+
+<span class="p">(</span><span class="n">define-type</span><span class="w"> </span><span class="n">Env</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Symbol</span><span class="w"> </span><span class="n">Val</span><span class="p">))</span>
+
+<span class="p">(</span><span class="n">:</span><span class="w"> </span><span class="n">interp</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Env</span><span class="w"> </span><span class="n">ExprCore</span><span class="w"> </span><span class="n">Val</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">expr</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">expr</span>
+<span class="w">    </span><span class="k">...</span>
+<span class="w">    </span><span class="p">[(</span><span class="n">id</span><span class="w"> </span><span class="n">sym</span><span class="p">)</span>
+<span class="w">     </span><span class="p">(</span><span class="n">lookup</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">sym</span><span class="p">)]</span>
+<span class="w">    </span><span class="p">[(</span><span class="n">fn</span><span class="w"> </span><span class="n">arg</span><span class="w"> </span><span class="n">body</span><span class="p">)</span>
+<span class="w">     </span><span class="p">(</span><span class="n">FnV</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">arg</span><span class="w"> </span><span class="n">body</span><span class="p">)]</span>
+<span class="w">    </span><span class="p">[(</span><span class="n">app</span><span class="w"> </span><span class="n">fexpr</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)</span>
+<span class="w">     </span><span class="p">(</span><span class="k">match-let</span><span class="w"> </span><span class="p">([(</span><span class="n">FnV</span><span class="w"> </span><span class="n">denv</span><span class="w"> </span><span class="n">arg</span><span class="w"> </span><span class="n">body</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">fnv</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">fexpr</span><span class="p">))]</span>
+<span class="w">                 </span><span class="p">[</span><span class="n">v</span><span class="w"> </span><span class="p">(</span><span class="n">interp</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)])</span>
+<span class="w">         </span><span class="p">(</span><span class="n">interp</span>
+<span class="w">            </span><span class="p">(</span><span class="n">extend</span><span class="w"> </span><span class="n">denv</span><span class="w"> </span><span class="n">arg</span><span class="w"> </span><span class="n">v</span><span class="p">)</span>
+<span class="w">            </span><span class="n">body</span><span class="p">))]</span>
+<span class="w">    </span><span class="k">...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We may model the continuations made available by <code class="docutils literal notranslate"><span class="pre">let/cc</span></code> as
+functions that do not have a return value in Racket, for simplicity – i.e.
+as the type <code class="docutils literal notranslate"><span class="pre">(-&gt;</span> <span class="pre">Val</span> <span class="pre">Void)</span></code>. To get access to these continuations
+without having to use <code class="docutils literal notranslate"><span class="pre">let/cc</span></code>, we’ll have to transform our interpreter
+into its CPS-style or “/ret” form.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">:</span><span class="w"> </span><span class="n">interp/ret</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Env</span><span class="w"> </span><span class="n">ExprCore</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Val</span><span class="w"> </span><span class="n">Void</span><span class="p">)</span><span class="w"> </span><span class="n">Void</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">interp/ret</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">expr</span><span class="w"> </span><span class="n">return</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">expr</span>
+<span class="w">    </span><span class="p">[(</span><span class="n">konst</span><span class="w"> </span><span class="n">v</span><span class="p">)</span>
+<span class="w">     </span><span class="p">(</span><span class="n">return</span><span class="w"> </span><span class="p">(</span><span class="n">GenV</span><span class="w"> </span><span class="p">(</span><span class="n">a:konst</span><span class="w"> </span><span class="n">v</span><span class="p">)))]</span>
+<span class="w">    </span><span class="k">...</span>
+<span class="w">    </span><span class="p">[(</span><span class="n">id</span><span class="w"> </span><span class="n">sym</span><span class="p">)</span>
+<span class="w">     </span><span class="p">(</span><span class="n">return</span><span class="w"> </span><span class="p">(</span><span class="n">lookup</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">sym</span><span class="p">))]</span>
+<span class="w">    </span><span class="p">[(</span><span class="n">fn</span><span class="w"> </span><span class="n">arg</span><span class="w"> </span><span class="n">body</span><span class="p">)</span>
+<span class="w">     </span><span class="p">(</span><span class="n">return</span><span class="w"> </span><span class="p">(</span><span class="n">FnV</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">arg</span><span class="w"> </span><span class="n">body</span><span class="p">))]</span>
+<span class="w">    </span><span class="p">[(</span><span class="n">app</span><span class="w"> </span><span class="n">fexpr</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)</span>
+<span class="w">     </span><span class="p">(</span><span class="n">interp/ret</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">fexpr</span>
+<span class="w">       </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">fv</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="k">match-let</span><span class="w"> </span><span class="p">([(</span><span class="n">FnV</span><span class="w"> </span><span class="n">denv</span><span class="w"> </span><span class="n">arg</span><span class="w"> </span><span class="n">body</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">fnv</span><span class="w"> </span><span class="n">fv</span><span class="p">)])</span>
+<span class="w">           </span><span class="p">(</span><span class="n">interp/ret</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">valexpr</span>
+<span class="w">             </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="w">               </span><span class="p">(</span><span class="n">interp/ret</span>
+<span class="w">                 </span><span class="p">(</span><span class="n">extend</span><span class="w"> </span><span class="n">denv</span><span class="w"> </span><span class="n">arg</span><span class="w"> </span><span class="n">v</span><span class="p">)</span>
+<span class="w">                 </span><span class="n">body</span>
+<span class="w">                 </span><span class="n">return</span><span class="p">))))))]</span>
+<span class="w">    </span><span class="k">...</span><span class="p">))</span>
+</pre></div>
+</div>
+<section id="adding-letcc">
+<h2>Adding <code class="docutils literal notranslate"><span class="pre">letcc</span></code><a class="headerlink" href="#adding-letcc" title="Link to this heading">¶</a></h2>
+<p>Now we’re ready to add a <code class="docutils literal notranslate"><span class="pre">letcc</span></code> construct to our language
+analogous to Racket’s because we have the continuations at
+any point available via the <code class="docutils literal notranslate"><span class="pre">return</span></code> argument of the
+<code class="docutils literal notranslate"><span class="pre">interp/ret</span></code> procedure.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="n">letcc</span><span class="w"> </span><span class="p">([</span><span class="n">cont</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">Symbol</span><span class="p">]</span>
+<span class="w">                   </span><span class="p">[</span><span class="n">body</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="n">ExprCore</span><span class="p">])</span>
+<span class="w">    </span><span class="kd">#:transparent</span><span class="p">)</span>
+
+<span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="n">ContV</span><span class="w"> </span><span class="p">([</span><span class="n">fn</span><span class="w"> </span><span class="n">:</span><span class="w"> </span><span class="p">(</span><span class="k">-&gt;</span><span class="w"> </span><span class="n">Val</span><span class="w"> </span><span class="n">Void</span><span class="p">)]))</span>
+
+<span class="p">(</span><span class="n">define-type</span><span class="w"> </span><span class="n">Val</span><span class="w"> </span><span class="p">(</span><span class="n">U</span><span class="w"> </span><span class="n">GenV</span><span class="w"> </span><span class="n">FnV</span><span class="w"> </span><span class="n">Real</span><span class="w"> </span><span class="n">ContV</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We need to interpret the <code class="docutils literal notranslate"><span class="pre">letcc</span></code> term, as well as be ready to
+apply a <code class="docutils literal notranslate"><span class="pre">ContV</span></code> type procedure to a value in addition to a
+<code class="docutils literal notranslate"><span class="pre">FnV</span></code> type procedure.</p>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">interp/ret</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">expr</span><span class="w"> </span><span class="n">return</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">expr</span>
+<span class="w">    </span><span class="k">...</span>
+<span class="w">    </span><span class="p">[(</span><span class="n">letcc</span><span class="w"> </span><span class="n">cont</span><span class="w"> </span><span class="n">body</span><span class="p">)</span>
+<span class="w">     </span><span class="p">(</span><span class="n">interp/ret</span>
+<span class="w">       </span><span class="p">(</span><span class="n">extend</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">cont</span><span class="w"> </span><span class="p">(</span><span class="n">ContV</span><span class="w"> </span><span class="n">return</span><span class="p">))</span>
+<span class="w">       </span><span class="n">body</span>
+<span class="w">       </span><span class="n">return</span><span class="p">)]</span>
+<span class="w">    </span><span class="p">[(</span><span class="n">app</span><span class="w"> </span><span class="n">fexpr</span><span class="w"> </span><span class="n">valexpr</span><span class="p">)</span>
+<span class="w">     </span><span class="p">(</span><span class="n">interp/ret</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">fexpr</span>
+<span class="w">       </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">fv</span><span class="p">)</span>
+<span class="w">         </span><span class="p">(</span><span class="k">match</span><span class="w"> </span><span class="n">fv</span>
+<span class="w">           </span><span class="p">[(</span><span class="n">FnV</span><span class="w"> </span><span class="n">denv</span><span class="w"> </span><span class="n">arg</span><span class="w"> </span><span class="n">body</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="n">interp/ret</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">valexpr</span>
+<span class="w">              </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="w">                </span><span class="p">(</span><span class="n">interp/ret</span>
+<span class="w">                  </span><span class="p">(</span><span class="n">extend</span><span class="w"> </span><span class="n">denv</span><span class="w"> </span><span class="n">arg</span><span class="w"> </span><span class="n">v</span><span class="p">)</span>
+<span class="w">                  </span><span class="n">body</span>
+<span class="w">                  </span><span class="n">return</span><span class="p">)))]</span>
+<span class="w">           </span><span class="p">[(</span><span class="n">ContV</span><span class="w"> </span><span class="n">k</span><span class="p">)</span>
+<span class="w">            </span><span class="p">(</span><span class="n">k</span><span class="w"> </span><span class="n">v</span><span class="p">)]</span>
+<span class="w">           </span><span class="p">[</span><span class="k">_</span><span class="w"> </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;Invalid function&quot;</span><span class="p">)])))]</span>
+<span class="w">    </span><span class="k">...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Note that the continuation call occurs in the tail position - i.e. as the
+final step of the interpreter and the <code class="docutils literal notranslate"><span class="pre">return</span></code> argument does not get used
+in that case - i.e. the whole “stack” gets thrown away and replaced by
+what the continuation represents instead. This is why such a call is often
+referred to as a “continuation jump” – you “jump” to another point in the
+history of evaluation that you’d saved away as the continuation.</p>
+<details class="sd-sphinx-override sd-dropdown sd-card sd-mb-3" id="index-0">
+<summary class="sd-summary-title sd-card-header">
+<span class="sd-summary-text"><strong>Term</strong>: “Reified continuation”</span><span class="sd-summary-state-marker sd-summary-chevron-right"><svg version="1.1" width="1.5em" height="1.5em" class="sd-octicon sd-octicon-chevron-right" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"></path></svg></span></summary><div class="sd-summary-content sd-card-body docutils">
+<p class="sd-card-text">A “continuation” is not a thing, but a concept that applies to all
+programming languages – since they all have to deal with sequencing
+computations and therefore there is always a notion of “what remains to be
+done right now?” that is applicable at every step. When such a continuation
+concept is made available as a <strong>value</strong> in a programming language, it is
+considered to have been “reified” – “to reify” meaning “to make real”,
+because now we can manipulate it like any other value which lends it a
+notion of “a real thing” for us in this context.</p>
+<p class="sd-card-text">So what we’ve done here is to add “reified continuations” to our language.</p>
+</div>
+</details></section>
+<section id="reflection">
+<h2>Reflection<a class="headerlink" href="#reflection" title="Link to this heading">¶</a></h2>
+<p>We’re now exposing a raw Racket lambda function to our interpreter. Is that a
+good thing?</p>
+<p>We aren’t exposing <em>general</em> lambda procedures from Racket into our language.
+We’re only introducing the continuation procedures that our interpreter
+constructs into the language as a <code class="docutils literal notranslate"><span class="pre">ContV</span></code> value. We could do this
+equivalently by representing the pending computations as a stack (perhaps using
+an accumulating list) and that would have the same scope.</p>
+<p>Isn’t Racket’s <code class="docutils literal notranslate"><span class="pre">call/cc</span></code> more fundamental than <code class="docutils literal notranslate"><span class="pre">let/cc</span></code>? Why didn’t we
+implement <code class="docutils literal notranslate"><span class="pre">letcc</span></code> in terms of a <code class="docutils literal notranslate"><span class="pre">callcc</span></code>?</p>
+<p>We could’ve also gone the route of defining <code class="docutils literal notranslate"><span class="pre">callcc</span></code> analogous to Racket’s
+<code class="docutils literal notranslate"><span class="pre">call/cc</span></code> and then defined <code class="docutils literal notranslate"><span class="pre">letcc</span></code> as syntactic sugar in terms of
+<code class="docutils literal notranslate"><span class="pre">callcc</span></code>. That would offer slightly more generality since the procedure
+receiving the continuation can be reused in multiple contexts, unlike the raw
+body of <code class="docutils literal notranslate"><span class="pre">letcc</span></code>. However, the principle is the same and the above code serves
+to illustrate how to bring such a concept to life in our language. With
+<code class="docutils literal notranslate"><span class="pre">call/cc</span></code>, there is an additional layer of <code class="docutils literal notranslate"><span class="pre">lambda</span></code> to parse and keep in
+mind which is avoided when using <code class="docutils literal notranslate"><span class="pre">let/cc</span></code>. This is helpful when learning
+about continuations (I think). Once you learn that, it is easy to switch to
+<code class="docutils literal notranslate"><span class="pre">call/cc</span></code> when you need that extra bit of flexibility.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Comp308: Principles of Programming Languages</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Welcome note</a></li>
+<li class="toctree-l1"><a class="reference internal" href="racket-intro.html">A quick introduction to Racket and Scheme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lambda.html">λ - the everything</a></li>
+<li class="toctree-l1"><a class="reference internal" href="church.html">Lambda - via β-abstraction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="piclang.html">A language for pictures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arithlang.html">A language for arithmetic</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthlang.html">A language for basic sound synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine.html">A mental model for the machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notional-machine.html">Notional machine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="growing.html">Growing the language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun.html">Functions and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun-arith.html">Functions and scope (arithmetic track)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="stacks-and-scope.html">Stacks and scope</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fun-in-piclang.html">Functions in PicLang</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mutations.html">Mutations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="control.html">Control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="generators.html">Generators</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Continuations in our language</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#adding-letcc">Adding <code class="docutils literal notranslate"><span class="pre">letcc</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reflection">Reflection</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="errornot.html">On the choice between “error” and “do something reasonable” in design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dispatch.html">Polymorphism via dispatch</a></li>
+<li class="toctree-l1"><a class="reference internal" href="appsem.html">Alternative application semantics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="types.html">Types: Checking some program invariants statically</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="generators.html" title="previous chapter">Generators</a></li>
+      <li>Next: <a href="errornot.html" title="next chapter">On the choice between “error” and “do something reasonable” in design</a></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2022, Srikumar K. S..
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/cont.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

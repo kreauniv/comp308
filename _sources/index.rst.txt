@@ -27,6 +27,7 @@ Welcome to Comp308: Principles of Programming Languages's documentation!
    mutations
    control
    generators
+   cont
    errornot 
    dispatch
    appsem

@@ -99,57 +99,76 @@ backing the various object systems. Far from it. We're using the plist as a
 way to explore the design space and options we have when we're interested in
 minimizing the vocabulary we use to program.
 
-In this chapter, we use the ``plist.rkt`` module which you can include
-using ``(require "./plist.rkt")`` from your own code.
+The complete "global plist" module is given below for your use. Save it
+in ``plist.rkt`` and ``(require "./plist.rkt")`` to use it.
 
+.. code:: racket
+
+    #lang racket
+
+    (provide getprop getprops putprop! remprop! remprops!)
+
+    ; Global mutable plist for simplicity
+    (define p '())
+
+    (struct triple (sub pred obj) #:transparent)
+
+    ; Gives the associated "object" if available,
+    ; or #f if not found.
+    (define (getprop sub pred)
+      (let loop ([ts p])
+        (if (empty? ts)
+          #f
+          (let ([t (first ts)])
+            (if (and (eq? (triple-sub t) sub)
+                     (equal? (triple-pred t) pred))
+              (triple-obj t)
+              (loop (rest ts)))))))
+
+    ; Retrieves all the associated "objects".
+    (define (getprops sub pred)
+      (let loop ([ts p] [vs '()])
+        (if (empty? ts)
+          (reverse vs)
+          (let ([t (first ts)])
+            (loop (rest ts)
+              (if (and (eq? (triple-sub t) sub)
+                       (equal? (triple-pred t) pred))
+                (cons (triple-obj t) vs)
+                vs))))))
+
+    ; Adds an association.
+    (define (putprop! sub pred obj)
+      (set! p (cons (triple sub pred obj) p)))
+
+    ; Removes a specific association.
+    (define (remprop! sub pred obj)
+      (set! p (filter (λ (t)
+                        (not (and (eq? (triple-sub t) sub)
+                                  (equal? (triple-pred t) pred)
+                                  (eq? (triple-obj t) obj))))
+                      p)))
+
+    ; Removes all assocations with the given predicate label.
+    (define (remprops! sub pred)
+      (set! p (filter (λ (t)
+                        (not (and (eq? (triple-sub t) sub)
+                                  (equal? (triple-pred t) pred))))
+                      p)))
+
+          
 We'll assume that we're working with a global plist. Furthermore, we'll
 dispense with implementing it in our language's interpreter and do it in
 plain Racket, since the translation process should now be familiar and
 simple to perform.
-
-.. code-block:: racket
-
-    (require "./plist.rkt")
-
-    (define plist (make-plist))
-
-    (define (setprop! thing key value)
-        (set! plist (plist-assert plist think key value)))
-
-    (define (getprop thing key)
-        (let ([values (plist-find plist thing key #f Tri-obj)])
-            (if (empty? values)
-                (begin ; What do we do here?
-                    )
-                (first values))))
-
-In the above implementation, we're assuming that the plist only holds
-a single value for a given ``thing-key`` combination. We'll relax
-this condition later. For now, note that this is a design space option
-available.
-
-We're now faced with the problem of determining what to do when
-an associated value for a given thing and key is sought for in 
-the plist and one is not present. We'll choose a general way to
-deal with this by passing a handler function.
-
-.. code-block:: racket
-
-    (define (error-on-not-found thing key)
-        (error 'key "Property ~s of ~s is not found" key thing))
-
-    (define (getprop thing key [not-found-handler error-on-not-found])
-        (let ([values (plist-find plist thing key #f Tri-obj)])
-            (if (empty? values)
-                (not-found-handler thing key)
-                (first values))))
-
 
 We'll also define a simple structure to make object references.
 We'll give it an ``id`` field so when printing out an object, we
 know its name. There is no other significance to this ``id`` field.
 
 .. code-block:: racket
+
+    (require "./plist.rkt")
 
     (struct Obj (id) #:transparent)
 
@@ -192,32 +211,34 @@ reference that is associated with those properties and methods.
 .. code-block:: racket
 
     (define (object id . kvs)
-        (let ([obj (Obj id)])
-            (let loop ([kvs kvs])
-                (if (empty? kvs)
-                    obj
-                    (begin (setprop! obj (first kvs) (second kvs))
-                           (loop (rest (rest kvs))))))))
+      (let ([obj (Obj id)])
+        (let loop ([kvs kvs])
+          (when (empty? (rest kvs))
+            (error 'object "Keys and values must be given in pairs"))
+          (if (empty? kvs)
+            obj
+            (begin (putprop! obj (first kvs) (second kvs))
+                   (loop (rest (rest kvs))))))))
 
 With that definition in hand, we can do the following -
 
 .. code-block:: racket
 
     (define dog1 
-        (object 'puppy
-            'color 'brown
-            'bark (λ (self) (displayln "Yelp!"))))
+      (object 'puppy
+        'color 'brown
+        'bark (λ (self) (displayln "Yelp!"))))
 
     (define dog2
-        (object 'adult
-            'color 'black
-            'bark (λ (self) (displayln "Woof Woof!"))))
+      (object 'adult
+        'color 'black
+        'bark (λ (self) (displayln "Woof Woof!"))))
 
     (define cat1
-        (object 'siamese
-            'color 'grey
-            'bark (λ (self)
-                     (error "I don't bark! Am I a dog?"))))
+      (object 'siamese
+        'color 'grey
+        'bark (λ (self)
+                 (error "I don't bark! Am I a dog?"))))
 
     > (getprop cat1 'color)
     'grey
@@ -233,12 +254,11 @@ we'll leave the "no such method" condition as an error.
 .. code-block:: racket
 
     (define (get obj propname)
-        (getprop obj propname
-            (λ (obj propname)
-                (error "Placeholder. Property name not found."))))
+      (or (getprop obj propname)
+          (error "Placeholder. Property name not found")))
 
-    (define (send obj message . args)
-        (let ([method (get obj message)])
+    (define (send obj msgid . args)
+        (let ([method (get obj msgid)])
             (if (procedure? method)
                 (apply method (cons obj args))
                 (error "Method must be a procedure"))))
@@ -282,13 +302,10 @@ it up in the property list.
 .. code-block:: racket
 
     (define (get obj propname)
-        (getprop obj propname
-            (λ (obj propname)
-                ; Note the recursive call to 'get'
-                (get (getprop obj 'super
-                        (λ (obj superkey)
-                            (error "No such parent")))
-                     propname))))
+      (or (getprop obj propname)
+          (get (or (getprop obj 'super)
+                   (error 'get "Thing has no super ~a" obj))
+               propname)))
 
 We did something interesting there. We first try to look up a "super" property
 of the object, which we expect to be defined to another object. If we find one,
@@ -305,9 +322,9 @@ see what this mechanism buys us for our animal farm.
 
 .. code-block:: racket
 
-    (setprop! dog1 'super animal)
-    (setprop! dog2 'super animal)
-    (setprop! cat1 'super animal)
+    (putprop! dog1 'super animal)
+    (putprop! dog2 'super animal)
+    (putprop! cat1 'super animal)
 
     > (get dog1 'num-legs)
     4
@@ -319,11 +336,12 @@ animals will automatically get it.
 
 .. code-block:: racket
 
-    (setprop! animal 'walk 
-        (λ (self num-steps)
-            (setprop! self 'steps-walked
-                (+ (getprop self 'steps-walked (λ (self key) 0))
-                   num-steps))))
+    (putprop! animal 'walk 
+      (λ (self num-steps)
+        (or (getprop self 'steps-walked)
+            (putprop! self 'steps-walked 0))
+        (putprop! self 'steps-walked
+          (+ (get self 'steps-walked) num-steps))))
 
     > (send dog1 'walk 3)
     > (get dog1 'steps-walked)
@@ -375,45 +393,46 @@ hierarchies though.
 
 .. code-block:: racket
 
-    (define (send/super super obj message . args)
-        (let ([method (get super message)])
-            (if (procedure? method)
-                ; Note the change in protocol for method invocation
-                ; which now takes an additional "super" argument.
-                (apply method (cons super (cons obj args)))
-                (error "Method must be a procedure"))))
+    (define (method m)
+      (if (procedure? m)
+          m
+          (error 'method "Expected a method. Got ~a" m)))
+
+    (define (send/super super obj msgid . args)
+      (let ([m (method (get super msgid))])
+        ; Note the change in protocol for method invocation
+        ; which now takes an additional "super" argument.
+        (apply method super obj args)))
 
     ; Note that in class-based object systems, method lookup
     ; starts with an object's class and not the object itself.
     ; So we need to lookup an object's ``'isa`` property and
     ; and invoke ``send/super``.
     (define (send obj message . args)
-        (apply send/super (cons (getprop obj 'isa)
-                                (cons obj (cons message args)))))
+      (apply send/super (getprop obj 'isa) obj msgid args))
 
     (define dog1 
-        (object 'puppy
-            'color 'brown
-            'bark (λ (super self) (displayln "Yelp!"))))
+      (object 'puppy
+        'color 'brown
+        'bark (λ (super self) (displayln "Yelp!"))))
 
     (define dog2
-        (object 'adult
-            'color 'black
-            'bark (λ (super self) (displayln "Woof Woof!"))))
+      (object 'adult
+        'color 'black
+        'bark (λ (super self) (displayln "Woof Woof!"))))
 
     (define cat1
-        (object 'siamese
-            'color 'grey
-            'bark (λ (super self)
-                     (error "I don't bark! Am I a dog?"))))
+      (object 'siamese
+        'color 'grey
+        'bark (λ (super self)
+                 (error "I don't bark! Am I a dog?"))))
 
     (define animal 
-        (object 'Animal
-            'num-legs 4
-            'walk (λ (super self num-steps)
-                    (setprop! self 'steps-walked
-                        (+ (getprop self 'steps-walked (λ (self key) 0))
-                           num-steps)))))
+      (object 'Animal
+        'num-legs 4
+        'walk (λ (super self num-steps)
+                (putprop! self 'steps-walked
+                  (+ (get self 'steps-walked) num-steps)))))
 
 
 So what new capability does doing this give us? Within a method,
@@ -423,18 +442,18 @@ for the cat that depends on whether it is tired, we can do this -
 
 .. code-block:: racket
 
-    (setprop! cat 'tired #t)
-    (setprop! cat 'walk
+    (putprop! cat 'tired #t)
+    (putprop! cat 'walk
         (λ (klass self num-steps)
             (if (get self 'tired)
                 (error "No energy for a walk. Go away. Meeeow!")
                 (send/super (get klass 'super) self 'walk num-steps))))
 
-Notice how the cat delegates to its super the ability to walk when it
-is able to, but errors out otherwise. Under normal method invocation,
-``klass`` will be the same as ``self``, but we can choose differently,
-just as the method does when turning around and invoking the parent
-implementation directly, but without changing the target object.
+Notice how the cat delegates to its super the ability to walk when it is able
+to, but errors out otherwise. Under normal method invocation, ``klass`` will be
+the same as ``self``'s ``'isa`` property, but we can choose differently, just
+as the method does when turning around and invoking the parent implementation
+directly, but without changing the target object.
 
 Classes and Types
 -----------------
@@ -464,13 +483,13 @@ like below --
 .. code-block:: racket
 
     (define (get thing propname)
-        (getprop thing propname
-            (λ (thing propname)
-                (get (getprop thing 'super) propname))))
+      (or (getprop thing propname)
+          (get (or (getprop thing 'super)
+                   (error 'get "Thing doesn't have a super"))
+               propname)))
 
-    (define (send obj message . args)
-        (let ([klass (getprop obj 'isa)])
-            (apply send/super (append (list klass obj message) args))))
+    (define (send obj msgid . args)
+      (apply send/super (getprop obj 'isa) obj msgid args))
 
 Uniformity considerations
 -------------------------
@@ -482,16 +501,17 @@ might handle branching on a condition.
 
 .. code-block:: racket
 
-    (setprop! 'True 'if:else: (λ (ctxt obj thenblock elseblock)
+    (putprop! 'True 'if:else: (λ (ctxt obj thenblock elseblock)
                                     (thenblock)))
-    (setprop! 'False 'if:else: (λ (ctxt obj thenblock elseblock)
+    (putprop! 'False 'if:else: (λ (ctxt obj thenblock elseblock)
                                     (elseblock)))
 
 
 So the result of a boolean computation is a singleton instance of one of the
 "classes" named ``True`` and ``False``, which dispatch on the ``'if:else:``
 message on one or the other branch depending on which instance received the
-message.
+message. Note how this bears close resemblance to the way we encoded booleans
+in lambda calculus.
 
 Other control constructs are also cleverly constructed based on the fundamental
 notion of a "block" - which plays the role of a lambda function in OOP
@@ -508,20 +528,44 @@ principle, that is equivalent to having some type checks like below --
 
 .. code-block:: racket
 
-    (define (get thing key)
+    (define (key-not-found thing key)
+      (error 'get "Thing ~a does not have key ~a" thing key))
+
+    (define (get0 thing key [else key-not-found])
+      (or (getprop thing key)
+          (get0 (or (getprop thing 'super)
+                    (else thing key))
+                key)))
+
+    (define (get thing key [else key-not-found])
         (if (equal? key 'isa)
             (cond
                 [(number? thing) 'Number]
                 [(string? thing) 'String]
                 [(symbol? thing) 'Symbol]
                 [(boolean? thing) (if thing 'True 'False)]
-                [else (getprop thing key)]) ; Errors out if not found.
-            (getprop thing key
-                (λ (thing key)
-                    (get (getprop thing 'super) key)))))
+                [else (get0 thing key else)])
+            (get0 thing key else)))
 
-Now we no longer have to have individual raw data items like numbers
-and strings in our property list take just so we can get at their types/classes.
+    ; Some sample messages supported by these "types".
+    (putprop! 'Number '+ (λ (super self val) (+ self val)))
+    (putprop! 'Number '- (λ (super self val) (- self val)))
+    (putprop! 'Number 'neg (λ (super self) (- self)))
+    (putprop! 'Number '* (λ (super self val) (* self val)))
+    (putprop! 'Number '/ (λ (super self val) (/ self val)))
+    (putprop! 'Number 'inv (λ (super self) (/ 1 self)))
+    (putprop! 'String 'concat (λ (super self str)
+                                 (string-append self str)))
+    (putprop! 'String 'display (λ (super self)
+                                  (displayln self)))
+    (putprop! 'True 'display (λ (super self) (display "#t")))
+    (putprop! 'False 'display (λ (super self) (display "#f")))
+
+    ; Now we can do
+    (send 3 '+ 4) ; => 7
+
+Now we no longer have to have individual raw data items like numbers and
+strings in our property list just so we can get at their types/classes.
 
 Flipping things around
 ----------------------
@@ -531,8 +575,8 @@ which we wrote like this (for prototype based inheritance).
 
 .. code-block:: racket
 
-    (define (send obj message . args)
-        (apply (get obj message) (cons obj args)))
+    (define (send obj msgid . args)
+        (apply (get obj msgid) obj args))
 
 This puts the object in the centre of the stage and the message plays the role
 of something that the object receives and then does something with. We can equivalently
@@ -541,8 +585,8 @@ at the centre of the stage.
 
 .. code-block:: racket
 
-    (define (invoke method obj . args)
-        (apply (get obj method) (cons obj args)))
+    (define (invoke method-name obj . args)
+        (apply (get obj method-name) obj args))
 
 They both do the same thing. But now we can ask an interesting question we
 might not have asked with the earlier approach -- can we now determine which
@@ -554,10 +598,10 @@ vector, and so on.
 
 .. code-block:: racket
     
-    (define (gettype obj) (getprop obj 'type))
+    (define (typeof obj) (getprop obj 'type))
 
     (define (invoke2 method obj1 obj2)
-        (apply (getprop method (map gettype (list obj1 obj2)))
+        (apply (getprop method (map typeof (list obj1 obj2)))
             (list obj1 obj2)))
 
 
@@ -569,20 +613,20 @@ strings and integers perhaps using this approach --
 
 .. code-block:: racket
 
-    (setprop! 'add (list 'Number 'Number)
+    (putprop! 'add (list 'Number 'Number)
         (λ (n1 n2)
             (+ n1 n2)))
 
-    (setprop! 'add (list 'String 'Number)
+    (putprop! 'add (list 'String 'Number)
         (λ (str num)
             (format "~s~s" str num)))
 
-    (setprop! 'add (list 'Number 'String)
+    (putprop! 'add (list 'Number 'String)
         (λ (num str)
             (format "~s~s" num str)))
 
-Now we can add number and strings freely. Not that that's "a good thing",
-but we can.
+Now we can add numbers and strings freely. Not that that's "a good thing", but
+we can.
 
 The interesting thing about this approach is that we're no longer forced to
 determine whether the code for adding a string with a number should go within
@@ -672,7 +716,7 @@ method invocation chain.
 
     (define (new klass . args)
         (let ([obj (Obj klass)])
-            (setprop! obj 'isa klass)
+            (putprop! obj 'isa klass)
             (apply (get klass 'constructor) (cons obj args))
             obj))
 
@@ -695,13 +739,14 @@ perform.
 
 .. code-block:: racket
     
-    (define (send obj message . args)
-        (let ([method (getprop obj message
-                        (λ (obj message)
-                            (get (getprop obj 'super (λ (thing key) #f)) message)))])
-            (if method
-                (apply method (cons obj args))
-                (apply (get obj 'method-not-found)
-                        (cons obj (cons message args))))))
+    (define (send obj msgid . args)
+      (apply
+          (get obj msgid
+            (λ (obj msgid)
+              (send obj 'method-not-found msgid)))
+          obj
+          args))
+          
+
 
     

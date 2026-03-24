@@ -111,10 +111,10 @@ linguistic “object”) via “predicates”. For example, the triple <code cla
 <code class="docutils literal notranslate"><span class="pre">child23</span></code> is <code class="docutils literal notranslate"><span class="pre">adult42</span></code>. This relationship can be thought of as a
 labelled arrow from the child to the adult. This way, arbitrary graphs can be
 represented using such a triple store.</p>
-<figure class="align-center" id="id2">
+<figure class="align-center" id="id3">
 <img alt="A node-edge graph illustrating connections between a node representing a child and three nodes representing adults related to the child." src="_images/triple-store.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 5 </span><span class="caption-text">A triple store can be seen as a graph.</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text">A triple store can be seen as a graph.</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>We’ll now model several “object orientedness” ideas based on such a triple
@@ -193,13 +193,13 @@ know its name. There is no other significance to this <code class="docutils lite
 <section id="a-prototype-based-object-system">
 <h2>A prototype based object system<a class="headerlink" href="#a-prototype-based-object-system" title="Link to this heading">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">Self</span></code> language pioneered the idea of a prototype based object system.
-Although historically this came after the class based system introduced by
-<code class="docutils literal notranslate"><span class="pre">Smalltalk</span></code> as a response to the problem of prematurely having to determine
-an application’s architecture based on “classes” that aren’t necessary known
-up front and will be discovered along the way. In other words, the prototype
-based system was seen as a way to <strong>evolve</strong> software as requirements come in
-during its development. The object system in <code class="docutils literal notranslate"><span class="pre">JavaScript</span></code> is based on these
-ideas developed in <code class="docutils literal notranslate"><span class="pre">Self</span></code>.</p>
+Historically, this came after the class based system adopted by <code class="docutils literal notranslate"><span class="pre">Smalltalk</span></code>,
+as a response to the problem of having to determine an application’s
+architecture based on “classes” that aren’t necessary known up front and will
+be discovered along the way. In other words, the prototype based system was
+seen as a way to <strong>evolve</strong> software as requirements come in during its
+development. The object system in <code class="docutils literal notranslate"><span class="pre">JavaScript</span></code> is based on these ideas
+developed in <code class="docutils literal notranslate"><span class="pre">Self</span></code>.</p>
 <p>So, what is an “object” in such a system in the first place? In such a
 prototype based system, an object is simply a collection of named properties
 and “methods”. A “message” to an object involves a “message name” (a.k.a.
@@ -215,9 +215,9 @@ methods they need.</p>
 has some internal storage that we can only influence through message
 passing and it is free to do anything with that internal data in response
 to messages. This “state encapsulation” is a significant by product of
-object think and there would be no reason to choose a dominantly object
-based design for a system unless it requires and exploits such state
-encapsulation to simply using and reasoning about the system.</p>
+object think. There is no reason to choose a dominantly object based design
+for a system unless it requires and exploits such state encapsulation to
+using and reasoning about the system.</p>
 </div>
 <p>So we’ll make a simple function to which we can give a list
 of keys and values (including method procedures) and get an object
@@ -225,12 +225,14 @@ reference that is associated with those properties and methods.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">object</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">kvs</span><span class="p">)</span>
 <span class="w">  </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">obj</span><span class="w"> </span><span class="p">(</span><span class="n">Obj</span><span class="w"> </span><span class="n">id</span><span class="p">)])</span>
 <span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="n">loop</span><span class="w"> </span><span class="p">([</span><span class="n">kvs</span><span class="w"> </span><span class="n">kvs</span><span class="p">])</span>
-<span class="w">      </span><span class="p">(</span><span class="k">when</span><span class="w"> </span><span class="p">(</span><span class="nb">empty?</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="n">kvs</span><span class="p">))</span>
-<span class="w">        </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">object</span><span class="w"> </span><span class="s2">&quot;Keys and values must be given in pairs&quot;</span><span class="p">))</span>
 <span class="w">      </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">empty?</span><span class="w"> </span><span class="n">kvs</span><span class="p">)</span>
 <span class="w">        </span><span class="n">obj</span>
-<span class="w">        </span><span class="p">(</span><span class="k">begin</span><span class="w"> </span><span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="n">kvs</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">second</span><span class="w"> </span><span class="n">kvs</span><span class="p">))</span>
-<span class="w">               </span><span class="p">(</span><span class="n">loop</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="n">kvs</span><span class="p">))))))))</span>
+<span class="w">        </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">key</span><span class="w"> </span><span class="p">(</span><span class="nb">first</span><span class="w"> </span><span class="n">kvs</span><span class="p">)]</span>
+<span class="w">              </span><span class="p">[</span><span class="n">val</span><span class="w"> </span><span class="p">(</span><span class="nb">second</span><span class="w"> </span><span class="n">kvs</span><span class="p">)])</span>
+<span class="w">          </span><span class="p">(</span><span class="k">when</span><span class="w"> </span><span class="p">(</span><span class="nb">not</span><span class="w"> </span><span class="p">(</span><span class="nb">symbol?</span><span class="w"> </span><span class="n">key</span><span class="p">))</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">object</span><span class="w"> </span><span class="s2">&quot;Key is expected to be a symbol. Got ~a&quot;</span><span class="w"> </span><span class="n">key</span><span class="p">))</span>
+<span class="w">          </span><span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">key</span><span class="w"> </span><span class="n">val</span><span class="p">)</span>
+<span class="w">          </span><span class="p">(</span><span class="n">loop</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="p">(</span><span class="nb">rest</span><span class="w"> </span><span class="n">kvs</span><span class="p">))))))))</span>
 </pre></div>
 </div>
 <p>With that definition in hand, we can do the following -</p>
@@ -268,7 +270,7 @@ we’ll leave the “no such method” condition as an error.</p>
 <span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="k">send</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">msgid</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">method</span><span class="w"> </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">msgid</span><span class="p">)])</span>
 <span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">procedure?</span><span class="w"> </span><span class="n">method</span><span class="p">)</span>
-<span class="w">            </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="p">(</span><span class="nb">cons</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">args</span><span class="p">))</span>
+<span class="w">            </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
 <span class="w">            </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;Method must be a procedure&quot;</span><span class="p">))))</span>
 </pre></div>
 </div>
@@ -302,25 +304,25 @@ the property. But which other object? For that, we can look
 it up in the property list.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">propname</span><span class="p">)</span>
 <span class="w">  </span><span class="p">(</span><span class="k">or</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">propname</span><span class="p">)</span>
-<span class="w">      </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="p">(</span><span class="k">or</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">super</span><span class="p">)</span>
-<span class="w">               </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">get</span><span class="w"> </span><span class="s2">&quot;Thing has no super ~a&quot;</span><span class="w"> </span><span class="n">obj</span><span class="p">))</span>
+<span class="w">      </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="p">(</span><span class="k">or</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">prototype</span><span class="p">)</span>
+<span class="w">               </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">get</span><span class="w"> </span><span class="s2">&quot;Thing has no prototype ~a&quot;</span><span class="w"> </span><span class="n">obj</span><span class="p">))</span>
 <span class="w">           </span><span class="n">propname</span><span class="p">)))</span>
 </pre></div>
 </div>
-<p>We did something interesting there. We first try to look up a “super” property
+<p>We did something interesting there. We first try to look up a “prototype” property
 of the object, which we expect to be defined to another object. If we find one,
-we then ask that object for the property. If such a “super object” doesn’t
+we then ask that object for the property. If such a “prototype object” doesn’t
 exist, the <code class="docutils literal notranslate"><span class="pre">getprop</span></code> will error out. But if it does, it will be as though our
-object gained the properties of that “super object”. Now, when getting the
-property of the “super”, we do it recursively so that if that “super” also
-didn’t have that property or method, we look up its “super” and so on until
+object gained the properties of that “prototype object”. Now, when getting the
+property of the “prototype”, we do it recursively so that if that “prototype” also
+didn’t have that property or method, we look up its “prototype” and so on until
 either the property/method is found or it errors out.</p>
-<p>Note that we’ve again left a placeholder for the condition when the “super” of
+<p>Note that we’ve again left a placeholder for the condition when the “prototype” of
 an object cannot be found. We’ll return to this choice point later. First let’s
 see what this mechanism buys us for our animal farm.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="n">dog1</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">super</span><span class="w"> </span><span class="n">animal</span><span class="p">)</span>
-<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="n">dog2</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">super</span><span class="w"> </span><span class="n">animal</span><span class="p">)</span>
-<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="n">cat1</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">super</span><span class="w"> </span><span class="n">animal</span><span class="p">)</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="n">dog1</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">prototype</span><span class="w"> </span><span class="n">animal</span><span class="p">)</span>
+<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="n">dog2</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">prototype</span><span class="w"> </span><span class="n">animal</span><span class="p">)</span>
+<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="n">cat1</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">prototype</span><span class="w"> </span><span class="n">animal</span><span class="p">)</span>
 
 <span class="nb">&gt;</span><span class="w"> </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="n">dog1</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">num-legs</span><span class="p">)</span>
 <span class="mi">4</span>
@@ -351,12 +353,12 @@ animals will automatically get it.</p>
 <p>Now, imagine the process we went through just got bigger with many
 tens of methods and properties. Every time we make a new object – an
 animal – we have to define these properties on each of them. The
-ability to delegate commonly accessed methods to such a “super”
+ability to delegate commonly accessed methods to such a “prototype”
 object like we just did is therefore a boon since we can just accumulate
-those common methods in that “super” object and make the other objects
-just reference it via their <code class="docutils literal notranslate"><span class="pre">'super</span></code> property.</p>
+those common methods in that “prototype” object and make the other objects
+just reference it via their <code class="docutils literal notranslate"><span class="pre">'prototype</span></code> property.</p>
 <p>This is the essence of how “classes” are modelled in prototype based object
-systems. The “super object” of an object is known as the object’s “prototype”.
+systems. The “prototype object” of an object is known as the object’s “prototype”.
 In such systems, a prototype that also has a method that can construct
 “instances” of it is referred to as a “class”.</p>
 <p>Such prototype based systems do not really distinguish between the notions of
@@ -386,45 +388,45 @@ hierarchies though.</p>
 <span class="w">      </span><span class="n">m</span>
 <span class="w">      </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">method</span><span class="w"> </span><span class="s2">&quot;Expected a method. Got ~a&quot;</span><span class="w"> </span><span class="n">m</span><span class="p">)))</span>
 
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">send/super</span><span class="w"> </span><span class="k">super</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">msgid</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
-<span class="w">  </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">m</span><span class="w"> </span><span class="p">(</span><span class="n">method</span><span class="w"> </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="k">super</span><span class="w"> </span><span class="n">msgid</span><span class="p">))])</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="k">send*</span><span class="w"> </span><span class="n">klass</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">msgid</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
+<span class="w">  </span><span class="p">(</span><span class="k">let</span><span class="w"> </span><span class="p">([</span><span class="n">m</span><span class="w"> </span><span class="p">(</span><span class="n">method</span><span class="w"> </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="n">klass</span><span class="w"> </span><span class="n">msgid</span><span class="p">))])</span>
 <span class="w">    </span><span class="c1">; Note the change in protocol for method invocation</span>
-<span class="w">    </span><span class="c1">; which now takes an additional &quot;super&quot; argument.</span>
-<span class="w">    </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="k">super</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">args</span><span class="p">)))</span>
+<span class="w">    </span><span class="c1">; which now takes an additional &quot;klass&quot; argument.</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="n">klass</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">args</span><span class="p">)))</span>
 
 <span class="c1">; Note that in class-based object systems, method lookup</span>
 <span class="c1">; starts with an object&#39;s class and not the object itself.</span>
 <span class="c1">; So we need to lookup an object&#39;s ``&#39;isa`` property and</span>
-<span class="c1">; and invoke ``send/super``.</span>
+<span class="c1">; and invoke ``send*``.</span>
 <span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="k">send</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">message</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
-<span class="w">  </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">send/super</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">isa</span><span class="p">)</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">msgid</span><span class="w"> </span><span class="n">args</span><span class="p">))</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="k">send*</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">isa</span><span class="p">)</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">msgid</span><span class="w"> </span><span class="n">args</span><span class="p">))</span>
 
 <span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">dog1</span>
 <span class="w">  </span><span class="p">(</span><span class="n">object</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">puppy</span>
 <span class="w">    </span><span class="o">&#39;</span><span class="ss">color</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">brown</span>
-<span class="w">    </span><span class="o">&#39;</span><span class="ss">bark</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">displayln</span><span class="w"> </span><span class="s2">&quot;Yelp!&quot;</span><span class="p">))))</span>
+<span class="w">    </span><span class="o">&#39;</span><span class="ss">bark</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">displayln</span><span class="w"> </span><span class="s2">&quot;Yelp!&quot;</span><span class="p">))))</span>
 
 <span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">dog2</span>
 <span class="w">  </span><span class="p">(</span><span class="n">object</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">adult</span>
 <span class="w">    </span><span class="o">&#39;</span><span class="ss">color</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">black</span>
-<span class="w">    </span><span class="o">&#39;</span><span class="ss">bark</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">displayln</span><span class="w"> </span><span class="s2">&quot;Woof Woof!&quot;</span><span class="p">))))</span>
+<span class="w">    </span><span class="o">&#39;</span><span class="ss">bark</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">displayln</span><span class="w"> </span><span class="s2">&quot;Woof Woof!&quot;</span><span class="p">))))</span>
 
 <span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">cat1</span>
 <span class="w">  </span><span class="p">(</span><span class="n">object</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">siamese</span>
 <span class="w">    </span><span class="o">&#39;</span><span class="ss">color</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">grey</span>
-<span class="w">    </span><span class="o">&#39;</span><span class="ss">bark</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="p">)</span>
+<span class="w">    </span><span class="o">&#39;</span><span class="ss">bark</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="p">)</span>
 <span class="w">             </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;I don&#39;t bark! Am I a dog?&quot;</span><span class="p">))))</span>
 
 <span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="n">animal</span>
 <span class="w">  </span><span class="p">(</span><span class="n">object</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Animal</span>
 <span class="w">    </span><span class="o">&#39;</span><span class="ss">num-legs</span><span class="w"> </span><span class="mi">4</span>
-<span class="w">    </span><span class="o">&#39;</span><span class="ss">walk</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">num-steps</span><span class="p">)</span>
+<span class="w">    </span><span class="o">&#39;</span><span class="ss">walk</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">num-steps</span><span class="p">)</span>
 <span class="w">            </span><span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">steps-walked</span>
 <span class="w">              </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">steps-walked</span><span class="p">)</span><span class="w"> </span><span class="n">num-steps</span><span class="p">)))))</span>
 </pre></div>
 </div>
 <p>So what new capability does doing this give us? Within a method,
-we can now delegate a part of the functionality to the “super”
+we can now delegate a part of the functionality to the “prototype”
 if we wish. For example, if we want to make a custom “walk” method
 for the cat that depends on whether it is tired, we can do this -</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="n">cat</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">tired</span><span class="w"> </span><span class="no">#t</span><span class="p">)</span>
@@ -432,7 +434,7 @@ for the cat that depends on whether it is tired, we can do this -</p>
 <span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">num-steps</span><span class="p">)</span>
 <span class="w">        </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">tired</span><span class="p">)</span>
 <span class="w">            </span><span class="p">(</span><span class="nb">error</span><span class="w"> </span><span class="s2">&quot;No energy for a walk. Go away. Meeeow!&quot;</span><span class="p">)</span>
-<span class="w">            </span><span class="p">(</span><span class="n">send/super</span><span class="w"> </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="n">klass</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">super</span><span class="p">)</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">walk</span><span class="w"> </span><span class="n">num-steps</span><span class="p">))))</span>
+<span class="w">            </span><span class="p">(</span><span class="k">send*</span><span class="w"> </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="n">klass</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">super</span><span class="p">)</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">walk</span><span class="w"> </span><span class="n">num-steps</span><span class="p">))))</span>
 </pre></div>
 </div>
 <p>Notice how the cat delegates to its super the ability to walk when it is able
@@ -469,7 +471,7 @@ like below –</p>
 <span class="w">           </span><span class="n">propname</span><span class="p">)))</span>
 
 <span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="k">send</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">msgid</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
-<span class="w">  </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">send/super</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">isa</span><span class="p">)</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">msgid</span><span class="w"> </span><span class="n">args</span><span class="p">))</span>
+<span class="w">  </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="k">send*</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">isa</span><span class="p">)</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">msgid</span><span class="w"> </span><span class="n">args</span><span class="p">))</span>
 </pre></div>
 </div>
 </section>
@@ -480,9 +482,9 @@ and that “everything happens via message passing”. This includes languages
 like Smalltalk, Self and Ruby. Here is, for example, how such a system
 might handle branching on a condition.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">True</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">if:else:</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">ctxt</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">thenblock</span><span class="w"> </span><span class="n">elseblock</span><span class="p">)</span>
-<span class="w">                                </span><span class="p">(</span><span class="n">thenblock</span><span class="p">)))</span>
+<span class="w">                                </span><span class="p">(</span><span class="k">send</span><span class="w"> </span><span class="n">thenblock</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">invoke</span><span class="p">)))</span>
 <span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">False</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">if:else:</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">ctxt</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="n">thenblock</span><span class="w"> </span><span class="n">elseblock</span><span class="p">)</span>
-<span class="w">                                </span><span class="p">(</span><span class="n">elseblock</span><span class="p">)))</span>
+<span class="w">                                </span><span class="p">(</span><span class="k">send</span><span class="w"> </span><span class="n">elseblock</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">invoke</span><span class="p">)))</span>
 </pre></div>
 </div>
 <p>So the result of a boolean computation is a singleton instance of one of the
@@ -508,7 +510,8 @@ principle, that is equivalent to having some type checks like below –</p>
 <span class="w">  </span><span class="p">(</span><span class="k">or</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">thing</span><span class="w"> </span><span class="n">key</span><span class="p">)</span>
 <span class="w">      </span><span class="p">(</span><span class="n">get0</span><span class="w"> </span><span class="p">(</span><span class="k">or</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">thing</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">super</span><span class="p">)</span>
 <span class="w">                </span><span class="p">(</span><span class="k">else</span><span class="w"> </span><span class="n">thing</span><span class="w"> </span><span class="n">key</span><span class="p">))</span>
-<span class="w">            </span><span class="n">key</span><span class="p">)))</span>
+<span class="w">            </span><span class="n">key</span>
+<span class="w">            </span><span class="k">else</span><span class="p">)))</span>
 
 <span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">get</span><span class="w"> </span><span class="n">thing</span><span class="w"> </span><span class="n">key</span><span class="w"> </span><span class="p">[</span><span class="k">else</span><span class="w"> </span><span class="n">key-not-found</span><span class="p">])</span>
 <span class="w">    </span><span class="p">(</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">equal?</span><span class="w"> </span><span class="n">key</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">isa</span><span class="p">)</span>
@@ -521,25 +524,27 @@ principle, that is equivalent to having some type checks like below –</p>
 <span class="w">        </span><span class="p">(</span><span class="n">get0</span><span class="w"> </span><span class="n">thing</span><span class="w"> </span><span class="n">key</span><span class="w"> </span><span class="k">else</span><span class="p">)))</span>
 
 <span class="c1">; Some sample messages supported by these &quot;types&quot;.</span>
-<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">+</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
-<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">-</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
-<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">neg</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">self</span><span class="p">)))</span>
-<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">*</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
-<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">/</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
-<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">inv</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="n">self</span><span class="p">)))</span>
-<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">String</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">concat</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">str</span><span class="p">)</span>
+<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">+</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
+<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">-</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
+<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">neg</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">-</span><span class="w"> </span><span class="n">self</span><span class="p">)))</span>
+<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">*</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
+<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">/</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">val</span><span class="p">)))</span>
+<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">inv</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">/</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="n">self</span><span class="p">)))</span>
+<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">String</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">concat</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">str</span><span class="p">)</span>
 <span class="w">                             </span><span class="p">(</span><span class="nb">string-append</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">str</span><span class="p">)))</span>
-<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">String</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">display</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="p">)</span>
+<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">String</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">display</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="p">)</span>
 <span class="w">                              </span><span class="p">(</span><span class="nb">displayln</span><span class="w"> </span><span class="n">self</span><span class="p">)))</span>
-<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">True</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">display</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="s2">&quot;#t&quot;</span><span class="p">)))</span>
-<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">False</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">display</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="k">super</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="s2">&quot;#f&quot;</span><span class="p">)))</span>
+<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">True</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">display</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="s2">&quot;#t&quot;</span><span class="p">)))</span>
+<span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">False</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">display</span><span class="w"> </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">klass</span><span class="w"> </span><span class="n">self</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">display</span><span class="w"> </span><span class="s2">&quot;#f&quot;</span><span class="p">)))</span>
 
 <span class="c1">; Now we can do</span>
 <span class="p">(</span><span class="k">send</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">+</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="c1">; =&gt; 7</span>
 </pre></div>
 </div>
 <p>Now we no longer have to have individual raw data items like numbers and
-strings in our property list just so we can get at their types/classes.</p>
+strings in our property list just so we can get at their types/classes.
+We can reference these properties and methods through their respective
+classes.</p>
 </section>
 <section id="flipping-things-around">
 <h2>Flipping things around<a class="headerlink" href="#flipping-things-around" title="Link to this heading">¶</a></h2>
@@ -573,23 +578,34 @@ vector, and so on.</p>
 </div>
 <p>In <code class="docutils literal notranslate"><span class="pre">invoke2</span></code> above, we’re treating the method as the thing for which
 we’re looking up properties against various nominal types (i.e. types by
-names). The key is a compound object in this case, a list of two types
+names). <a class="footnote-reference brackets" href="#eq" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> The key is a compound object in this case, a list of two types
 (which could be symbols). We can now define methods for concatenating
 strings and integers perhaps using this approach –</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="eq" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Note that in <code class="docutils literal notranslate"><span class="pre">getprop</span></code>, we used <code class="docutils literal notranslate"><span class="pre">eq?</span></code> to match the
+subject and <code class="docutils literal notranslate"><span class="pre">equal?</span></code> to match the predicate. The reason for that
+choice is that it enables us to use such “compound predicates”
+like the “list of types” we have in this case. <code class="docutils literal notranslate"><span class="pre">eq?</span></code> (roughly)
+checks for the references being the same, so <code class="docutils literal notranslate"><span class="pre">(eq?</span> <span class="pre">'(1</span> <span class="pre">2)</span> <span class="pre">'(1</span> <span class="pre">2))</span></code>
+is <code class="docutils literal notranslate"><span class="pre">#f</span></code>, whereas <code class="docutils literal notranslate"><span class="pre">(equal?</span> <span class="pre">'(1</span> <span class="pre">2)</span> <span class="pre">'(1</span> <span class="pre">2))</span></code> is <code class="docutils literal notranslate"><span class="pre">#t</span></code>.</p>
+</aside>
+</aside>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">add</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">n1</span><span class="w"> </span><span class="n">n2</span><span class="p">)</span>
 <span class="w">        </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="n">n1</span><span class="w"> </span><span class="n">n2</span><span class="p">)))</span>
 
 <span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">add</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">String</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">str</span><span class="w"> </span><span class="n">num</span><span class="p">)</span>
-<span class="w">        </span><span class="p">(</span><span class="nb">format</span><span class="w"> </span><span class="s2">&quot;~s~s&quot;</span><span class="w"> </span><span class="n">str</span><span class="w"> </span><span class="n">num</span><span class="p">)))</span>
+<span class="w">        </span><span class="p">(</span><span class="nb">format</span><span class="w"> </span><span class="s2">&quot;~a~a&quot;</span><span class="w"> </span><span class="n">str</span><span class="w"> </span><span class="n">num</span><span class="p">)))</span>
 
 <span class="p">(</span><span class="n">putprop!</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">add</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">Number</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">String</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="k">λ</span><span class="w"> </span><span class="p">(</span><span class="n">num</span><span class="w"> </span><span class="n">str</span><span class="p">)</span>
-<span class="w">        </span><span class="p">(</span><span class="nb">format</span><span class="w"> </span><span class="s2">&quot;~s~s&quot;</span><span class="w"> </span><span class="n">num</span><span class="w"> </span><span class="n">str</span><span class="p">)))</span>
+<span class="w">        </span><span class="p">(</span><span class="nb">format</span><span class="w"> </span><span class="s2">&quot;~a~a&quot;</span><span class="w"> </span><span class="n">num</span><span class="w"> </span><span class="n">str</span><span class="p">)))</span>
 </pre></div>
 </div>
-<p>Now we can add numbers and strings freely. Not that that’s “a good thing”, but
+<p>Now we can add numbers and strings freely. Not that that’s a good thing, but
 we can.</p>
 <p>The interesting thing about this approach is that we’re no longer forced to
 determine whether the code for adding a string with a number should go within
@@ -601,16 +617,17 @@ does get burdensome even dealing with special methods for combining various
 types of numbers. But the payoff is simplicity for the programmer and that is
 worth some of the additional work put in to ensure that method names have
 consistent interpretations across various types.</p>
-<p>This approach is also the essence of “multiple argument dispatch”. We can
-obviously extend this approach beyond just 2 arguments. Julia is a programming
-language in which this notion of multiple argument dispatch, combined with type
-inference and just-ahead-of-time compilation is used to generate highly
+<p>This approach is also the essence of “multiple argument dispatch”, which has
+been in object systems as old as Common Lisp (in CLOS). We can obviously extend
+this approach beyond just 2 arguments. Julia is a programming language in which
+this notion of multiple argument dispatch, combined with type based method
+specialization and just-ahead-of-time compilation is used to generate highly
 efficient code for scientific computing applications. Julia gets around the
 problem of having to specify special method implementations for multiple
 combinations by permitting the definition of generic methods on which type
-inference at call time can produce concrete types and methods at all the call
-points and therefore special methods that are consistent with the intent of the
-verb can be generated on demand.  For example, consider the following
+specialization at call time can produce concrete types and methods at all the
+call points and therefore special methods that are consistent with the intent
+of the verb can be generated on demand.  For example, consider the following
 definition for a “squared distance” -</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">sqdist</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="n">adj</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="n">adj</span><span class="w"> </span><span class="n">dy</span><span class="p">)</span><span class="w"> </span><span class="n">dy</span><span class="p">)))</span>
@@ -618,28 +635,28 @@ definition for a “squared distance” -</p>
 </div>
 <p>If we have implementations for different types for <code class="docutils literal notranslate"><span class="pre">adj</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code> and
 <code class="docutils literal notranslate"><span class="pre">+</span></code>, this generic way of specifying a computation using those methods
-suffices to produce special implementation depending on the context.
+suffices to produce a special implementation depending on the context.
 For example, if <code class="docutils literal notranslate"><span class="pre">dx</span></code> and <code class="docutils literal notranslate"><span class="pre">dy</span></code> happened to be vectors, we can interpret
 <code class="docutils literal notranslate"><span class="pre">sqdist</span></code> to be equivalent to –</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">sqdist-vec-vec</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="p">)</span>
-<span class="w">    </span><span class="c1">; where vec* acts like a dot product when</span>
+<span class="w">    </span><span class="c1">; where *-vec-vec acts like a dot product when</span>
 <span class="w">    </span><span class="c1">; given a row vector and a column vector.</span>
-<span class="w">    </span><span class="p">(</span><span class="n">vec+</span><span class="w"> </span><span class="p">(</span><span class="n">vec*</span><span class="w"> </span><span class="p">(</span><span class="n">vec-adj</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span>
-<span class="w">          </span><span class="p">(</span><span class="n">vec*</span><span class="w"> </span><span class="p">(</span><span class="n">vec-adj</span><span class="w"> </span><span class="n">dy</span><span class="p">)</span><span class="w"> </span><span class="n">dy</span><span class="p">)))</span>
+<span class="w">    </span><span class="p">(</span><span class="n">+-vec-vec</span><span class="w"> </span><span class="p">(</span><span class="n">*-vec-vec</span><span class="w"> </span><span class="p">(</span><span class="n">adj-vec</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span>
+<span class="w">               </span><span class="p">(</span><span class="n">*-vec-vec</span><span class="w"> </span><span class="p">(</span><span class="n">adj-vec</span><span class="w"> </span><span class="n">dy</span><span class="p">)</span><span class="w"> </span><span class="n">dy</span><span class="p">)))</span>
 
 <span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">sqdist-complex-complex</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="n">complex+</span><span class="w"> </span><span class="p">(</span><span class="n">complex*</span><span class="w"> </span><span class="p">(</span><span class="n">complex-conj</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span>
-<span class="w">              </span><span class="p">(</span><span class="n">complex*</span><span class="w"> </span><span class="p">(</span><span class="n">complex-conj</span><span class="w"> </span><span class="n">dy</span><span class="p">)</span><span class="w"> </span><span class="n">dy</span><span class="p">)))</span>
+<span class="w">    </span><span class="p">(</span><span class="n">+-complex-complex</span><span class="w"> </span><span class="p">(</span><span class="n">*-complex-complex</span><span class="w"> </span><span class="p">(</span><span class="n">adj-complex</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span>
+<span class="w">                       </span><span class="p">(</span><span class="n">*-complex-complex</span><span class="w"> </span><span class="p">(</span><span class="n">adj-complex</span><span class="w"> </span><span class="n">dy</span><span class="p">)</span><span class="w"> </span><span class="n">dy</span><span class="p">)))</span>
 
 <span class="c1">; and so on.</span>
 </pre></div>
 </div>
 <p>The important simplifying procedure here is that these specialized methods
 can be automatically generated from one (or more) generic specifications
-depending on need. <a class="footnote-reference brackets" href="#genmethods" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
+depending on need. <a class="footnote-reference brackets" href="#genmethods" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a></p>
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="genmethods" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
 <p>Providing an implementation of this is not simple and would
 fall into the scope of an advanced course that covers the required type
 systems and type inference mechanisms.</p>

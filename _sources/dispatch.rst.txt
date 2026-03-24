@@ -176,13 +176,13 @@ A prototype based object system
 -------------------------------
 
 The ``Self`` language pioneered the idea of a prototype based object system.
-Although historically this came after the class based system introduced by
-``Smalltalk`` as a response to the problem of prematurely having to determine
-an application's architecture based on "classes" that aren't necessary known
-up front and will be discovered along the way. In other words, the prototype
-based system was seen as a way to **evolve** software as requirements come in
-during its development. The object system in ``JavaScript`` is based on these
-ideas developed in ``Self``.
+Historically, this came after the class based system adopted by ``Smalltalk``,
+as a response to the problem of having to determine an application's
+architecture based on "classes" that aren't necessary known up front and will
+be discovered along the way. In other words, the prototype based system was
+seen as a way to **evolve** software as requirements come in during its
+development. The object system in ``JavaScript`` is based on these ideas
+developed in ``Self``.
 
 So, what is an "object" in such a system in the first place? In such a
 prototype based system, an object is simply a collection of named properties
@@ -200,9 +200,9 @@ methods they need.
     has some internal storage that we can only influence through message
     passing and it is free to do anything with that internal data in response
     to messages. This "state encapsulation" is a significant by product of
-    object think and there would be no reason to choose a dominantly object
-    based design for a system unless it requires and exploits such state
-    encapsulation to simply using and reasoning about the system.
+    object think. There is no reason to choose a dominantly object based design
+    for a system unless it requires and exploits such state encapsulation to
+    using and reasoning about the system.
 
 So we'll make a simple function to which we can give a list
 of keys and values (including method procedures) and get an object
@@ -213,12 +213,14 @@ reference that is associated with those properties and methods.
     (define (object id . kvs)
       (let ([obj (Obj id)])
         (let loop ([kvs kvs])
-          (when (empty? (rest kvs))
-            (error 'object "Keys and values must be given in pairs"))
           (if (empty? kvs)
             obj
-            (begin (putprop! obj (first kvs) (second kvs))
-                   (loop (rest (rest kvs))))))))
+            (let ([key (first kvs)]
+                  [val (second kvs)])
+              (when (not (symbol? key))
+                (error 'object "Key is expected to be a symbol. Got ~a" key))
+              (putprop! obj key val)
+              (loop (rest (rest kvs))))))))
 
 With that definition in hand, we can do the following -
 
@@ -260,7 +262,7 @@ we'll leave the "no such method" condition as an error.
     (define (send obj msgid . args)
         (let ([method (get obj msgid)])
             (if (procedure? method)
-                (apply method (cons obj args))
+                (apply method obj args)
                 (error "Method must be a procedure"))))
 
 
@@ -303,28 +305,28 @@ it up in the property list.
 
     (define (get obj propname)
       (or (getprop obj propname)
-          (get (or (getprop obj 'super)
-                   (error 'get "Thing has no super ~a" obj))
+          (get (or (getprop obj 'prototype)
+                   (error 'get "Thing has no prototype ~a" obj))
                propname)))
 
-We did something interesting there. We first try to look up a "super" property
+We did something interesting there. We first try to look up a "prototype" property
 of the object, which we expect to be defined to another object. If we find one,
-we then ask that object for the property. If such a "super object" doesn't
+we then ask that object for the property. If such a "prototype object" doesn't
 exist, the ``getprop`` will error out. But if it does, it will be as though our
-object gained the properties of that "super object". Now, when getting the
-property of the "super", we do it recursively so that if that "super" also
-didn't have that property or method, we look up its "super" and so on until
+object gained the properties of that "prototype object". Now, when getting the
+property of the "prototype", we do it recursively so that if that "prototype" also
+didn't have that property or method, we look up its "prototype" and so on until
 either the property/method is found or it errors out.
 
-Note that we've again left a placeholder for the condition when the "super" of
+Note that we've again left a placeholder for the condition when the "prototype" of
 an object cannot be found. We'll return to this choice point later. First let's
 see what this mechanism buys us for our animal farm.
 
 .. code-block:: racket
 
-    (putprop! dog1 'super animal)
-    (putprop! dog2 'super animal)
-    (putprop! cat1 'super animal)
+    (putprop! dog1 'prototype animal)
+    (putprop! dog2 'prototype animal)
+    (putprop! cat1 'prototype animal)
 
     > (get dog1 'num-legs)
     4
@@ -356,13 +358,13 @@ It's tiring
 Now, imagine the process we went through just got bigger with many
 tens of methods and properties. Every time we make a new object -- an
 animal -- we have to define these properties on each of them. The
-ability to delegate commonly accessed methods to such a "super"
+ability to delegate commonly accessed methods to such a "prototype"
 object like we just did is therefore a boon since we can just accumulate
-those common methods in that "super" object and make the other objects
-just reference it via their ``'super`` property.
+those common methods in that "prototype" object and make the other objects
+just reference it via their ``'prototype`` property.
 
 This is the essence of how "classes" are modelled in prototype based object
-systems. The "super object" of an object is known as the object's "prototype".
+systems. The "prototype object" of an object is known as the object's "prototype".
 In such systems, a prototype that also has a method that can construct 
 "instances" of it is referred to as a "class".
 
@@ -398,45 +400,45 @@ hierarchies though.
           m
           (error 'method "Expected a method. Got ~a" m)))
 
-    (define (send/super super obj msgid . args)
-      (let ([m (method (get super msgid))])
+    (define (send* klass obj msgid . args)
+      (let ([m (method (get klass msgid))])
         ; Note the change in protocol for method invocation
-        ; which now takes an additional "super" argument.
-        (apply method super obj args)))
+        ; which now takes an additional "klass" argument.
+        (apply m klass obj args)))
 
     ; Note that in class-based object systems, method lookup
     ; starts with an object's class and not the object itself.
     ; So we need to lookup an object's ``'isa`` property and
-    ; and invoke ``send/super``.
+    ; and invoke ``send*``.
     (define (send obj message . args)
-      (apply send/super (getprop obj 'isa) obj msgid args))
+      (apply send* (getprop obj 'isa) obj msgid args))
 
     (define dog1 
       (object 'puppy
         'color 'brown
-        'bark (λ (super self) (displayln "Yelp!"))))
+        'bark (λ (klass self) (displayln "Yelp!"))))
 
     (define dog2
       (object 'adult
         'color 'black
-        'bark (λ (super self) (displayln "Woof Woof!"))))
+        'bark (λ (klass self) (displayln "Woof Woof!"))))
 
     (define cat1
       (object 'siamese
         'color 'grey
-        'bark (λ (super self)
+        'bark (λ (klass self)
                  (error "I don't bark! Am I a dog?"))))
 
     (define animal 
       (object 'Animal
         'num-legs 4
-        'walk (λ (super self num-steps)
+        'walk (λ (klass self num-steps)
                 (putprop! self 'steps-walked
                   (+ (get self 'steps-walked) num-steps)))))
 
 
 So what new capability does doing this give us? Within a method,
-we can now delegate a part of the functionality to the "super" 
+we can now delegate a part of the functionality to the "prototype" 
 if we wish. For example, if we want to make a custom "walk" method
 for the cat that depends on whether it is tired, we can do this -
 
@@ -447,7 +449,7 @@ for the cat that depends on whether it is tired, we can do this -
         (λ (klass self num-steps)
             (if (get self 'tired)
                 (error "No energy for a walk. Go away. Meeeow!")
-                (send/super (get klass 'super) self 'walk num-steps))))
+                (send* (get klass 'super) self 'walk num-steps))))
 
 Notice how the cat delegates to its super the ability to walk when it is able
 to, but errors out otherwise. Under normal method invocation, ``klass`` will be
@@ -489,7 +491,7 @@ like below --
                propname)))
 
     (define (send obj msgid . args)
-      (apply send/super (getprop obj 'isa) obj msgid args))
+      (apply send* (getprop obj 'isa) obj msgid args))
 
 Uniformity considerations
 -------------------------
@@ -502,9 +504,9 @@ might handle branching on a condition.
 .. code-block:: racket
 
     (putprop! 'True 'if:else: (λ (ctxt obj thenblock elseblock)
-                                    (thenblock)))
+                                    (send thenblock 'invoke)))
     (putprop! 'False 'if:else: (λ (ctxt obj thenblock elseblock)
-                                    (elseblock)))
+                                    (send elseblock 'invoke)))
 
 
 So the result of a boolean computation is a singleton instance of one of the
@@ -535,7 +537,8 @@ principle, that is equivalent to having some type checks like below --
       (or (getprop thing key)
           (get0 (or (getprop thing 'super)
                     (else thing key))
-                key)))
+                key
+                else)))
 
     (define (get thing key [else key-not-found])
         (if (equal? key 'isa)
@@ -548,24 +551,26 @@ principle, that is equivalent to having some type checks like below --
             (get0 thing key else)))
 
     ; Some sample messages supported by these "types".
-    (putprop! 'Number '+ (λ (super self val) (+ self val)))
-    (putprop! 'Number '- (λ (super self val) (- self val)))
-    (putprop! 'Number 'neg (λ (super self) (- self)))
-    (putprop! 'Number '* (λ (super self val) (* self val)))
-    (putprop! 'Number '/ (λ (super self val) (/ self val)))
-    (putprop! 'Number 'inv (λ (super self) (/ 1 self)))
-    (putprop! 'String 'concat (λ (super self str)
+    (putprop! 'Number '+ (λ (klass self val) (+ self val)))
+    (putprop! 'Number '- (λ (klass self val) (- self val)))
+    (putprop! 'Number 'neg (λ (klass self) (- self)))
+    (putprop! 'Number '* (λ (klass self val) (* self val)))
+    (putprop! 'Number '/ (λ (klass self val) (/ self val)))
+    (putprop! 'Number 'inv (λ (klass self) (/ 1 self)))
+    (putprop! 'String 'concat (λ (klass self str)
                                  (string-append self str)))
-    (putprop! 'String 'display (λ (super self)
+    (putprop! 'String 'display (λ (klass self)
                                   (displayln self)))
-    (putprop! 'True 'display (λ (super self) (display "#t")))
-    (putprop! 'False 'display (λ (super self) (display "#f")))
+    (putprop! 'True 'display (λ (klass self) (display "#t")))
+    (putprop! 'False 'display (λ (klass self) (display "#f")))
 
     ; Now we can do
     (send 3 '+ 4) ; => 7
 
 Now we no longer have to have individual raw data items like numbers and
 strings in our property list just so we can get at their types/classes.
+We can reference these properties and methods through their respective
+classes.
 
 Flipping things around
 ----------------------
@@ -607,9 +612,16 @@ vector, and so on.
 
 In ``invoke2`` above, we're treating the method as the thing for which
 we're looking up properties against various nominal types (i.e. types by
-names). The key is a compound object in this case, a list of two types
+names). [#eq]_ The key is a compound object in this case, a list of two types
 (which could be symbols). We can now define methods for concatenating
 strings and integers perhaps using this approach --
+
+.. [#eq] Note that in ``getprop``, we used ``eq?`` to match the
+   subject and ``equal?`` to match the predicate. The reason for that
+   choice is that it enables us to use such "compound predicates"
+   like the "list of types" we have in this case. ``eq?`` (roughly)
+   checks for the references being the same, so ``(eq? '(1 2) '(1 2))``
+   is ``#f``, whereas ``(equal? '(1 2) '(1 2))`` is ``#t``.
 
 .. code-block:: racket
 
@@ -619,13 +631,13 @@ strings and integers perhaps using this approach --
 
     (putprop! 'add (list 'String 'Number)
         (λ (str num)
-            (format "~s~s" str num)))
+            (format "~a~a" str num)))
 
     (putprop! 'add (list 'Number 'String)
         (λ (num str)
-            (format "~s~s" num str)))
+            (format "~a~a" num str)))
 
-Now we can add numbers and strings freely. Not that that's "a good thing", but
+Now we can add numbers and strings freely. Not that that's a good thing, but
 we can.
 
 The interesting thing about this approach is that we're no longer forced to
@@ -639,16 +651,17 @@ types of numbers. But the payoff is simplicity for the programmer and that is
 worth some of the additional work put in to ensure that method names have
 consistent interpretations across various types.
 
-This approach is also the essence of "multiple argument dispatch". We can
-obviously extend this approach beyond just 2 arguments. Julia is a programming
-language in which this notion of multiple argument dispatch, combined with type
-inference and just-ahead-of-time compilation is used to generate highly
+This approach is also the essence of "multiple argument dispatch", which has
+been in object systems as old as Common Lisp (in CLOS). We can obviously extend
+this approach beyond just 2 arguments. Julia is a programming language in which
+this notion of multiple argument dispatch, combined with type based method
+specialization and just-ahead-of-time compilation is used to generate highly
 efficient code for scientific computing applications. Julia gets around the
 problem of having to specify special method implementations for multiple
 combinations by permitting the definition of generic methods on which type
-inference at call time can produce concrete types and methods at all the call
-points and therefore special methods that are consistent with the intent of the
-verb can be generated on demand.  For example, consider the following
+specialization at call time can produce concrete types and methods at all the
+call points and therefore special methods that are consistent with the intent
+of the verb can be generated on demand.  For example, consider the following
 definition for a "squared distance" -
 
 .. code-block:: racket
@@ -658,21 +671,21 @@ definition for a "squared distance" -
 
 If we have implementations for different types for ``adj``, ``*`` and
 ``+``, this generic way of specifying a computation using those methods
-suffices to produce special implementation depending on the context.
+suffices to produce a special implementation depending on the context.
 For example, if ``dx`` and ``dy`` happened to be vectors, we can interpret
 ``sqdist`` to be equivalent to --
 
 .. code-block:: racket
 
     (define (sqdist-vec-vec dx dy)
-        ; where vec* acts like a dot product when
+        ; where *-vec-vec acts like a dot product when
         ; given a row vector and a column vector.
-        (vec+ (vec* (vec-adj dx) dx)
-              (vec* (vec-adj dy) dy)))
+        (+-vec-vec (*-vec-vec (adj-vec dx) dx)
+                   (*-vec-vec (adj-vec dy) dy)))
 
     (define (sqdist-complex-complex dx dy)
-        (complex+ (complex* (complex-conj dx) dx)
-                  (complex* (complex-conj dy) dy)))
+        (+-complex-complex (*-complex-complex (adj-complex dx) dx)
+                           (*-complex-complex (adj-complex dy) dy)))
 
     ; and so on.
 

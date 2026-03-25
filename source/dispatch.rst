@@ -761,5 +761,244 @@ perform.
           args))
           
 
+Examples from OOP languages
+---------------------------
 
+Javascript
+~~~~~~~~~~
+
+JS has a prototype based object system and mostly takes on an "everything is an
+object" perspective. The following design that underlies the "class" syntax in
+ES6 and above. Instead of the explicit ``self`` argument we've used in our model,
+JS provides an implicit ``this`` within its function bodies.
+
+The "constructor" function
+--------------------------
+
+.. code:: js
+
+   function Klass(args...) {
+     this.field1 = "initial value";
+     this.field2 = 42;
+   }
+   Klass.prototype.method1 = function (args...) {
+     console.log("Called Klass' method1");
+     // ...
+     return result;
+   };
+   Klass.prototype.method2 = function (args...) {
+     // ...
+     return result;
+   };
+   let obj1 = new Klass("one", 2, {three: 3});
+   console.log(obj1.field2); // prints 42
+   console.log(obj1.method1("param")); // prints "Called Klass' method1"
+
+The special property of a ``Function`` object named ``prototype`` is itself
+expected to be an object that contains a collection of methods that every
+"instance" is supposed to get. This object is then set as the ``__proto__``
+property of constructed ``Klass`` objects such as ``obj1`` above. When a
+property or a method is specified using the ``a.b`` notation, the chain of
+these ``__proto__`` objects is lookup for the definition -- i.e., ``a.b``,
+``a.__proto__.b``, ``a.__proto__.__proto__.b`` and so on -- until one is found,
+or erroring out if no such property or method can be found.
+
+
+Python
+------
+
+Python takes a class based approach to specifying objects. As we know, a
+"class" serves as a machine for making new objects with specific properties
+determined by the class.
+
+.. code:: python
+
+   class Klass(ParentKlass):
+      def __init__(self, args): # The constructor function
+         self.field1 = "initial value"
+         self.field2 = 42
+
+      def method1(self, args):
+         print("Called Klass' method1")
+         # ...
+         return result
+      
+      def method2(self, args):
+         # ...
+         return result
+
+   obj1 = Klass("params")
+   print(obj1.field2) # prints 42
+   obj1.method1("params") # prints "Called Klass' method1"
+
+Note that Python takes the approach of making the ``self`` argument explicit
+like in our model implementations. Also Python does not have a ``new`` operator,
+instead using the ``Klass`` itself like a function to construct new objects.
+
+Since Python uses a class based object system, objects don't have "parent"
+or "super" relationships, but classes do.
+
+Objective-C
+-----------
+
+Objective-C has a Smalltalk lineage though it is embedded in C and therefore
+uses the Smalltalk "message passing" notation. The runtime of Objective-C
+is itself written in C using a small set of C functions like ``msgSend``.
+
+
+.. code:: objc
+
+    @interface Klass : NSObject
+       id<String> field1;
+       int field2;
+
+       - id<Klass> initWithString: (id<String>) f1 number: (int) f2;
+       - (id) method1: (int)arg;
+       - (id) method2: (id)arg;
+    @end
+
+    @implementation Klass
+
+    - id<Klass> initWithString: (id<String>) f1 number: (int) f2 {
+      self.field1 = f1;
+      self.field2 = f2;
+      return self;
+    }
+
+    - (id) method1: (int)arg {
+      printf("Called Klass' method1\n");
+      return nil;
+    }
+
+    - (id) method2: (id)arg {
+      // ...
+      return nil;
+    }
+
+    @end
     
+    id<Klass> obj1 = [[Klass alloc] initWithString:@"Hello" number:42];
+    [obj1 method1:10]; // prints "Called Klass' method1"
+
+Objective-C, like Smalltalk, also presents a class-based object system.
+It splits the specification of a class into an "interface", which is declared
+in ".h" header files and an "implementation" which is given in ".m" files.
+
+You'd also notice that creating an object is separated into two phases --
+allocation and initialization -- where the ``alloc`` message sent to the
+``Klass`` object (yes, classes are also objects in ObjC just as in Smalltalk),
+causes memory for the object to be allocated, and the ``initWithString:number:``
+message sent to the newly allocated *uninitialized* object will initialize
+its fields and make it ready for use. A class can therefore have more than
+one kind of "initializer" and it is only by convention that the initialization
+methods are named ``init...``.
+
+Like Smalltalk, Objective-C objects have a linear class hierarchy - i.e. a
+class can have only one parent, with the chain terminating in the built-in
+``NSObject`` class. [#ns]_
+
+.. [#ns] **Trivia**: The "NS" prefix in the ``Foundation`` package classes
+   stands for "NextStep" -- the company founded by Steve Jobs after he was
+   fired from Apple, but which Apple subsequently bought to make MacOSX.
+   NextStep featured the object system in its dev kit that continues to be used
+   in a far evolved form to this day in MacOS and iOS. NextStep featured the
+   "Display PostScript" system which was also integrated into MacOS, giving it
+   its signature "print to PDF" feature found ubiquitously in nearly all window
+   based applications.
+
+There is more to the object system, which supports formal and information
+protocols, categories, ad hoc extensions to classes and so on, all of which are
+characteristics of Smalltalk as well. You can also construct messages
+themselves as objects and store them somewhere and send them dynamically at a
+time of your choosing. This is not a characteristic of many "object oriented"
+systems.
+
+Java/C#/C++
+-----------
+
+Java, C# and C++ have similar class-based object systems. The main difference
+between Java/C# and C++ is that references to objects cannot be faked in
+Java/C#, making them "capability secure" whereas any pointer can be made to
+pretend to be an "object" in C++, permitting various kinds of security
+exploits.
+
+.. code:: Java
+
+   class Klass: Object {
+      String field1;
+      int field2;
+    
+      public Klass(String s, int i) {
+        field1 = s;
+        field2 = i;
+      }
+
+      public int method1(String s) {
+        System.out.println("Called Klass' method1");
+        return 0;
+      }
+
+      public String method2() {
+        return "Hello";
+      }
+   }
+
+   Klass obj1 = new Klass("Hello", 42);
+   obj1.method1("Smoke testing");
+
+C# and C++ are conceptually similar in many ways, though slightly different in syntax,
+with C# being closer to Java.
+
+An important distinction between these languages is that C++ features multiple inheritance
+which brings with confusions such as the diamond problem. To avoid that, C# and Java 
+provide only for single inheritance of classes, but which can implement multiple
+"interfaces".
+
+Erlang
+------
+
+As mentioned in class, though Erlang's runtime offers features closest in conception
+to Alan Kay's original vision of objects, its syntax and usage are far removed from
+the usual "Class"/"Object" language used in "traditional" OOP languages.
+
+.. code:: erlang
+
+    -module(example).
+    -export([start/0, process/0]).
+
+    process() ->
+        receive
+            {msg1, _} ->
+                io:format("Received message 1: Hello from msg1!~n"),
+                process();
+            {msg2, _} ->
+                io:format("Received message 2: Greetings from msg2!~n"),
+                process()
+            Other ->
+                io:format("Received unknown message. Terminating process!~n")
+        end.
+
+    start() ->
+        Pid = spawn(?MODULE, process, []),
+        Pid ! {msg1, []},
+        Pid ! {msg2, []}.
+
+Here, you see that the language is around "processes" and "messages" and not
+"objects" and "methods". The function ``process`` above is a pure function
+(Erlang is a pure functional "dynamically typed" programming language -- i.e.
+where values have types, but not identifiers). A process is started simply
+by "spawning" a function. It is up to the process to decide how long it should
+stay alive. In this case, the process calls itself recursively and therefore will
+stay alive as long as one of the first two message formats are sent to it.
+Anything else will cause it to terminate (in the above ``process`` example).
+
+When you "spawn" a process, that is the equivalent of "creating an object".
+You get a "Pid" (short for "process id") using which you can send messages to
+the spawned process using the ``!`` operator. 
+
+No code outside of a process has access to anything internal to the process,
+and each process comes with its own heap memory, so when a process terminates
+(either on its own or when forced to terminate by a "supervisor process"),
+all of its resources are released. This is well aligned with the notion of
+"encapsulation" outlined by Alan Kay in the talk we listened to in class.
+

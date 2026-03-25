@@ -111,10 +111,10 @@ linguistic “object”) via “predicates”. For example, the triple <code cla
 <code class="docutils literal notranslate"><span class="pre">child23</span></code> is <code class="docutils literal notranslate"><span class="pre">adult42</span></code>. This relationship can be thought of as a
 labelled arrow from the child to the adult. This way, arbitrary graphs can be
 represented using such a triple store.</p>
-<figure class="align-center" id="id3">
+<figure class="align-center" id="id4">
 <img alt="A node-edge graph illustrating connections between a node representing a child and three nodes representing adults related to the child." src="_images/triple-store.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 5 </span><span class="caption-text">A triple store can be seen as a graph.</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text">A triple store can be seen as a graph.</span><a class="headerlink" href="#id4" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>We’ll now model several “object orientedness” ideas based on such a triple
@@ -718,6 +718,227 @@ perform.</p>
 </div>
 </section>
 </section>
+<section id="examples-from-oop-languages">
+<h2>Examples from OOP languages<a class="headerlink" href="#examples-from-oop-languages" title="Link to this heading">¶</a></h2>
+<section id="javascript">
+<h3>Javascript<a class="headerlink" href="#javascript" title="Link to this heading">¶</a></h3>
+<p>JS has a prototype based object system and mostly takes on an “everything is an
+object” perspective. The following design that underlies the “class” syntax in
+ES6 and above. Instead of the explicit <code class="docutils literal notranslate"><span class="pre">self</span></code> argument we’ve used in our model,
+JS provides an implicit <code class="docutils literal notranslate"><span class="pre">this</span></code> within its function bodies.</p>
+</section>
+</section>
+<section id="the-constructor-function">
+<h2>The “constructor” function<a class="headerlink" href="#the-constructor-function" title="Link to this heading">¶</a></h2>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="kd">function</span><span class="w"> </span><span class="nx">Klass</span><span class="p">(</span><span class="nx">args</span><span class="p">...)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">this</span><span class="p">.</span><span class="nx">field1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;initial value&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="k">this</span><span class="p">.</span><span class="nx">field2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">42</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="nx">Klass</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">method1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="p">(</span><span class="nx">args</span><span class="p">...)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Called Klass&#39; method1&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">result</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="nx">Klass</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">method2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="p">(</span><span class="nx">args</span><span class="p">...)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">result</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="kd">let</span><span class="w"> </span><span class="nx">obj1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Klass</span><span class="p">(</span><span class="s2">&quot;one&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="nx">three</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">});</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">obj1</span><span class="p">.</span><span class="nx">field2</span><span class="p">);</span><span class="w"> </span><span class="c1">// prints 42</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">obj1</span><span class="p">.</span><span class="nx">method1</span><span class="p">(</span><span class="s2">&quot;param&quot;</span><span class="p">));</span><span class="w"> </span><span class="c1">// prints &quot;Called Klass&#39; method1&quot;</span>
+</pre></div>
+</div>
+<p>The special property of a <code class="docutils literal notranslate"><span class="pre">Function</span></code> object named <code class="docutils literal notranslate"><span class="pre">prototype</span></code> is itself
+expected to be an object that contains a collection of methods that every
+“instance” is supposed to get. This object is then set as the <code class="docutils literal notranslate"><span class="pre">__proto__</span></code>
+property of constructed <code class="docutils literal notranslate"><span class="pre">Klass</span></code> objects such as <code class="docutils literal notranslate"><span class="pre">obj1</span></code> above. When a
+property or a method is specified using the <code class="docutils literal notranslate"><span class="pre">a.b</span></code> notation, the chain of
+these <code class="docutils literal notranslate"><span class="pre">__proto__</span></code> objects is lookup for the definition – i.e., <code class="docutils literal notranslate"><span class="pre">a.b</span></code>,
+<code class="docutils literal notranslate"><span class="pre">a.__proto__.b</span></code>, <code class="docutils literal notranslate"><span class="pre">a.__proto__.__proto__.b</span></code> and so on – until one is found,
+or erroring out if no such property or method can be found.</p>
+</section>
+<section id="python">
+<h2>Python<a class="headerlink" href="#python" title="Link to this heading">¶</a></h2>
+<p>Python takes a class based approach to specifying objects. As we know, a
+“class” serves as a machine for making new objects with specific properties
+determined by the class.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Klass</span><span class="p">(</span><span class="n">ParentKlass</span><span class="p">):</span>
+   <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span> <span class="c1"># The constructor function</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">field1</span> <span class="o">=</span> <span class="s2">&quot;initial value&quot;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">field2</span> <span class="o">=</span> <span class="mi">42</span>
+
+   <span class="k">def</span><span class="w"> </span><span class="nf">method1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Called Klass&#39; method1&quot;</span><span class="p">)</span>
+      <span class="c1"># ...</span>
+      <span class="k">return</span> <span class="n">result</span>
+
+   <span class="k">def</span><span class="w"> </span><span class="nf">method2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+      <span class="c1"># ...</span>
+      <span class="k">return</span> <span class="n">result</span>
+
+<span class="n">obj1</span> <span class="o">=</span> <span class="n">Klass</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">obj1</span><span class="o">.</span><span class="n">field2</span><span class="p">)</span> <span class="c1"># prints 42</span>
+<span class="n">obj1</span><span class="o">.</span><span class="n">method1</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">)</span> <span class="c1"># prints &quot;Called Klass&#39; method1&quot;</span>
+</pre></div>
+</div>
+<p>Note that Python takes the approach of making the <code class="docutils literal notranslate"><span class="pre">self</span></code> argument explicit
+like in our model implementations. Also Python does not have a <code class="docutils literal notranslate"><span class="pre">new</span></code> operator,
+instead using the <code class="docutils literal notranslate"><span class="pre">Klass</span></code> itself like a function to construct new objects.</p>
+<p>Since Python uses a class based object system, objects don’t have “parent”
+or “super” relationships, but classes do.</p>
+</section>
+<section id="objective-c">
+<h2>Objective-C<a class="headerlink" href="#objective-c" title="Link to this heading">¶</a></h2>
+<p>Objective-C has a Smalltalk lineage though it is embedded in C and therefore
+uses the Smalltalk “message passing” notation. The runtime of Objective-C
+is itself written in C using a small set of C functions like <code class="docutils literal notranslate"><span class="pre">msgSend</span></code>.</p>
+<div class="highlight-objc notranslate"><div class="highlight"><pre><span></span><span class="k">@interface</span> <span class="nc">Klass</span> : <span class="bp">NSObject</span>
+<span class="w">   </span><span class="kt">id</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">field1</span><span class="p">;</span>
+<span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">field2</span><span class="p">;</span>
+
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="kt">id</span><span class="o">&lt;</span><span class="n">Klass</span><span class="o">&gt;</span><span class="w"> </span><span class="n">initWithString</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="n">f1</span><span class="w"> </span><span class="n">number</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="n">f2</span><span class="p">;</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="w"> </span><span class="n">method1</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">arg</span><span class="p">;</span>
+<span class="w">   </span><span class="o">-</span><span class="w"> </span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="w"> </span><span class="n">method2</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="n">arg</span><span class="p">;</span>
+<span class="k">@end</span>
+
+<span class="k">@implementation</span> <span class="nc">Klass</span>
+
+<span class="p">-</span> <span class="nf">id</span><span class="o">&lt;</span><span class="n">Klass</span><span class="o">&gt;</span><span class="w"> </span><span class="n">initWithString</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="kt">id</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="n">f1</span><span class="w"> </span><span class="n">number</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="n">f2</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nb">self</span><span class="p">.</span><span class="n">field1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f1</span><span class="p">;</span>
+<span class="w">  </span><span class="nb">self</span><span class="p">.</span><span class="n">field2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">f2</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nb">self</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="o">-</span><span class="w"> </span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="w"> </span><span class="n">method1</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">arg</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;Called Klass&#39; method1</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nb">nil</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="o">-</span><span class="w"> </span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="w"> </span><span class="n">method2</span><span class="o">:</span><span class="w"> </span><span class="p">(</span><span class="kt">id</span><span class="p">)</span><span class="n">arg</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nb">nil</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">@end</span>
+
+<span class="kt">id</span><span class="o">&lt;</span><span class="n">Klass</span><span class="o">&gt;</span><span class="w"> </span><span class="n">obj1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[[</span><span class="n">Klass</span><span class="w"> </span><span class="n">alloc</span><span class="p">]</span><span class="w"> </span><span class="n">initWithString</span><span class="o">:</span><span class="s">@&quot;Hello&quot;</span><span class="w"> </span><span class="n">number</span><span class="o">:</span><span class="mi">42</span><span class="p">];</span>
+<span class="p">[</span><span class="n">obj1</span><span class="w"> </span><span class="n">method1</span><span class="o">:</span><span class="mi">10</span><span class="p">];</span><span class="w"> </span><span class="c1">// prints &quot;Called Klass&#39; method1&quot;</span>
+</pre></div>
+</div>
+<p>Objective-C, like Smalltalk, also presents a class-based object system.
+It splits the specification of a class into an “interface”, which is declared
+in “.h” header files and an “implementation” which is given in “.m” files.</p>
+<p>You’d also notice that creating an object is separated into two phases –
+allocation and initialization – where the <code class="docutils literal notranslate"><span class="pre">alloc</span></code> message sent to the
+<code class="docutils literal notranslate"><span class="pre">Klass</span></code> object (yes, classes are also objects in ObjC just as in Smalltalk),
+causes memory for the object to be allocated, and the <code class="docutils literal notranslate"><span class="pre">initWithString:number:</span></code>
+message sent to the newly allocated <em>uninitialized</em> object will initialize
+its fields and make it ready for use. A class can therefore have more than
+one kind of “initializer” and it is only by convention that the initialization
+methods are named <code class="docutils literal notranslate"><span class="pre">init...</span></code>.</p>
+<p>Like Smalltalk, Objective-C objects have a linear class hierarchy - i.e. a
+class can have only one parent, with the chain terminating in the built-in
+<code class="docutils literal notranslate"><span class="pre">NSObject</span></code> class. <a class="footnote-reference brackets" href="#ns" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a></p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="ns" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
+<p><strong>Trivia</strong>: The “NS” prefix in the <code class="docutils literal notranslate"><span class="pre">Foundation</span></code> package classes
+stands for “NextStep” – the company founded by Steve Jobs after he was
+fired from Apple, but which Apple subsequently bought to make MacOSX.
+NextStep featured the object system in its dev kit that continues to be used
+in a far evolved form to this day in MacOS and iOS. NextStep featured the
+“Display PostScript” system which was also integrated into MacOS, giving it
+its signature “print to PDF” feature found ubiquitously in nearly all window
+based applications.</p>
+</aside>
+</aside>
+<p>There is more to the object system, which supports formal and information
+protocols, categories, ad hoc extensions to classes and so on, all of which are
+characteristics of Smalltalk as well. You can also construct messages
+themselves as objects and store them somewhere and send them dynamically at a
+time of your choosing. This is not a characteristic of many “object oriented”
+systems.</p>
+</section>
+<section id="java-c-c">
+<h2>Java/C#/C++<a class="headerlink" href="#java-c-c" title="Link to this heading">¶</a></h2>
+<p>Java, C# and C++ have similar class-based object systems. The main difference
+between Java/C# and C++ is that references to objects cannot be faked in
+Java/C#, making them “capability secure” whereas any pointer can be made to
+pretend to be an “object” in C++, permitting various kinds of security
+exploits.</p>
+<div class="highlight-Java notranslate"><div class="highlight"><pre><span></span><span class="kd">class</span> <span class="nc">Klass</span><span class="p">:</span><span class="w"> </span><span class="n">Object</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="n">String</span><span class="w"> </span><span class="n">field1</span><span class="p">;</span>
+<span class="w">   </span><span class="kt">int</span><span class="w"> </span><span class="n">field2</span><span class="p">;</span>
+
+<span class="w">   </span><span class="kd">public</span><span class="w"> </span><span class="nf">Klass</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">     </span><span class="n">field1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">s</span><span class="p">;</span>
+<span class="w">     </span><span class="n">field2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
+
+<span class="w">   </span><span class="kd">public</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">method1</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">s</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">     </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&quot;Called Klass&#39; method1&quot;</span><span class="p">);</span>
+<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
+
+<span class="w">   </span><span class="kd">public</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="nf">method2</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="s">&quot;Hello&quot;</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">Klass</span><span class="w"> </span><span class="n">obj1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Klass</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">42</span><span class="p">);</span>
+<span class="n">obj1</span><span class="p">.</span><span class="na">method1</span><span class="p">(</span><span class="s">&quot;Smoke testing&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>C# and C++ are conceptually similar in many ways, though slightly different in syntax,
+with C# being closer to Java.</p>
+<p>An important distinction between these languages is that C++ features multiple inheritance
+which brings with confusions such as the diamond problem. To avoid that, C# and Java
+provide only for single inheritance of classes, but which can implement multiple
+“interfaces”.</p>
+</section>
+<section id="erlang">
+<h2>Erlang<a class="headerlink" href="#erlang" title="Link to this heading">¶</a></h2>
+<p>As mentioned in class, though Erlang’s runtime offers features closest in conception
+to Alan Kay’s original vision of objects, its syntax and usage are far removed from
+the usual “Class”/”Object” language used in “traditional” OOP languages.</p>
+<div class="highlight-erlang notranslate"><div class="highlight"><pre><span></span><span class="p">-</span><span class="ni">module</span><span class="p">(</span><span class="n">example</span><span class="p">).</span>
+<span class="p">-</span><span class="ni">export</span><span class="p">([</span><span class="n">start</span><span class="o">/</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">process</span><span class="o">/</span><span class="mi">0</span><span class="p">]).</span>
+
+<span class="nf">process</span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span>
+<span class="w">    </span><span class="k">receive</span>
+<span class="w">        </span><span class="p">{</span><span class="n">msg1</span><span class="p">,</span><span class="w"> </span><span class="p">_}</span><span class="w"> </span><span class="o">-&gt;</span>
+<span class="w">            </span><span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;Received message 1: Hello from msg1!</span><span class="si">~n</span><span class="s">&quot;</span><span class="p">),</span>
+<span class="w">            </span><span class="n">process</span><span class="p">();</span>
+<span class="w">        </span><span class="p">{</span><span class="n">msg2</span><span class="p">,</span><span class="w"> </span><span class="p">_}</span><span class="w"> </span><span class="o">-&gt;</span>
+<span class="w">            </span><span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;Received message 2: Greetings from msg2!</span><span class="si">~n</span><span class="s">&quot;</span><span class="p">),</span>
+<span class="w">            </span><span class="n">process</span><span class="p">()</span>
+<span class="w">        </span><span class="nv">Other</span><span class="w"> </span><span class="o">-&gt;</span>
+<span class="w">            </span><span class="nn">io</span><span class="p">:</span><span class="nf">format</span><span class="p">(</span><span class="s">&quot;Received unknown message. Terminating process!</span><span class="si">~n</span><span class="s">&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end</span><span class="p">.</span>
+
+<span class="nf">start</span><span class="p">()</span><span class="w"> </span><span class="o">-&gt;</span>
+<span class="w">    </span><span class="nv">Pid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">spawn</span><span class="p">(</span><span class="o">?</span><span class="nv">MODULE</span><span class="p">,</span><span class="w"> </span><span class="n">process</span><span class="p">,</span><span class="w"> </span><span class="p">[]),</span>
+<span class="w">    </span><span class="nv">Pid</span><span class="w"> </span><span class="o">!</span><span class="w"> </span><span class="p">{</span><span class="n">msg1</span><span class="p">,</span><span class="w"> </span><span class="p">[]},</span>
+<span class="w">    </span><span class="nv">Pid</span><span class="w"> </span><span class="o">!</span><span class="w"> </span><span class="p">{</span><span class="n">msg2</span><span class="p">,</span><span class="w"> </span><span class="p">[]}.</span>
+</pre></div>
+</div>
+<p>Here, you see that the language is around “processes” and “messages” and not
+“objects” and “methods”. The function <code class="docutils literal notranslate"><span class="pre">process</span></code> above is a pure function
+(Erlang is a pure functional “dynamically typed” programming language – i.e.
+where values have types, but not identifiers). A process is started simply
+by “spawning” a function. It is up to the process to decide how long it should
+stay alive. In this case, the process calls itself recursively and therefore will
+stay alive as long as one of the first two message formats are sent to it.
+Anything else will cause it to terminate (in the above <code class="docutils literal notranslate"><span class="pre">process</span></code> example).</p>
+<p>When you “spawn” a process, that is the equivalent of “creating an object”.
+You get a “Pid” (short for “process id”) using which you can send messages to
+the spawned process using the <code class="docutils literal notranslate"><span class="pre">!</span></code> operator.</p>
+<p>No code outside of a process has access to anything internal to the process,
+and each process comes with its own heap memory, so when a process terminates
+(either on its own or when forced to terminate by a “supervisor process”),
+all of its resources are released. This is well aligned with the notion of
+“encapsulation” outlined by Alan Kay in the talk we listened to in class.</p>
+</section>
 </section>
 
 
@@ -767,6 +988,12 @@ perform.</p>
 <li class="toctree-l2"><a class="reference internal" href="#uniformity-considerations">Uniformity considerations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#flipping-things-around">Flipping things around</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#miscellaneous-considerations">Miscellaneous considerations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples-from-oop-languages">Examples from OOP languages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-constructor-function">The “constructor” function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python">Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#objective-c">Objective-C</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#java-c-c">Java/C#/C++</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#erlang">Erlang</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="appsem.html">Alternative application semantics</a></li>

@@ -111,10 +111,10 @@ linguistic “object”) via “predicates”. For example, the triple <code cla
 <code class="docutils literal notranslate"><span class="pre">child23</span></code> is <code class="docutils literal notranslate"><span class="pre">adult42</span></code>. This relationship can be thought of as a
 labelled arrow from the child to the adult. This way, arbitrary graphs can be
 represented using such a triple store.</p>
-<figure class="align-center" id="id4">
+<figure class="align-center" id="id5">
 <img alt="A node-edge graph illustrating connections between a node representing a child and three nodes representing adults related to the child." src="_images/triple-store.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 5 </span><span class="caption-text">A triple store can be seen as a graph.</span><a class="headerlink" href="#id4" title="Link to this image">¶</a></p>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text">A triple store can be seen as a graph.</span><a class="headerlink" href="#id5" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>We’ll now model several “object orientedness” ideas based on such a triple
@@ -922,14 +922,23 @@ the usual “Class”/”Object” language used in “traditional” OOP langua
 <span class="w">    </span><span class="nv">Pid</span><span class="w"> </span><span class="o">!</span><span class="w"> </span><span class="p">{</span><span class="n">msg2</span><span class="p">,</span><span class="w"> </span><span class="p">[]}.</span>
 </pre></div>
 </div>
-<p>Here, you see that the language is around “processes” and “messages” and not
-“objects” and “methods”. The function <code class="docutils literal notranslate"><span class="pre">process</span></code> above is a pure function
-(Erlang is a pure functional “dynamically typed” programming language – i.e.
-where values have types, but not identifiers). A process is started simply
-by “spawning” a function. It is up to the process to decide how long it should
-stay alive. In this case, the process calls itself recursively and therefore will
-stay alive as long as one of the first two message formats are sent to it.
-Anything else will cause it to terminate (in the above <code class="docutils literal notranslate"><span class="pre">process</span></code> example).</p>
+<p>Here, you see that the language is around “concurrent processes” and “messages”
+and not “objects” and “methods”. The function <code class="docutils literal notranslate"><span class="pre">process</span></code> above is a pure
+function (Erlang is a pure functional “dynamically typed” programming language
+– i.e. where values have types, but not identifiers). A process is started
+by “spawning” a function. It is up to the process to decide how long it
+should stay alive. In this case, the process calls itself recursively and
+therefore will stay alive as long as one of the first two message formats are
+sent to it. <a class="footnote-reference brackets" href="#tco" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a> Anything else will cause it to terminate (in the above <code class="docutils literal notranslate"><span class="pre">process</span></code>
+example).</p>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="tco" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">4</a><span class="fn-bracket">]</span></span>
+<p>Note that such a non-terminating recursive call is possible without
+blowing the stack only if Erlang supports “proper tail calls”, which it
+therefore does.</p>
+</aside>
+</aside>
 <p>When you “spawn” a process, that is the equivalent of “creating an object”.
 You get a “Pid” (short for “process id”) using which you can send messages to
 the spawned process using the <code class="docutils literal notranslate"><span class="pre">!</span></code> operator.</p>

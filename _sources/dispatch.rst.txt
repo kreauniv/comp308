@@ -983,14 +983,19 @@ the usual "Class"/"Object" language used in "traditional" OOP languages.
         Pid ! {msg1, []},
         Pid ! {msg2, []}.
 
-Here, you see that the language is around "processes" and "messages" and not
-"objects" and "methods". The function ``process`` above is a pure function
-(Erlang is a pure functional "dynamically typed" programming language -- i.e.
-where values have types, but not identifiers). A process is started simply
-by "spawning" a function. It is up to the process to decide how long it should
-stay alive. In this case, the process calls itself recursively and therefore will
-stay alive as long as one of the first two message formats are sent to it.
-Anything else will cause it to terminate (in the above ``process`` example).
+Here, you see that the language is around "concurrent processes" and "messages"
+and not "objects" and "methods". The function ``process`` above is a pure
+function (Erlang is a pure functional "dynamically typed" programming language
+-- i.e. where values have types, but not identifiers). A process is started
+by "spawning" a function. It is up to the process to decide how long it
+should stay alive. In this case, the process calls itself recursively and
+therefore will stay alive as long as one of the first two message formats are
+sent to it. [#tco]_ Anything else will cause it to terminate (in the above ``process``
+example).
+
+.. [#tco] Note that such a non-terminating recursive call is possible without
+   blowing the stack only if Erlang supports "proper tail calls", which it
+   therefore does.
 
 When you "spawn" a process, that is the equivalent of "creating an object".
 You get a "Pid" (short for "process id") using which you can send messages to

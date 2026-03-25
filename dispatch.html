@@ -726,10 +726,6 @@ perform.</p>
 object” perspective. The following design that underlies the “class” syntax in
 ES6 and above. Instead of the explicit <code class="docutils literal notranslate"><span class="pre">self</span></code> argument we’ve used in our model,
 JS provides an implicit <code class="docutils literal notranslate"><span class="pre">this</span></code> within its function bodies.</p>
-</section>
-</section>
-<section id="the-constructor-function">
-<h2>The “constructor” function<a class="headerlink" href="#the-constructor-function" title="Link to this heading">¶</a></h2>
 <div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="kd">function</span><span class="w"> </span><span class="nx">Klass</span><span class="p">(</span><span class="nx">args</span><span class="p">...)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">  </span><span class="k">this</span><span class="p">.</span><span class="nx">field1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;initial value&quot;</span><span class="p">;</span>
 <span class="w">  </span><span class="k">this</span><span class="p">.</span><span class="nx">field2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">42</span><span class="p">;</span>
@@ -756,6 +752,29 @@ property or a method is specified using the <code class="docutils literal notran
 these <code class="docutils literal notranslate"><span class="pre">__proto__</span></code> objects is lookup for the definition – i.e., <code class="docutils literal notranslate"><span class="pre">a.b</span></code>,
 <code class="docutils literal notranslate"><span class="pre">a.__proto__.b</span></code>, <code class="docutils literal notranslate"><span class="pre">a.__proto__.__proto__.b</span></code> and so on – until one is found,
 or erroring out if no such property or method can be found.</p>
+<p>The following “class” declaration desugars to the above -</p>
+<div class="highlight-js notranslate"><div class="highlight"><pre><span></span><span class="kd">class</span><span class="w"> </span><span class="nx">Klass</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="kr">constructor</span><span class="p">(</span><span class="nx">args</span><span class="p">...)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">     </span><span class="k">this</span><span class="p">.</span><span class="nx">field1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;initial value&quot;</span><span class="p">,</span>
+<span class="w">     </span><span class="k">this</span><span class="p">.</span><span class="nx">field2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">42</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="w">   </span><span class="nx">method1</span><span class="p">(</span><span class="nx">args</span><span class="p">...)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">     </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Called Klass&#39; method1&quot;</span><span class="p">);</span>
+<span class="w">     </span><span class="c1">//...</span>
+<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="nx">result</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="w">   </span><span class="nx">method2</span><span class="p">(</span><span class="nx">args</span><span class="p">...)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">     </span><span class="c1">//...</span>
+<span class="w">     </span><span class="k">return</span><span class="w"> </span><span class="nx">result</span><span class="p">;</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="nx">obj1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">Klass</span><span class="p">(</span><span class="s2">&quot;one&quot;</span><span class="p">,</span><span class="w"> </span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="nx">three</span><span class="o">:</span><span class="w"> </span><span class="mf">3</span><span class="p">});</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">obj1</span><span class="p">.</span><span class="nx">field2</span><span class="p">);</span><span class="w"> </span><span class="c1">// prints 42</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">obj1</span><span class="p">.</span><span class="nx">method1</span><span class="p">(</span><span class="s2">&quot;param&quot;</span><span class="p">));</span><span class="w"> </span><span class="c1">// prints &quot;Called Klass&#39; method1&quot;</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="python">
 <h2>Python<a class="headerlink" href="#python" title="Link to this heading">¶</a></h2>
@@ -998,7 +1017,6 @@ all of its resources are released. This is well aligned with the notion of
 <li class="toctree-l2"><a class="reference internal" href="#flipping-things-around">Flipping things around</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#miscellaneous-considerations">Miscellaneous considerations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#examples-from-oop-languages">Examples from OOP languages</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#the-constructor-function">The “constructor” function</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#python">Python</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#objective-c">Objective-C</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#java-c-c">Java/C#/C++</a></li>

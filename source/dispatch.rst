@@ -772,9 +772,6 @@ object" perspective. The following design that underlies the "class" syntax in
 ES6 and above. Instead of the explicit ``self`` argument we've used in our model,
 JS provides an implicit ``this`` within its function bodies.
 
-The "constructor" function
---------------------------
-
 .. code:: js
 
    function Klass(args...) {
@@ -803,6 +800,29 @@ these ``__proto__`` objects is lookup for the definition -- i.e., ``a.b``,
 ``a.__proto__.b``, ``a.__proto__.__proto__.b`` and so on -- until one is found,
 or erroring out if no such property or method can be found.
 
+The following "class" declaration desugars to the above -
+
+.. code:: js
+
+   class Klass {
+      constructor(args...) {
+        this.field1 = "initial value",
+        this.field2 = 42;
+      }
+      method1(args...) {
+        console.log("Called Klass' method1");
+        //...
+        return result;
+      }
+      method2(args...) {
+        //...
+        return result;
+      }
+   }
+
+   let obj1 = new Klass("one", 2, {three: 3});
+   console.log(obj1.field2); // prints 42
+   console.log(obj1.method1("param")); // prints "Called Klass' method1"
 
 Python
 ------

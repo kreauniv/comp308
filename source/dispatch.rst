@@ -613,8 +613,17 @@ vector, and so on.
 In ``invoke2`` above, we're treating the method as the thing for which
 we're looking up properties against various nominal types (i.e. types by
 names). [#eq]_ The key is a compound object in this case, a list of two types
-(which could be symbols). We can now define methods for concatenating
-strings and integers perhaps using this approach --
+(which could be symbols). We can generalize this for N arguments.
+
+.. code:: racket
+
+    (define (invoke method . args)
+      (let* ([types (map typeof args)]
+             [method-impl (getprop method types)])
+          (apply method-impl types args)))
+
+We can now define methods for concatenating strings and integers perhaps using
+this approach --
 
 .. [#eq] Note that in ``getprop``, we used ``eq?`` to match the
    subject and ``equal?`` to match the predicate. The reason for that
@@ -639,6 +648,19 @@ strings and integers perhaps using this approach --
 
 Now we can add numbers and strings freely. Not that that's a good thing, but
 we can.
+
+.. admonition:: **Method resolution**
+
+   We used simple lookup in our "property list" structure, but 
+   the process of figuring out which of a collection of methods to call
+   can involve more sophisticated matching than just equality. For example,
+   if we've established a "subtyping" relationship between types --
+   i.e. an "A is a subtype of B" relationship between two types A and B --
+   we can match a method that is declared against supertypes when 
+   arguments have more specific types in the hierarchy. For example,
+   if a method is declared to work for Real numbers, then it can also
+   be used if an argument has an Int type.
+
 
 The interesting thing about this approach is that we're no longer forced to
 determine whether the code for adding a string with a number should go within

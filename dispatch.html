@@ -571,18 +571,18 @@ to add a complex number to a real number or multiply a real number with a
 vector, and so on.</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">typeof</span><span class="w"> </span><span class="n">obj</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">obj</span><span class="w"> </span><span class="o">&#39;</span><span class="ss">type</span><span class="p">))</span>
 
-<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">invoke2</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="n">obj1</span><span class="w"> </span><span class="n">obj2</span><span class="p">)</span>
-<span class="w">    </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="n">typeof</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="n">obj1</span><span class="w"> </span><span class="n">obj2</span><span class="p">)))</span>
+<span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">invoke2</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="n">obj1</span><span class="w"> </span><span class="n">obj2</span><span class="p">)</span>
+<span class="w">    </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="n">typeof</span><span class="w"> </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="n">obj1</span><span class="w"> </span><span class="n">obj2</span><span class="p">)))</span>
 <span class="w">        </span><span class="p">(</span><span class="nb">list</span><span class="w"> </span><span class="n">obj1</span><span class="w"> </span><span class="n">obj2</span><span class="p">)))</span>
 </pre></div>
 </div>
-<p>In <code class="docutils literal notranslate"><span class="pre">invoke2</span></code> above, we’re treating the method as the thing for which
+<p>In <code class="docutils literal notranslate"><span class="pre">invoke2</span></code> above, we’re treating the method-name as the thing for which
 we’re looking up properties against various nominal types (i.e. types by
 names). <a class="footnote-reference brackets" href="#eq" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> The key is a compound object in this case, a list of two types
 (which could be symbols). We can generalize this for N arguments.</p>
-<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">invoke</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
+<div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">invoke</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="o">.</span><span class="w"> </span><span class="n">args</span><span class="p">)</span>
 <span class="w">  </span><span class="p">(</span><span class="k">let*</span><span class="w"> </span><span class="p">([</span><span class="n">types</span><span class="w"> </span><span class="p">(</span><span class="nb">map</span><span class="w"> </span><span class="n">typeof</span><span class="w"> </span><span class="n">args</span><span class="p">)]</span>
-<span class="w">         </span><span class="p">[</span><span class="n">method-impl</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="n">types</span><span class="p">)])</span>
+<span class="w">         </span><span class="p">[</span><span class="n">method-impl</span><span class="w"> </span><span class="p">(</span><span class="n">getprop</span><span class="w"> </span><span class="n">method-name</span><span class="w"> </span><span class="n">types</span><span class="p">)])</span>
 <span class="w">      </span><span class="p">(</span><span class="nb">apply</span><span class="w"> </span><span class="n">method-impl</span><span class="w"> </span><span class="n">types</span><span class="w"> </span><span class="n">args</span><span class="p">)))</span>
 </pre></div>
 </div>
@@ -642,12 +642,12 @@ this approach beyond just 2 arguments. Julia is a programming language in which
 this notion of multiple argument dispatch, combined with type based method
 specialization and just-ahead-of-time compilation is used to generate highly
 efficient code for scientific computing applications. Julia gets around the
-problem of having to specify special method implementations for multiple
-combinations by permitting the definition of generic methods on which type
-specialization at call time can produce concrete types and methods at all the
-call points and therefore special methods that are consistent with the intent
-of the verb can be generated on demand.  For example, consider the following
-definition for a “squared distance” -</p>
+problem of having to specify special methods for multiple combinations by
+permitting the definition of generic methods on which type specialization at
+call time can produce concrete types and methods at all the call points and
+therefore special methods that are consistent with the intent of the verb can
+be generated on demand.  For example, consider the following definition for a
+“squared distance” -</p>
 <div class="highlight-racket notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="k">define</span><span class="w"> </span><span class="p">(</span><span class="n">sqdist</span><span class="w"> </span><span class="n">dx</span><span class="w"> </span><span class="n">dy</span><span class="p">)</span>
 <span class="w">    </span><span class="p">(</span><span class="nb">+</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="n">adj</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span><span class="w"> </span><span class="n">dx</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="nb">*</span><span class="w"> </span><span class="p">(</span><span class="n">adj</span><span class="w"> </span><span class="n">dy</span><span class="p">)</span><span class="w"> </span><span class="n">dy</span><span class="p">)))</span>
 </pre></div>

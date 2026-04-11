@@ -605,21 +605,21 @@ vector, and so on.
     
     (define (typeof obj) (getprop obj 'type))
 
-    (define (invoke2 method obj1 obj2)
-        (apply (getprop method (map typeof (list obj1 obj2)))
+    (define (invoke2 method-name obj1 obj2)
+        (apply (getprop method-name (map typeof (list obj1 obj2)))
             (list obj1 obj2)))
 
 
-In ``invoke2`` above, we're treating the method as the thing for which
+In ``invoke2`` above, we're treating the method-name as the thing for which
 we're looking up properties against various nominal types (i.e. types by
 names). [#eq]_ The key is a compound object in this case, a list of two types
 (which could be symbols). We can generalize this for N arguments.
 
 .. code:: racket
 
-    (define (invoke method . args)
+    (define (invoke method-name . args)
       (let* ([types (map typeof args)]
-             [method-impl (getprop method types)])
+             [method-impl (getprop method-name types)])
           (apply method-impl types args)))
 
 We can now define methods for concatenating strings and integers perhaps using
@@ -679,12 +679,12 @@ this approach beyond just 2 arguments. Julia is a programming language in which
 this notion of multiple argument dispatch, combined with type based method
 specialization and just-ahead-of-time compilation is used to generate highly
 efficient code for scientific computing applications. Julia gets around the
-problem of having to specify special method implementations for multiple
-combinations by permitting the definition of generic methods on which type
-specialization at call time can produce concrete types and methods at all the
-call points and therefore special methods that are consistent with the intent
-of the verb can be generated on demand.  For example, consider the following
-definition for a "squared distance" -
+problem of having to specify special methods for multiple combinations by
+permitting the definition of generic methods on which type specialization at
+call time can produce concrete types and methods at all the call points and
+therefore special methods that are consistent with the intent of the verb can
+be generated on demand.  For example, consider the following definition for a
+"squared distance" -
 
 .. code-block:: racket
 
